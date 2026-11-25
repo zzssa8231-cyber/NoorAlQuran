@@ -1362,6 +1362,90 @@ public class MainActivity extends Activity {
         try { speaker.setLanguage(new Locale("ar")); } catch (Exception ignored) {}
     }
 
+    void showKidsMemoryGame() {
+        setup();
+        addText("🧠 لعبة ذاكرة الأبطال", 27, Color.rgb(255, 215, 120));
+        addText("اقلب البطاقات وابحث عن صورتين متشابهتين. اجمع الأزواج الستة!", 15, Color.WHITE);
+        final String[] symbols = {"🦁","🌙","⭐","🕌","🌸","📖"};
+        final ArrayList<String> cards = new ArrayList<>();
+        for (String symbol : symbols) { cards.add(symbol); cards.add(symbol); }
+        Collections.shuffle(cards);
+        final boolean[] matched = new boolean[12];
+        final TextView[] tiles = new TextView[12];
+        final int[] firstPick = {-1};
+        final int[] moves = {0};
+        final int[] pairs = {0};
+        final TextView status = new TextView(this);
+        status.setText("الحركات: ٠   |   الأزواج: ٠ من ٦");
+        status.setTextColor(Color.rgb(255, 224, 157));
+        status.setTextSize(18);
+        status.setGravity(Gravity.CENTER);
+        status.setPadding(0, dp(12), 0, dp(12));
+        layout.addView(status);
+        GridLayout grid = new GridLayout(this);
+        grid.setColumnCount(3);
+        grid.setRowCount(4);
+        layout.addView(grid, new LinearLayout.LayoutParams(-1, -2));
+        final boolean[] waiting = {false};
+        for (int i = 0; i < 12; i++) {
+            final int index = i;
+            TextView tile = new TextView(this);
+            tiles[i] = tile;
+            tile.setText("؟");
+            tile.setTextSize(30);
+            tile.setTextColor(Color.WHITE);
+            tile.setGravity(Gravity.CENTER);
+            tile.setBackground(premiumBackground(Color.rgb(24, 76, 65), Color.rgb(218, 184, 111), 16));
+            GridLayout.LayoutParams params = new GridLayout.LayoutParams();
+            params.width = 0;
+            params.height = dp(88);
+            params.columnSpec = GridLayout.spec(i % 3, 1f);
+            params.setMargins(dp(5), dp(5), dp(5), dp(5));
+            grid.addView(tile, params);
+            tile.setOnClickListener(v -> {
+                if (waiting[0] || matched[index] || tile.getText().toString().equals(cards.get(index))) return;
+                tile.setText(cards.get(index));
+                tile.setBackground(premiumBackground(Color.rgb(54, 91, 69), Color.rgb(255, 224, 157), 16));
+                if (firstPick[0] == -1) {
+                    firstPick[0] = index;
+                } else {
+                    int previous = firstPick[0];
+                    firstPick[0] = -1;
+                    moves[0]++;
+                    if (cards.get(previous).equals(cards.get(index))) {
+                        matched[previous] = true;
+                        matched[index] = true;
+                        pairs[0]++;
+                        status.setText("الحركات: " + toArabicDigits(String.valueOf(moves[0])) + "   |   الأزواج: " + toArabicDigits(String.valueOf(pairs[0])) + " من ٦");
+                        tile.setBackground(premiumBackground(Color.rgb(35, 115, 76), Color.rgb(255, 224, 157), 16));
+                        tiles[previous].setBackground(premiumBackground(Color.rgb(35, 115, 76), Color.rgb(255, 224, 157), 16));
+                        if (pairs[0] == 6) {
+                            int best = getSharedPreferences("noor_kids_game", MODE_PRIVATE).getInt("best_moves", 0);
+                            if (best == 0 || moves[0] < best) getSharedPreferences("noor_kids_game", MODE_PRIVATE).edit().putInt("best_moves", moves[0]).apply();
+                            addText("🎉 أحسنت! وجدت كل الأزواج!", 21, Color.rgb(255, 215, 120));
+                            addText("أفضل نتيجة: " + toArabicDigits(String.valueOf(getSharedPreferences("noor_kids_game", MODE_PRIVATE).getInt("best_moves", moves[0]))) + " حركة", 15, Color.WHITE);
+                            addButton("العب مرة أخرى 🔄", this::showKidsMemoryGame);
+                        }
+                    } else {
+                        waiting[0] = true;
+                        status.setText("الحركات: " + toArabicDigits(String.valueOf(moves[0])) + "   |   حاول تذكر الصور!");
+                        new Handler().postDelayed(() -> {
+                            tiles[previous].setText("؟");
+                            tile.setText("؟");
+                            tiles[previous].setBackground(premiumBackground(Color.rgb(24, 76, 65), Color.rgb(218, 184, 111), 16));
+                            tile.setBackground(premiumBackground(Color.rgb(24, 76, 65), Color.rgb(218, 184, 111), 16));
+                            waiting[0] = false;
+                        }, 850);
+                    }
+                }
+            });
+        }
+        int best = getSharedPreferences("noor_kids_game", MODE_PRIVATE).getInt("best_moves", 0);
+        addText(best == 0 ? "ابدأ اللعب واكتشف ذاكرتك!" : "أفضل نتيجة سابقة: " + toArabicDigits(String.valueOf(best)) + " حركة", 14, Color.LTGRAY);
+        addButton("إعادة ترتيب البطاقات", this::showKidsMemoryGame);
+        addButton("العودة إلى عالم الأطفال", this::showKidsSection);
+    }
+
     void showKidsSection() {
         setup();
         addText("🌈 عالم نور للأطفال 🌈", 28, Color.rgb(255, 215, 120));
@@ -1378,6 +1462,8 @@ public class MainActivity extends Activity {
             Color.rgb(255, 231, 190), this::showKidsDrawing);
         addKidsCard("📚 أتعلم وأكتشف", "تعلم الحروف العربية والأرقام والألوان مع النطق الصوتي", "🔤",
             Color.rgb(220, 245, 230), this::showKidsLearning);
+        addKidsCard("🧠 لعبة ذاكرة الأبطال", "اقلب البطاقات وطابق الصور واجمع الأزواج الستة", "🎮",
+            Color.rgb(224, 232, 255), this::showKidsMemoryGame);
         addKidsCard("⭐ تحدي اليوم", "قريباً: أسئلة قرآنية ونقاط تشجيعية", "🏆",
             Color.rgb(255, 225, 218), () -> message("تحدي اليوم قيد التجهيز"));
         addText("أحسنت يا بطل! كل خطوة جميلة تقرّبك من الخير 💛", 16,
