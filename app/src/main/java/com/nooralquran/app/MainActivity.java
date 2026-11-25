@@ -1375,8 +1375,11 @@ public class MainActivity extends Activity {
         final int[] firstPick = {-1};
         final int[] moves = {0};
         final int[] pairs = {0};
+        final int[] mistakes = {0};
+        final int maxMistakes = 3;
+        final boolean[] gameOver = {false};
         final TextView status = new TextView(this);
-        status.setText("الحركات: ٠   |   الأزواج: ٠ من ٦");
+        status.setText("الأخطاء المتبقية: ٣   |   الحركات: ٠   |   الأزواج: ٠ من ٦");
         status.setTextColor(Color.rgb(255, 224, 157));
         status.setTextSize(18);
         status.setGravity(Gravity.CENTER);
@@ -1403,7 +1406,7 @@ public class MainActivity extends Activity {
             params.setMargins(dp(5), dp(5), dp(5), dp(5));
             grid.addView(tile, params);
             tile.setOnClickListener(v -> {
-                if (waiting[0] || matched[index] || tile.getText().toString().equals(cards.get(index))) return;
+                if (gameOver[0] || waiting[0] || matched[index] || tile.getText().toString().equals(cards.get(index))) return;
                 tile.setText(cards.get(index));
                 tile.setBackground(premiumBackground(Color.rgb(54, 91, 69), Color.rgb(255, 224, 157), 16));
                 if (firstPick[0] == -1) {
@@ -1416,7 +1419,7 @@ public class MainActivity extends Activity {
                         matched[previous] = true;
                         matched[index] = true;
                         pairs[0]++;
-                        status.setText("الحركات: " + toArabicDigits(String.valueOf(moves[0])) + "   |   الأزواج: " + toArabicDigits(String.valueOf(pairs[0])) + " من ٦");
+                        status.setText("الأخطاء المتبقية: " + toArabicDigits(String.valueOf(maxMistakes - mistakes[0])) + "   |   الحركات: " + toArabicDigits(String.valueOf(moves[0])) + "   |   الأزواج: " + toArabicDigits(String.valueOf(pairs[0])) + " من ٦");
                         tile.setBackground(premiumBackground(Color.rgb(35, 115, 76), Color.rgb(255, 224, 157), 16));
                         tiles[previous].setBackground(premiumBackground(Color.rgb(35, 115, 76), Color.rgb(255, 224, 157), 16));
                         if (pairs[0] == 6) {
@@ -1427,20 +1430,37 @@ public class MainActivity extends Activity {
                             addButton("العب مرة أخرى 🔄", this::showKidsMemoryGame);
                         }
                     } else {
+                        mistakes[0]++;
                         waiting[0] = true;
-                        status.setText("الحركات: " + toArabicDigits(String.valueOf(moves[0])) + "   |   حاول تذكر الصور!");
+                        int remaining = maxMistakes - mistakes[0];
+                        status.setText("❌ محاولة خاطئة! الأخطاء المتبقية: " + toArabicDigits(String.valueOf(Math.max(0, remaining)))
+                            + "   |   الحركات: " + toArabicDigits(String.valueOf(moves[0])));
                         new Handler().postDelayed(() -> {
                             tiles[previous].setText("؟");
                             tile.setText("؟");
                             tiles[previous].setBackground(premiumBackground(Color.rgb(24, 76, 65), Color.rgb(218, 184, 111), 16));
                             tile.setBackground(premiumBackground(Color.rgb(24, 76, 65), Color.rgb(218, 184, 111), 16));
                             waiting[0] = false;
+                            if (mistakes[0] >= maxMistakes) {
+                                gameOver[0] = true;
+                                for (TextView card : tiles) card.setEnabled(false);
+                                setup();
+                                addText("💔 انتهت اللعبة! نفدت محاولاتك", 24, Color.rgb(255, 190, 170));
+                                addText("جمعت " + toArabicDigits(String.valueOf(pairs[0])) + " من ٦ أزواج. ستبدأ من الصفر عند إعادة اللعب.", 17, Color.WHITE);
+                                addButton("ابدأ من الصفر 🔄", this::showKidsMemoryGame);
+                                addButton("العودة إلى عالم الأطفال", this::showKidsSection);
+                            } else {
+                                status.setText("الأخطاء المتبقية: " + toArabicDigits(String.valueOf(maxMistakes - mistakes[0]))
+                                    + "   |   الحركات: " + toArabicDigits(String.valueOf(moves[0]))
+                                    + "   |   الأزواج: " + toArabicDigits(String.valueOf(pairs[0])) + " من ٦");
+                            }
                         }, 850);
                     }
                 }
             });
         }
         int best = getSharedPreferences("noor_kids_game", MODE_PRIVATE).getInt("best_moves", 0);
+        addText("لديك ٣ أخطاء فقط؛ الخطأ الثالث ينهي الجولة ويعيدك إلى البداية.", 14, Color.rgb(255, 190, 170));
         addText(best == 0 ? "ابدأ اللعب واكتشف ذاكرتك!" : "أفضل نتيجة سابقة: " + toArabicDigits(String.valueOf(best)) + " حركة", 14, Color.LTGRAY);
         addButton("إعادة ترتيب البطاقات", this::showKidsMemoryGame);
         addButton("العودة إلى عالم الأطفال", this::showKidsSection);
@@ -2180,6 +2200,8 @@ public class MainActivity extends Activity {
     };
     int quizIndex = 0;
     int quizScore = 0;
+    int quizMistakes = 0;
+    final int quizMaxMistakes = 3;
     List<Integer> quizRoundIndices = new ArrayList<>();
     boolean quizAnswered = false;
     TextView quizFeedback;
@@ -2250,6 +2272,7 @@ public class MainActivity extends Activity {
     void startQuiz() {
         quizIndex = 0;
         quizScore = 0;
+        quizMistakes = 0;
         quizRoundIndices.clear();
         for (int i = 0; i < quizQuestions.length; i++) quizRoundIndices.add(i);
         Collections.shuffle(quizRoundIndices);
@@ -2263,6 +2286,7 @@ public class MainActivity extends Activity {
         layout.setPadding(dp(14), dp(12), dp(14), dp(22));
         addText("🏆 المسابقة القرآنية", 25, Color.rgb(242, 211, 145));
         addText("السؤال " + toArabicDigits(String.valueOf(quizIndex + 1)) + " من ١٠", 16, Color.WHITE);
+        addText("المحاولات الخاطئة المتبقية: " + toArabicDigits(String.valueOf(quizMaxMistakes - quizMistakes)) + " من ٣", 16, Color.rgb(255, 190, 170));
 
         android.widget.ProgressBar progress = new android.widget.ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
         progress.setMax(10);
@@ -2315,16 +2339,34 @@ public class MainActivity extends Activity {
                     quizFeedback.setText("إجابة صحيحة! +١٠ نقاط\n" + quizExplanations[questionId]);
                 } else {
                     option.setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.rgb(145, 65, 55)));
-                    quizFeedback.setText("ليست الإجابة الصحيحة. الإجابة: " + quizOptions[questionId][quizCorrect[questionId]]
-                        + "\n" + quizExplanations[quizIndex]);
+                    quizMistakes++;
+                    int remaining = quizMaxMistakes - quizMistakes;
+                    quizFeedback.setText("❌ إجابة خاطئة! المتبقي من الأخطاء: " + toArabicDigits(String.valueOf(Math.max(0, remaining)))
+                        + "\nالإجابة الصحيحة: " + quizOptions[questionId][quizCorrect[questionId]]
+                        + "\n" + quizExplanations[questionId]);
                 }
-                addButton(quizIndex == quizRoundIndices.size() - 1 ? "عرض النتيجة 🏆" : "السؤال التالي ←", () -> {
-                    if (quizIndex == quizRoundIndices.size() - 1) finishQuiz();
-                    else { quizIndex++; showQuizQuestion(); }
-                });
+                if (quizMistakes >= quizMaxMistakes) {
+                    addButton("عرض نتيجة الخسارة", this::failQuiz);
+                } else {
+                    addButton(quizIndex == quizRoundIndices.size() - 1 ? "عرض النتيجة 🏆" : "السؤال التالي ←", () -> {
+                        if (quizIndex == quizRoundIndices.size() - 1) finishQuiz();
+                        else { quizIndex++; showQuizQuestion(); }
+                    });
+                }
             });
         }
         addButton("إنهاء المسابقة", this::showCompetitions);
+    }
+
+    void failQuiz() {
+        int oldPoints = getSharedPreferences("noor_quiz", MODE_PRIVATE).getInt("points", 0);
+        setup();
+        layout.setPadding(dp(14), dp(16), dp(14), dp(22));
+        addText("💔 خسرت المسابقة!", 27, Color.rgb(255, 180, 160));
+        addText("نفدت محاولاتك الخاطئة الثلاث. عادت الجولة إلى المستوى الأول.", 17, Color.WHITE);
+        addText("نقاط هذه الجولة: صفر • رصيدك السابق محفوظ: " + toArabicDigits(String.valueOf(oldPoints)), 16, Color.rgb(255, 224, 157));
+        addButton("ابدأ من الصفر 🔄", this::startQuiz);
+        addButton("العودة للمسابقات", this::showCompetitions);
     }
 
     void finishQuiz() {
