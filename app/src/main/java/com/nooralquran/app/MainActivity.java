@@ -190,7 +190,7 @@ public class MainActivity extends Activity {
         ScrollView scroll = new ScrollView(this);
         layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
-        layout.setGravity(Gravity.CENTER);
+        layout.setGravity(Gravity.TOP | Gravity.CENTER_HORIZONTAL);
         layout.setPadding(20, 25, 20, 25);
         layout.setBackgroundColor(Color.rgb(12, 45, 42));
         scroll.addView(layout);
@@ -513,16 +513,63 @@ public class MainActivity extends Activity {
 
     void home() {
         setup();
-        addText("۞ نُورُ القُرآن ۞", 32, Color.rgb(242,211,145));
-        addText("رفيقك اليومي للقرآن والذكر والطمأنينة", 15, Color.WHITE);
+        layout.setPadding(dp(14), dp(10), dp(14), dp(22));
+
+        // Premium welcome banner
+        LinearLayout hero = new LinearLayout(this);
+        hero.setOrientation(LinearLayout.VERTICAL);
+        hero.setGravity(Gravity.CENTER);
+        hero.setPadding(dp(18), dp(24), dp(18), dp(22));
+        GradientDrawable heroBg = new GradientDrawable(
+            GradientDrawable.Orientation.TL_BR,
+            new int[]{Color.rgb(31, 91, 75), Color.rgb(10, 43, 39), Color.rgb(7, 31, 30)}
+        );
+        heroBg.setCornerRadius(dp(26));
+        heroBg.setStroke(dp(2), Color.rgb(218, 184, 111));
+        hero.setBackground(heroBg);
+        if (android.os.Build.VERSION.SDK_INT >= 21) hero.setElevation(dp(7));
+
+        TextView ornament = new TextView(this);
+        ornament.setText("۞  ✦  ☾  ✦  ۞");
+        ornament.setTextColor(Color.rgb(231, 198, 125));
+        ornament.setTextSize(19);
+        ornament.setGravity(Gravity.CENTER);
+        hero.addView(ornament);
+
+        TextView logo = new TextView(this);
+        logo.setText("نُــورُ القُــرآن");
+        logo.setTextColor(Color.rgb(255, 229, 170));
+        logo.setTextSize(34);
+        logo.setTypeface(android.graphics.Typeface.SERIF, android.graphics.Typeface.BOLD);
+        logo.setGravity(Gravity.CENTER);
+        logo.setPadding(0, dp(8), 0, dp(5));
+        hero.addView(logo);
+
+        TextView tagline = new TextView(this);
+        tagline.setText("رفيقك إلى السكينة • تلاوة وذكر وطمأنينة");
+        tagline.setTextColor(Color.rgb(245, 239, 220));
+        tagline.setTextSize(13);
+        tagline.setGravity(Gravity.CENTER);
+        hero.addView(tagline);
+
+        TextView welcome = new TextView(this);
+        welcome.setText("أهلاً بك في رحاب القرآن الكريم");
+        welcome.setTextColor(Color.rgb(231, 198, 125));
+        welcome.setTextSize(15);
+        welcome.setGravity(Gravity.CENTER);
+        welcome.setPadding(0, dp(13), 0, 0);
+        hero.addView(welcome);
+        layout.addView(hero, new LinearLayout.LayoutParams(-1, -2));
 
         LinearLayout datePanel = new LinearLayout(this);
         datePanel.setOrientation(LinearLayout.VERTICAL);
         datePanel.setGravity(Gravity.CENTER);
         datePanel.setPadding(dp(12), dp(12), dp(12), dp(12));
-        datePanel.setBackground(premiumBackground(Color.rgb(20,63,56), Color.rgb(205,170,94), 18));
+        datePanel.setBackground(premiumBackground(Color.rgb(18, 57, 51), Color.rgb(177, 145, 78), 19));
+        LinearLayout.LayoutParams dateParams = new LinearLayout.LayoutParams(-1, -2);
+        dateParams.setMargins(0, dp(12), 0, dp(8));
         homeClock = new TextView(this);
-        homeClock.setTextColor(Color.rgb(255,224,157));
+        homeClock.setTextColor(Color.rgb(255, 224, 157));
         homeClock.setTextSize(23);
         homeClock.setGravity(Gravity.CENTER);
         datePanel.addView(homeClock);
@@ -533,50 +580,69 @@ public class MainActivity extends Activity {
         homeDate.setPadding(4, dp(6), 4, dp(4));
         datePanel.addView(homeDate);
         hijriDateView = new TextView(this);
-        hijriDateView.setText("التاريخ الهجري: جارٍ التحميل...");
-        hijriDateView.setTextColor(Color.rgb(242,211,145));
-        hijriDateView.setTextSize(15);
+        hijriDateView.setText("التاريخ الهجري: يظهر مع تحديث مواقيت الصلاة");
+        hijriDateView.setTextColor(Color.rgb(242, 211, 145));
+        hijriDateView.setTextSize(14);
         hijriDateView.setGravity(Gravity.CENTER);
         datePanel.addView(hijriDateView);
-        layout.addView(datePanel, new LinearLayout.LayoutParams(-1, -2));
+        layout.addView(datePanel, dateParams);
         startHomeClock();
 
-        addAdultCard("🌿 ورد اليوم: " + todayArabicName(), "دعاء اليوم وزيارته ومناجاته في صفحة واحدة", this::showTodayDevotions);
-        addText("اختر وجهتك", 20, Color.rgb(242,211,145));
+        addAdultCard("🌿 ورد اليوم: " + todayArabicName(),
+            "دعاء اليوم وزيارته ومناجاته في صفحة واحدة", this::showTodayDevotions);
+
+        TextView sectionTitle = new TextView(this);
+        sectionTitle.setText("✧  اكتشف أقسام نور القرآن  ✧");
+        sectionTitle.setTextColor(Color.rgb(255, 224, 157));
+        sectionTitle.setTextSize(20);
+        sectionTitle.setTypeface(null, android.graphics.Typeface.BOLD);
+        sectionTitle.setGravity(Gravity.CENTER);
+        sectionTitle.setPadding(4, dp(16), 4, dp(8));
+        layout.addView(sectionTitle);
+
         android.widget.GridLayout grid = new android.widget.GridLayout(this);
         grid.setColumnCount(2);
-        grid.setPadding(0, dp(4), 0, dp(4));
+        grid.setPadding(0, dp(2), 0, dp(8));
         layout.addView(grid, new LinearLayout.LayoutParams(-1, -2));
         addHomeTile(grid, "📖", "القرآن الكريم", "قراءة السور", this::showSurahs, Color.rgb(24,76,64));
         addHomeTile(grid, "🎧", "التلاوة والاستماع", "خمسة قراء", this::audioScreen, Color.rgb(27,72,78));
-        addHomeTile(grid, "🕌", "مواقيت الصلاة", "كل محافظات العراق", this::showPrayerTimes, Color.rgb(31,70,58));
-        addHomeTile(grid, "🤲", "الأدعية والزيارات", "أيام الأسبوع وأهل البيت", this::showWeeklyDuasVisits, Color.rgb(56,62,78));
-        addHomeTile(grid, "👨‍👩‍👧", "قسم الكبار", "مزايا العبادة اليومية", this::showAdultSection, Color.rgb(53,67,59));
+        addHomeTile(grid, "🕌", "مواقيت الصلاة", "محافظات العراق", this::showPrayerTimes, Color.rgb(31,70,58));
+        addHomeTile(grid, "🤲", "الأدعية والزيارات", "أذكار ومناجاة", this::showWeeklyDuasVisits, Color.rgb(56,62,78));
+        addHomeTile(grid, "👨‍👩‍👧", "قسم الكبار", "عبادات يومية", this::showAdultSection, Color.rgb(53,67,59));
         addHomeTile(grid, "🧒", "عالم الأطفال", "تعلم ومرح", this::showKidsSection, Color.rgb(58,69,75));
         addHomeTile(grid, "📿", "المسبحة", "تسبيح واستغفار", this::tasbeeh, Color.rgb(53,62,76));
-        addHomeTile(grid, "💰", "حاسبة الزكاة", "احسب زكاتك", this::zakat, Color.rgb(62,65,52));
+        addHomeTile(grid, "💰", "حاسبة الزكاة", "حساب الزكاة", this::zakat, Color.rgb(62,65,52));
         addHomeTile(grid, "✨", "أسماء الله الحسنى", "تأمل وتدبر", this::showNamesOfAllah, Color.rgb(46,70,68));
         addHomeTile(grid, "🏆", "المسابقات", "أسئلة قرآنية", () -> message("المسابقات قيد التجهيز"), Color.rgb(63,60,76));
 
         LinearLayout prayerPreview = new LinearLayout(this);
         prayerPreview.setOrientation(LinearLayout.VERTICAL);
-        prayerPreview.setPadding(dp(12), dp(10), dp(12), dp(10));
-        prayerPreview.setBackground(premiumBackground(Color.rgb(20,63,56), Color.rgb(205,170,94), 18));
+        prayerPreview.setGravity(Gravity.CENTER);
+        prayerPreview.setPadding(dp(14), dp(14), dp(14), dp(14));
+        prayerPreview.setBackground(premiumBackground(Color.rgb(18,57,51), Color.rgb(205,170,94), 20));
         TextView place = new TextView(this);
-        place.setText("مواقيت الصلاة - " + selectedGovernorate);
+        place.setText("🕌  مواقيت الصلاة • " + selectedGovernorate);
         place.setTextColor(Color.rgb(255,224,157));
-        place.setTextSize(17);
+        place.setTextSize(18);
         place.setGravity(Gravity.CENTER);
         prayerPreview.addView(place);
         prayerStatus = new TextView(this);
-        prayerStatus.setText("اضغط على مواقيت الصلاة لعرض الجدول اليومي");
+        prayerStatus.setText("تابع مواقيت الصلاة اليومية حسب محافظتك");
         prayerStatus.setTextColor(Color.WHITE);
+        prayerStatus.setTextSize(14);
         prayerStatus.setGravity(Gravity.CENTER);
-        prayerStatus.setPadding(4, dp(6), 4, dp(4));
+        prayerStatus.setPadding(4, dp(8), 4, dp(4));
         prayerPreview.addView(prayerStatus);
         layout.addView(prayerPreview, new LinearLayout.LayoutParams(-1, -2));
         addButton("عرض جدول مواقيت الصلاة", this::showPrayerTimes);
-        addText("اللهم اجعل القرآن ربيع قلوبنا ونور صدورنا", 15, Color.rgb(242,211,145));
+
+        TextView closing = new TextView(this);
+        closing.setText("اللهم اجعل القرآن ربيع قلوبنا ونور صدورنا");
+        closing.setTextColor(Color.rgb(242,211,145));
+        closing.setTextSize(15);
+        closing.setGravity(Gravity.CENTER);
+        closing.setPadding(8, dp(18), 8, dp(8));
+        layout.addView(closing);
     }
 
     void showPrayerTimes() {
