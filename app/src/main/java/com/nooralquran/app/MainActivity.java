@@ -1466,6 +1466,37 @@ public class MainActivity extends Activity {
         addButton("العودة إلى عالم الأطفال", this::showKidsSection);
     }
 
+    void showKidsAcademy() {
+        setup();
+        addText("🎓 أكاديمية نور للأطفال", 28, Color.rgb(255, 215, 120));
+        addText("مسارات تعليمية ممتعة للحروف العربية والتلاوة والألعاب", 16, Color.WHITE);
+        addText("🌱 دروس مجانية للتجربة", 21, Color.rgb(255, 225, 160));
+        addKidsCard("🔤 الحروف العربية", "تعلم الحروف مع النطق والأمثلة", "📚",
+            Color.rgb(220, 245, 230), this::showKidsLearning);
+        addKidsCard("🎧 الاستماع والتلاوة", "استمع إلى القرآن واختر القارئ والسورة", "📖",
+            Color.rgb(220, 235, 255), this::audioScreen);
+        addKidsCard("🧠 لعبة الذاكرة", "تدرب على التركيز ومطابقة الصور", "🎮",
+            Color.rgb(224, 232, 255), this::showKidsMemoryGame);
+        addText("⭐ مسارات نور بلس التعليمية", 21, Color.rgb(255, 225, 160));
+        addKidsCard("✍️ الحروف والكتابة المتقدمة", "تمارين كتابة وتتبع الحروف والكلمات مع مستويات", "🔒",
+            Color.rgb(255, 238, 202), this::showKidsPremiumInfo);
+        addKidsCard("🕌 تعلّم التلاوة والتجويد", "دروس صوتية متدرجة ومراجعة مخارج الحروف وأحكام التجويد", "🔒",
+            Color.rgb(244, 226, 250), this::showKidsPremiumInfo);
+        addKidsCard("🏆 ألعاب وتحديات تعليمية", "مراحل وأسئلة ومكافآت تعليمية لمراجعة ما تعلمه الطفل", "🔒",
+            Color.rgb(255, 231, 190), this::showKidsPremiumInfo);
+        addText("المحتوى المميز سيُفتح بعد تفعيل الاشتراك والدفع الرسمي. لا توجد عملية دفع مفعّلة في هذه النسخة حالياً.", 14, Color.LTGRAY);
+        addButton("العودة إلى عالم الأطفال", this::showKidsSection);
+        addButton("العودة للرئيسية", this::home);
+    }
+
+    void showKidsPremiumInfo() {
+        setup();
+        addText("⭐ محتوى نور بلس للأطفال", 26, Color.rgb(255, 215, 120));
+        addText("هذا المسار مخصص للمشتركين، وسيضم دروساً متدرجة وتمارين تفاعلية وألعاباً تعليمية.", 17, Color.WHITE);
+        addText("🔒 الشراء غير مفعّل بعد. نحتاج أولاً إلى إنشاء منتج الاشتراك في Google Play Console وربط Google Play Billing والتحقق من عملية الشراء قبل فتح الدروس المدفوعة.", 15, Color.rgb(255, 225, 160));
+        addButton("العودة إلى الأكاديمية", this::showKidsAcademy);
+    }
+
     void showKidsSection() {
         setup();
         addText("🌈 عالم نور للأطفال 🌈", 28, Color.rgb(255, 215, 120));
@@ -1484,6 +1515,8 @@ public class MainActivity extends Activity {
             Color.rgb(220, 245, 230), this::showKidsLearning);
         addKidsCard("🧠 لعبة ذاكرة الأبطال", "اقلب البطاقات وطابق الصور واجمع الأزواج الستة", "🎮",
             Color.rgb(224, 232, 255), this::showKidsMemoryGame);
+        addKidsCard("🎓 أكاديمية نور للأطفال", "دروس حروف وتلاوة وألعاب تعليمية مع مسارات نور بلس", "⭐",
+            Color.rgb(255, 226, 185), this::showKidsAcademy);
         addKidsCard("⭐ تحدي اليوم", "قريباً: أسئلة قرآنية ونقاط تشجيعية", "🏆",
             Color.rgb(255, 225, 218), () -> message("تحدي اليوم قيد التجهيز"));
         addText("أحسنت يا بطل! كل خطوة جميلة تقرّبك من الخير 💛", 16,
