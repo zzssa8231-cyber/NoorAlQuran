@@ -4,6 +4,7 @@ package com.nooralquran.app;
 import android.app.Activity;
 import android.os.Bundle;
 import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.*;
@@ -118,6 +119,29 @@ public class MainActivity extends Activity {
         layout.addView(text);
     }
 
+
+    void addVerseCard(String value) {
+        TextView text = new TextView(this);
+        text.setText(value);
+        text.setTextSize(24);
+        text.setTextColor(Color.rgb(248, 235, 202));
+        text.setGravity(Gravity.CENTER);
+        text.setTextDirection(View.TEXT_DIRECTION_RTL);
+        text.setLineSpacing(12, 1.15f);
+        text.setPadding(18, 22, 18, 22);
+
+        GradientDrawable card = new GradientDrawable();
+        card.setColor(Color.rgb(20, 63, 56));
+        card.setCornerRadius(22);
+        card.setStroke(2, Color.rgb(190, 158, 87));
+        text.setBackground(card);
+
+        LinearLayout.LayoutParams params =
+            new LinearLayout.LayoutParams(-1, -2);
+        params.setMargins(0, 10, 0, 10);
+        layout.addView(text, params);
+    }
+
     void addButton(String value, Runnable action) {
         Button button = new Button(this);
         button.setText(value);
@@ -169,8 +193,7 @@ public class MainActivity extends Activity {
         int found = 0;
         for (String[] verse : verses) {
             if (Integer.parseInt(verse[0]) == number) {
-                addText(formatVerse(verse[2], verse[1]),
-                    23, Color.WHITE);
+                addVerseCard(formatVerse(verse[2], verse[1]));
                 found++;
             }
         }
@@ -190,7 +213,7 @@ public class MainActivity extends Activity {
             if (rest.isEmpty()) {
                 return basmala + "   (" + verseNumber + ")";
             }
-            return basmala + "\\n۞ ﴿" + rest + "﴾ ۞   (" + verseNumber + ")";
+            return basmala + "\n۞ ﴿" + rest + "﴾ ۞   (" + verseNumber + ")";
         }
 
         return "۞ ﴿" + text + "﴾ ۞   (" + verseNumber + ")";
