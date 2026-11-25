@@ -94,8 +94,49 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         selectedGovernorate = getSharedPreferences("noor_prefs", MODE_PRIVATE).getString("governorate", "بابل");
         prayerCalculationMethod = getSharedPreferences("noor_prefs", MODE_PRIVATE).getInt("prayer_method", 0);
-        loadQuran();
-        home();
+        try {
+            loadQuran();
+            home();
+        } catch (Throwable error) {
+            showStartupError(error);
+        }
+    }
+
+    void showStartupError(Throwable error) {
+        LinearLayout screen = new LinearLayout(this);
+        screen.setOrientation(LinearLayout.VERTICAL);
+        screen.setGravity(Gravity.CENTER);
+        screen.setPadding(24, 24, 24, 24);
+        screen.setBackgroundColor(Color.rgb(12, 45, 42));
+
+        TextView title = new TextView(this);
+        title.setText("تعذر تشغيل واجهة نور القرآن");
+        title.setTextColor(Color.rgb(255, 224, 157));
+        title.setTextSize(22);
+        title.setGravity(Gravity.CENTER);
+        screen.addView(title);
+
+        TextView detail = new TextView(this);
+        String message = error.getClass().getSimpleName() + ": " + String.valueOf(error.getMessage());
+        detail.setText("سبب الخطأ:\\n" + message + "\\n\\nأرسل هذه الرسالة لي حتى أصلح المشكلة.");
+        detail.setTextColor(Color.WHITE);
+        detail.setTextSize(15);
+        detail.setGravity(Gravity.CENTER);
+        detail.setPadding(8, 20, 8, 20);
+        screen.addView(detail);
+
+        Button retry = new Button(this);
+        retry.setText("إعادة المحاولة");
+        screen.addView(retry);
+        retry.setOnClickListener(v -> {
+            try {
+                loadQuran();
+                home();
+            } catch (Throwable nextError) {
+                showStartupError(nextError);
+            }
+        });
+        setContentView(screen);
     }
 
     void loadQuran() {
