@@ -1630,9 +1630,106 @@ public class MainActivity extends Activity {
         addAdultCard("🤲 أدعية من القرآن", "أدعية قرآنية مع مواضعها", this::showQuranDuas);
         addAdultCard("🗓️ خطة عبادتي اليومية", "ضع علامة على ما أنجزته اليوم", this::showDailyPlan);
         addAdultCard("🎓 أكاديمية نور بلس للكبار", "تعلم التلاوة والتجويد والحفظ والمراجعة", this::showAdultsAcademy);
+        addAdultCard("👩‍🏫 معلّمو نور القرآن", "احجز درساً خاصاً أو قدّم طلب الانضمام معلّماً بمقابل مالي", this::showTeacherHub);
         addText("اجعل لك وقتاً ثابتاً للقرآن والذكر والعمل الصالح", 14,
             Color.rgb(238, 204, 125));
         addButton("العودة للرئيسية", this::home);
+    }
+
+    void showTeacherHub() {
+        setup();
+        addText("👩‍🏫 معلّمو نور القرآن", 28, Color.rgb(242,211,145));
+        addText("دروس فردية مدفوعة للكبار والأطفال مع معلّمين يتم التحقق من مؤهلاتهم قبل اعتمادهم.", 16, Color.WHITE);
+        addAdultCard("📚 احجز درساً", "تجويد • تصحيح قراءة • مخارج الحروف • حفظ ومراجعة", this::showLessonRequest);
+        addAdultCard("📝 انضم إلينا معلّماً", "قدّم بياناتك وتخصصك وخبرتك لمراجعتها", this::showTeacherApplication);
+        addText("الأسعار والمواعيد تُحدد مع المعلّم بعد قبول الطلب. لا يوجد تحصيل إلكتروني داخل التطبيق حالياً، ولا يتم تأكيد الحجز أو الدفع تلقائياً.", 13, Color.rgb(238,204,125));
+        addButton("العودة إلى قسم الكبار", this::showAdultSection);
+    }
+
+    EditText teacherInput(String hint) {
+        EditText field = new EditText(this);
+        field.setHint(hint);
+        field.setTextColor(Color.WHITE);
+        field.setHintTextColor(Color.LTGRAY);
+        field.setSingleLine(true);
+        field.setPadding(16, 10, 16, 10);
+        layout.addView(field, new LinearLayout.LayoutParams(-1, -2));
+        return field;
+    }
+
+    Spinner teacherSpinner(String[] values) {
+        Spinner spinner = new Spinner(this);
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, values);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(adapter);
+        layout.addView(spinner, new LinearLayout.LayoutParams(-1, -2));
+        return spinner;
+    }
+
+    void showLessonRequest() {
+        setup();
+        addText("📚 طلب حجز درس مدفوع", 25, Color.rgb(242,211,145));
+        addText("املأ البيانات وسنرسل طلبك للمراجعة والتواصل معك.", 14, Color.WHITE);
+        EditText student = teacherInput("اسم الطالب أو ولي الأمر");
+        EditText phone = teacherInput("رقم الهاتف مع رمز الدولة");
+        Spinner audience = teacherSpinner(new String[]{"الفئة: اختر","للكبار","للأطفال"});
+        Spinner subject = teacherSpinner(new String[]{"نوع الدرس","تعليم القراءة","تصحيح التلاوة ومخارج الحروف","أحكام التجويد","الحفظ والمراجعة"});
+        Spinner mode = teacherSpinner(new String[]{"طريقة الدرس","عن بُعد عبر اتصال","حضوري بعد الاتفاق"});
+        EditText time = teacherInput("الوقت المناسب للتواصل");
+        EditText note = teacherInput("ملاحظات إضافية (اختياري)");
+        addButton("إرسال طلب الحجز", () -> {
+            String name=student.getText().toString().trim(), mobile=phone.getText().toString().trim();
+            if(name.isEmpty() || mobile.isEmpty() || audience.getSelectedItemPosition()==0 || subject.getSelectedItemPosition()==0 || mode.getSelectedItemPosition()==0) {
+                message("أكمل الاسم والهاتف والفئة ونوع الدرس وطريقته أولاً."); return;
+            }
+            Map<String,Object> data=new HashMap<>();
+            data.put("studentOrGuardian",name); data.put("phone",mobile);
+            data.put("audience",audience.getSelectedItem().toString());
+            data.put("subject",subject.getSelectedItem().toString());
+            data.put("lessonMode",mode.getSelectedItem().toString());
+            data.put("preferredTime",time.getText().toString().trim());
+            data.put("note",note.getText().toString().trim());
+            data.put("status","pending_review"); data.put("createdAt",System.currentTimeMillis());
+            ensureFirebaseLogin(() -> FirebaseDatabase.getInstance(FIREBASE_DATABASE_URL).getReference("teacherLessonRequests")
+                .push().setValue(data).addOnCompleteListener(task -> {
+                    if(task.isSuccessful()) { message("تم إرسال طلبك للمراجعة. سنتواصل معك بعد توفر معلّم مناسب."); showTeacherHub(); }
+                    else message("تعذر إرسال الطلب. تحقق من اتصال الإنترنت وصلاحيات قاعدة البيانات.");
+                }));
+        });
+        addButton("رجوع", this::showTeacherHub);
+    }
+
+    void showTeacherApplication() {
+        setup();
+        addText("📝 طلب الانضمام معلّماً", 25, Color.rgb(242,211,145));
+        addText("لا يُعرض أي معلّم للطلاب قبل مراجعة بياناته ومؤهلاته.", 14, Color.WHITE);
+        EditText name=teacherInput("الاسم الكامل");
+        EditText phone=teacherInput("رقم الهاتف");
+        EditText city=teacherInput("المحافظة / المدينة");
+        Spinner specialty=teacherSpinner(new String[]{"التخصص","تعليم القراءة","التجويد ومخارج الحروف","الحفظ والتحفيظ","أكثر من تخصص"});
+        EditText experience=teacherInput("سنوات الخبرة");
+        EditText qualification=teacherInput("الشهادة أو الإجازة أو المؤهل");
+        EditText price=teacherInput("السعر المقترح للدرس بالدينار العراقي");
+        EditText details=teacherInput("نبذة عنك وطريقة التدريس");
+        addButton("إرسال طلب الانضمام", () -> {
+            if(name.getText().toString().trim().isEmpty() || phone.getText().toString().trim().isEmpty() ||
+                city.getText().toString().trim().isEmpty() || specialty.getSelectedItemPosition()==0 ||
+                qualification.getText().toString().trim().isEmpty()) {
+                message("أكمل الاسم والهاتف والمدينة والتخصص والمؤهل."); return;
+            }
+            Map<String,Object> data=new HashMap<>();
+            data.put("name",name.getText().toString().trim()); data.put("phone",phone.getText().toString().trim());
+            data.put("city",city.getText().toString().trim()); data.put("specialty",specialty.getSelectedItem().toString());
+            data.put("experience",experience.getText().toString().trim()); data.put("qualification",qualification.getText().toString().trim());
+            data.put("proposedPriceIQD",price.getText().toString().trim()); data.put("details",details.getText().toString().trim());
+            data.put("status","pending_verification"); data.put("createdAt",System.currentTimeMillis());
+            ensureFirebaseLogin(() -> FirebaseDatabase.getInstance(FIREBASE_DATABASE_URL).getReference("teacherApplications")
+                .push().setValue(data).addOnCompleteListener(task -> {
+                    if(task.isSuccessful()) { message("وصل طلبك. ستتم مراجعة المؤهلات قبل اعتماد الحساب."); showTeacherHub(); }
+                    else message("تعذر إرسال الطلب. تحقق من اتصال الإنترنت وصلاحيات قاعدة البيانات.");
+                }));
+        });
+        addButton("رجوع", this::showTeacherHub);
     }
 
     void continueReading() {
