@@ -152,6 +152,7 @@ public class MainActivity extends Activity {
         layout.setGravity(Gravity.CENTER);
         layout.setPadding(20, 25, 20, 25);
         layout.setBackgroundColor(Color.rgb(12, 45, 42));
+        scroll.addView(layout);
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
         root.setBackgroundColor(Color.rgb(12,45,42));
