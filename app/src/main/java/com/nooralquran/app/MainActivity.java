@@ -1639,7 +1639,7 @@ public class MainActivity extends Activity {
     void showTeacherHub() {
         setup();
         addText("👩‍🏫 معلّمو نور القرآن", 28, Color.rgb(242,211,145));
-        addText("دروس فردية مدفوعة للكبار والأطفال مع معلّمين يتم التحقق من مؤهلاتهم قبل اعتمادهم.", 16, Color.WHITE);
+        addText("دروس فردية مدفوعة عن بُعد فقط للكبار والأطفال، مع معلّمين يتم التحقق من مؤهلاتهم قبل اعتمادهم.", 16, Color.WHITE);
         addAdultCard("📚 احجز درساً", "تجويد • تصحيح قراءة • مخارج الحروف • حفظ ومراجعة", this::showLessonRequest);
         addAdultCard("📝 انضم إلينا معلّماً", "قدّم بياناتك وتخصصك وخبرتك لمراجعتها", this::showTeacherApplication);
         addText("الأسعار والمواعيد تُحدد مع المعلّم بعد قبول الطلب. لا يوجد تحصيل إلكتروني داخل التطبيق حالياً، ولا يتم تأكيد الحجز أو الدفع تلقائياً.", 13, Color.rgb(238,204,125));
@@ -1674,19 +1674,19 @@ public class MainActivity extends Activity {
         EditText phone = teacherInput("رقم الهاتف مع رمز الدولة");
         Spinner audience = teacherSpinner(new String[]{"الفئة: اختر","للكبار","للأطفال"});
         Spinner subject = teacherSpinner(new String[]{"نوع الدرس","تعليم القراءة","تصحيح التلاوة ومخارج الحروف","أحكام التجويد","الحفظ والمراجعة"});
-        Spinner mode = teacherSpinner(new String[]{"طريقة الدرس","عن بُعد عبر اتصال","حضوري بعد الاتفاق"});
+        addText("طريقة الدرس: عن بُعد فقط عبر الإنترنت", 15, Color.rgb(238,204,125));
         EditText time = teacherInput("الوقت المناسب للتواصل");
         EditText note = teacherInput("ملاحظات إضافية (اختياري)");
         addButton("إرسال طلب الحجز", () -> {
             String name=student.getText().toString().trim(), mobile=phone.getText().toString().trim();
-            if(name.isEmpty() || mobile.isEmpty() || audience.getSelectedItemPosition()==0 || subject.getSelectedItemPosition()==0 || mode.getSelectedItemPosition()==0) {
+            if(name.isEmpty() || mobile.isEmpty() || audience.getSelectedItemPosition()==0 || subject.getSelectedItemPosition()==0) {
                 message("أكمل الاسم والهاتف والفئة ونوع الدرس وطريقته أولاً."); return;
             }
             Map<String,Object> data=new HashMap<>();
             data.put("studentOrGuardian",name); data.put("phone",mobile);
             data.put("audience",audience.getSelectedItem().toString());
             data.put("subject",subject.getSelectedItem().toString());
-            data.put("lessonMode",mode.getSelectedItem().toString());
+            data.put("lessonMode","عن بُعد عبر الإنترنت فقط");
             data.put("preferredTime",time.getText().toString().trim());
             data.put("note",note.getText().toString().trim());
             data.put("status","pending_review"); data.put("createdAt",System.currentTimeMillis());
