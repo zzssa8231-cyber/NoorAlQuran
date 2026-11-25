@@ -2482,6 +2482,7 @@ public class MainActivity extends Activity {
         scoreParams.setMargins(0, dp(12), 0, dp(10));
         layout.addView(scoreCard, scoreParams);
 
+        addAdultCard("🌟 تحدي اليوم", "٥ أسئلة يومية • نقاط إضافية • محاولة واحدة كل يوم", this::startDailyChallenge);
         addAdultCard("📖 المسابقة القرآنية والإسلامية", "٢٥ سؤالاً متنوعاً • تظهر ١٠ أسئلة عشوائية في كل جولة • ١٠ نقاط لكل إجابة صحيحة", () -> startQuiz());
         addAdultCard("🏆 لوحة المتصدرين", "شاهد أفضل المشاركين ونقاطهم عبر الإنترنت", this::showLeaderboard);
         addAdultCard("🎁 كيف تربح؟", "اجمع النقاط بالإجابة الصحيحة، ثم تابع رصيدك داخل التطبيق.", () ->
@@ -2489,6 +2490,95 @@ public class MainActivity extends Activity {
         addText("مستوياتك: مبتدئ ٠–٤٩ • مجتهد ٥٠–١٤٩ • متميز ١٥٠–٢٩٩ • نابغة ٣٠٠ نقطة فأكثر", 13, Color.rgb(242, 211, 145));
         addText("المسابقات تعليمية وترفيهية، ولا توجد جوائز مالية أو سحب نقدي حالياً.", 12, Color.LTGRAY);
         addButton("العودة للرئيسية", this::home);
+    }
+
+    int dailyChallengeIndex = 0;
+    int dailyChallengeScore = 0;
+    ArrayList<Integer> dailyChallengeQuestions = new ArrayList<>();
+    boolean dailyChallengeAnswered = false;
+
+    String dailyChallengeKey() {
+        return new SimpleDateFormat("yyyyMMdd", Locale.US).format(new Date());
+    }
+
+    void startDailyChallenge() {
+        android.content.SharedPreferences prefs = getSharedPreferences("noor_daily_challenge", MODE_PRIVATE);
+        String today = dailyChallengeKey();
+        if (today.equals(prefs.getString("played_day", ""))) {
+            setup();
+            addText("🌟 تحدي اليوم", 27, Color.rgb(242,211,145));
+            addText("لقد شاركت في تحدي اليوم بالفعل. عُد غداً لتحدٍ جديد!", 18, Color.WHITE);
+            addText("نقاطك المكتسبة اليوم: " + toArabicDigits(String.valueOf(prefs.getInt("today_score",0))), 17, Color.rgb(255,224,157));
+            addButton("العودة للمسابقات", this::showCompetitions);
+            return;
+        }
+        dailyChallengeIndex = 0;
+        dailyChallengeScore = 0;
+        dailyChallengeQuestions.clear();
+        int seed = Calendar.getInstance().get(Calendar.DAY_OF_YEAR);
+        for (int i=0;i<5;i++) dailyChallengeQuestions.add((seed * 7 + i * 5) % quizQuestions.length);
+        showDailyChallengeQuestion();
+    }
+
+    void showDailyChallengeQuestion() {
+        final int questionId = dailyChallengeQuestions.get(dailyChallengeIndex);
+        setup();
+        addText("🌟 تحدي اليوم", 27, Color.rgb(242,211,145));
+        addText("السؤال " + toArabicDigits(String.valueOf(dailyChallengeIndex+1)) + " من ٥", 17, Color.WHITE);
+        android.widget.ProgressBar progress = new android.widget.ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
+        progress.setMax(5); progress.setProgress(dailyChallengeIndex+1);
+        layout.addView(progress, new LinearLayout.LayoutParams(-1, dp(7)));
+        TextView q = new TextView(this);
+        q.setText(quizQuestions[questionId]); q.setTextColor(Color.rgb(255,229,170)); q.setTextSize(21);
+        q.setGravity(Gravity.CENTER); q.setPadding(dp(12),dp(22),dp(12),dp(22));
+        q.setBackground(premiumBackground(Color.rgb(13,55,47),Color.rgb(218,184,111),20));
+        layout.addView(q,new LinearLayout.LayoutParams(-1,-2));
+        TextView feedback = new TextView(this); feedback.setText("اختر إجابة واحدة. كل إجابة صحيحة = ٥ نقاط.");
+        feedback.setTextColor(Color.WHITE); feedback.setTextSize(15); feedback.setGravity(Gravity.CENTER);
+        feedback.setPadding(dp(8),dp(12),dp(8),dp(12)); layout.addView(feedback);
+        dailyChallengeAnswered = false;
+        for(int i=0;i<4;i++) {
+            final int choice=i;
+            Button b=new Button(this); b.setText(quizOptions[questionId][i]); b.setAllCaps(false);
+            b.setTextColor(Color.WHITE); b.setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.rgb(25,105,87)));
+            layout.addView(b,new LinearLayout.LayoutParams(-1,-2));
+            b.setOnClickListener(v -> {
+                if(dailyChallengeAnswered) return;
+                dailyChallengeAnswered=true;
+                for(int j=0;j<layout.getChildCount();j++) if(layout.getChildAt(j) instanceof Button) ((Button)layout.getChildAt(j)).setEnabled(false);
+                if(choice==quizCorrect[questionId]) {
+                    dailyChallengeScore+=5;
+                    feedback.setText("✅ إجابة صحيحة! +٥ نقاط\n"+quizExplanations[questionId]);
+                    b.setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.rgb(35,135,83)));
+                } else {
+                    feedback.setText("❌ ليست الإجابة الصحيحة.\nالإجابة: "+quizOptions[questionId][quizCorrect[questionId]]+"\n"+quizExplanations[questionId]);
+                    b.setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.rgb(145,65,55)));
+                }
+                addButton(dailyChallengeIndex==4?"إنهاء التحدي 🏆":"السؤال التالي ←", () -> {
+                    if(dailyChallengeIndex==4) finishDailyChallenge();
+                    else { dailyChallengeIndex++; showDailyChallengeQuestion(); }
+                });
+            });
+        }
+        addButton("إلغاء", this::showCompetitions);
+    }
+
+    void finishDailyChallenge() {
+        android.content.SharedPreferences prefs=getSharedPreferences("noor_daily_challenge",MODE_PRIVATE);
+        int bonus=dailyChallengeScore==25?10:0;
+        int earned=dailyChallengeScore+bonus;
+        prefs.edit().putString("played_day",dailyChallengeKey()).putInt("today_score",earned).apply();
+        android.content.SharedPreferences total=getSharedPreferences("noor_quiz",MODE_PRIVATE);
+        int points=total.getInt("points",0)+earned;
+        total.edit().putInt("points",points).putInt("played",total.getInt("played",0)+1).apply();
+        submitLeaderboardScore(points);
+        setup();
+        addText("🎉 انتهى تحدي اليوم",27,Color.rgb(242,211,145));
+        addText("حصلت على "+toArabicDigits(String.valueOf(dailyChallengeScore))+" من ٢٥ نقطة",20,Color.WHITE);
+        if(bonus>0) addText("⭐ مكافأة إكمال كاملة: +١٠ نقاط",18,Color.rgb(255,224,157));
+        addText("رصيد النقاط الجديد: "+toArabicDigits(String.valueOf(points)),18,Color.WHITE);
+        addText("النقاط مكافآت تعليمية داخل التطبيق وليست نقوداً قابلة للسحب أو جائزة نقدية.",13,Color.LTGRAY);
+        addButton("العودة للمسابقات",this::showCompetitions);
     }
 
     void startQuiz() {
