@@ -128,6 +128,23 @@ public class MainActivity extends Activity {
             .replace('8', '٨').replace('9', '٩');
     }
 
+    void addBasmala(int surahNumber) {
+        TextView text = new TextView(this);
+        String basmala = "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ";
+        if (surahNumber == 1) {
+            text.setText(basmala + "  ۝١");
+        } else {
+            text.setText(basmala);
+        }
+        text.setTextSize(27);
+        text.setTextColor(Color.rgb(238, 204, 125));
+        text.setGravity(Gravity.CENTER);
+        text.setTextDirection(View.TEXT_DIRECTION_RTL);
+        text.setLineSpacing(10, 1.12f);
+        text.setPadding(14, 22, 14, 22);
+        layout.addView(text, new LinearLayout.LayoutParams(-1, -2));
+    }
+
     void addQuranText(String value) {
         TextView text = new TextView(this);
         text.setText(value);
@@ -205,8 +222,16 @@ public class MainActivity extends Activity {
         int found = 0;
         for (String[] verse : verses) {
             if (Integer.parseInt(verse[0]) == number) {
+                String verseText = verse[2].trim();
+
+                // In Al-Fatiha, the basmala is verse 1 and is shown separately above.
+                if (number == 1 && "1".equals(verse[1])) {
+                    found++;
+                    continue;
+                }
+
                 if (found > 0) surahText.append("   ");
-                surahText.append(verse[2].trim())
+                surahText.append(verseText)
                     .append("  ۝")
                     .append(toArabicDigits(verse[1]));
                 found++;
@@ -216,7 +241,16 @@ public class MainActivity extends Activity {
         if (found == 0) {
             addText("لم يتم العثور على آيات هذه السورة", 18, Color.YELLOW);
         } else {
-            addQuranText(surahText.toString());
+            if (number != 9) {
+                addBasmala(number);
+            }
+            if (number == 1) {
+                // The first Fatiha verse is the basmala; keep its correct verse number above.
+                addBasmala(number);
+            }
+            if (surahText.length() > 0) {
+                addQuranText(surahText.toString());
+            }
         }
     }
 
