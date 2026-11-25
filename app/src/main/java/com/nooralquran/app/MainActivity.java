@@ -7,184 +7,212 @@ import android.graphics.Color;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.*;
-import java.util.Locale;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends Activity {
 
     LinearLayout layout;
-    int green = Color.rgb(12, 65, 54);
-    int gold = Color.rgb(230, 190, 95);
-    int count = 0;
+    List<String[]> verses = new ArrayList<>();
+
+    String[] surahs = {
+        "الفاتحة","البقرة","آل عمران","النساء","المائدة",
+        "الأنعام","الأعراف","الأنفال","التوبة","يونس",
+        "هود","يوسف","الرعد","إبراهيم","الحجر",
+        "النحل","الإسراء","الكهف","مريم","طه",
+        "الأنبياء","الحج","المؤمنون","النور","الفرقان",
+        "الشعراء","النمل","القصص","العنكبوت","الروم",
+        "لقمان","السجدة","الأحزاب","سبأ","فاطر",
+        "يس","الصافات","ص","الزمر","غافر",
+        "فصلت","الشورى","الزخرف","الدخان","الجاثية",
+        "الأحقاف","محمد","الفتح","الحجرات","ق",
+        "الذاريات","الطور","النجم","القمر","الرحمن",
+        "الواقعة","الحديد","المجادلة","الحشر","الممتحنة",
+        "الصف","الجمعة","المنافقون","التغابن","الطلاق",
+        "التحريم","الملك","القلم","الحاقة","المعارج",
+        "نوح","الجن","المزمل","المدثر","القيامة",
+        "الإنسان","المرسلات","النبأ","النازعات","عبس",
+        "التكوير","الانفطار","المطففين","الانشقاق","البروج",
+        "الطارق","الأعلى","الغاشية","الفجر","البلد",
+        "الشمس","الليل","الضحى","الشرح","التين",
+        "العلق","القدر","البينة","الزلزلة","العاديات",
+        "القارعة","التكاثر","العصر","الهمزة","الفيل",
+        "قريش","الماعون","الكوثر","الكافرون","النصر",
+        "المسد","الإخلاص","الفلق","الناس"
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        loadQuran();
         home();
     }
 
-    void setup(String title) {
+    void loadQuran() {
+        try {
+            BufferedReader reader = new BufferedReader(
+                new InputStreamReader(
+                    getAssets().open("quran-uthmani.txt"),
+                    "UTF-8"
+                )
+            );
+
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split("\\|", 3);
+
+                if (parts.length == 3) {
+                    try {
+                        int surah = Integer.parseInt(parts[0].trim());
+                        int ayah = Integer.parseInt(parts[1].trim());
+                        verses.add(new String[]{
+                            String.valueOf(surah),
+                            String.valueOf(ayah),
+                            parts[2]
+                        });
+                    } catch (NumberFormatException ignored) {
+                    }
+                }
+            }
+            reader.close();
+
+        } catch (Exception e) {
+            Toast.makeText(this,
+                "تعذر قراءة ملف القرآن",
+                Toast.LENGTH_LONG).show();
+        }
+    }
+
+    void setup() {
         ScrollView scroll = new ScrollView(this);
         layout = new LinearLayout(this);
-        layout.setOrientation(1);
-        layout.setPadding(22, 30, 22, 30);
-        layout.setGravity(Gravity.CENTER_HORIZONTAL);
-        layout.setBackgroundColor(green);
-
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setGravity(Gravity.CENTER);
+        layout.setPadding(20, 25, 20, 25);
+        layout.setBackgroundColor(Color.rgb(12, 45, 42));
         scroll.addView(layout);
         setContentView(scroll);
-
-        text(title, 28, gold);
     }
 
-    void text(String value, int size, int color) {
-        TextView t = new TextView(this);
-        t.setText(value);
-        t.setTextSize(size);
-        t.setTextColor(color);
-        t.setGravity(Gravity.CENTER);
-        t.setPadding(10, 18, 10, 18);
-        layout.addView(t);
+    void addText(String value, int size, int color) {
+        TextView text = new TextView(this);
+        text.setText(value);
+        text.setTextSize(size);
+        text.setTextColor(color);
+        text.setGravity(Gravity.CENTER);
+        text.setPadding(10, 15, 10, 15);
+        layout.addView(text);
     }
 
-    void button(String name, Runnable action) {
-        Button b = new Button(this);
-        b.setText(name);
-        b.setTextSize(17);
-        b.setTextColor(Color.WHITE);
-        b.setBackgroundTintList(
+    void addButton(String value, Runnable action) {
+        Button button = new Button(this);
+        button.setText(value);
+        button.setTextSize(17);
+        button.setTextColor(Color.WHITE);
+        button.setBackgroundTintList(
             android.content.res.ColorStateList.valueOf(
                 Color.rgb(25, 125, 100)
             )
         );
-        LinearLayout.LayoutParams p =
+        LinearLayout.LayoutParams params =
             new LinearLayout.LayoutParams(-1, -2);
-        p.setMargins(0, 9, 0, 9);
-        layout.addView(b, p);
-        b.setOnClickListener(v -> action.run());
+        params.setMargins(0, 8, 0, 8);
+        layout.addView(button, params);
+        button.setOnClickListener(v -> action.run());
     }
 
     void home() {
-        setup("نور القرآن");
-        text("نورٌ يضيء حياتك", 18, Color.WHITE);
+        setup();
+        addText("نور القرآن", 34, Color.WHITE);
+        addText("نورٌ يضيء حياتك", 18, Color.YELLOW);
 
-        button("📖 القرآن الكريم", () -> quran());
-        button("🎧 الاستماع إلى القرآن", () -> audio());
-        button("👨‍👩‍👧 قسم الكبار", () -> adults());
-        button("🧒 عالم الأطفال", () -> kids());
-        button("📿 المسبحة الإلكترونية", () -> tasbeeh());
-        button("💰 حاسبة الزكاة", () -> zakat());
-        button("❓ المسابقات والأسئلة", () -> quiz());
+        addButton("📖 القرآن الكريم", this::showSurahs);
+        addButton("🎧 الاستماع إلى القرآن", () -> message("قسم التلاوة الصوتية قيد التجهيز"));
+        addButton("👨‍👩‍👧 قسم الكبار", () -> message("أهلاً بكم في قسم الكبار"));
+        addButton("🧒 عالم الأطفال", () -> message("أهلاً بكم في عالم الأطفال"));
+        addButton("📿 المسبحة الإلكترونية", this::tasbeeh);
+        addButton("💰 حاسبة الزكاة", this::zakat);
+        addButton("❓ المسابقات والأسئلة", () -> message("المسابقات قيد التجهيز"));
     }
 
-    void back() {
-        button("⬅ العودة للرئيسية", () -> home());
-    }
+    void showSurahs() {
+        setup();
+        addText("سور القرآن الكريم", 27, Color.WHITE);
+        addButton("رجوع", this::home);
 
-    void quran() {
-        setup("القرآن الكريم");
-        String[] surahs = {
-            "الفاتحة", "البقرة", "آل عمران",
-            "النساء", "المائدة", "الأنعام",
-            "الأعراف", "الأنفال", "التوبة",
-            "يونس", "هود", "يوسف",
-            "الرعد", "إبراهيم", "الحجر"
-        };
-
-        for (String s : surahs) {
-            button("سورة " + s, () -> {
-                setup("سورة " + s);
-                text("سيتم إضافة نص السورة كاملاً في تحديث المحتوى.", 19, Color.WHITE);
-                back();
-            });
+        for (int i = 0; i < surahs.length; i++) {
+            final int number = i + 1;
+            addButton(number + " - سورة " + surahs[i],
+                () -> showSurah(number));
         }
-        back();
     }
 
-    void audio() {
-        setup("الاستماع إلى القرآن");
-        text("قسم التلاوات الصوتية", 20, Color.WHITE);
-        text("سيتم إضافة ملفات التلاوة الصوتية في تحديث لاحق.", 17, gold);
-        back();
+    void showSurah(int number) {
+        setup();
+        addText("سورة " + surahs[number - 1], 28, Color.YELLOW);
+        addButton("رجوع إلى السور", this::showSurahs);
+
+        int found = 0;
+        for (String[] verse : verses) {
+            if (Integer.parseInt(verse[0]) == number) {
+                addText(verse[2] + "  ۞ " + verse[1],
+                    23, Color.WHITE);
+                found++;
+            }
+        }
+
+        if (found == 0) {
+            addText("لم يتم العثور على آيات هذه السورة", 18, Color.YELLOW);
+        }
     }
 
-    void adults() {
-        setup("قسم الكبار");
-        button("القرآن الكريم", () -> quran());
-        button("المسبحة الإلكترونية", () -> tasbeeh());
-        button("حاسبة الزكاة", () -> zakat());
-        button("المسابقات", () -> quiz());
-        back();
-    }
-
-    void kids() {
-        setup("عالم الأطفال");
-        text("مرحباً يا بطل!", 25, gold);
-        text("تعلم القرآن والأخلاق الإسلامية", 19, Color.WHITE);
-        button("اختبر معلوماتك", () -> quiz());
-        button("قراءة القرآن", () -> quran());
-        back();
-    }
+    int count = 0;
 
     void tasbeeh() {
-        setup("المسبحة الإلكترونية");
-        TextView number = new TextView(this);
-        number.setText("0");
-        number.setTextSize(45);
-        number.setTextColor(gold);
-        number.setGravity(Gravity.CENTER);
-        layout.addView(number);
+        setup();
+        addText("المسبحة الإلكترونية", 27, Color.WHITE);
+        TextView counter = new TextView(this);
+        counter.setTextSize(35);
+        counter.setTextColor(Color.YELLOW);
+        counter.setGravity(Gravity.CENTER);
+        counter.setText("0");
+        layout.addView(counter);
 
-        button("سبحان الله", () -> {
+        addButton("سبّح", () -> {
             count++;
-            number.setText(String.valueOf(count));
+            counter.setText(String.valueOf(count));
         });
-
-        button("تصفير العداد", () -> {
+        addButton("تصفير", () -> {
             count = 0;
-            number.setText("0");
+            counter.setText("0");
         });
-        back();
+        addButton("رجوع", this::home);
     }
 
     void zakat() {
-        setup("حاسبة الزكاة");
-        text("أدخل المبلغ لحساب 2.5%", 18, Color.WHITE);
+        setup();
+        addText("حاسبة الزكاة", 27, Color.WHITE);
+        EditText amount = new EditText(this);
+        amount.setHint("أدخل المبلغ");
+        amount.setInputType(8194);
+        amount.setTextColor(Color.WHITE);
+        layout.addView(amount);
 
-        EditText input = new EditText(this);
-        input.setHint("المبلغ");
-        input.setInputType(8194);
-        input.setTextColor(Color.WHITE);
-        layout.addView(input);
-
-        button("احسب الزكاة", () -> {
+        addButton("احسب 2.5%", () -> {
             try {
-                double amount = Double.parseDouble(
-                    input.getText().toString()
-                );
-                text("الزكاة: " +
-                    String.format(Locale.US, "%.2f", amount * 0.025),
-                    22, gold);
+                double value = Double.parseDouble(
+                    amount.getText().toString());
+                addText("الناتج: " + (value * 0.025), 22, Color.YELLOW);
             } catch (Exception e) {
-                Toast.makeText(this,
-                    "أدخل مبلغاً صحيحاً", Toast.LENGTH_SHORT).show();
+                message("أدخل مبلغاً صحيحاً");
             }
         });
-        back();
+        addButton("رجوع", this::home);
     }
 
-    void quiz() {
-        setup("مسابقة نور القرآن");
-        text("كم عدد سور القرآن الكريم؟", 21, Color.WHITE);
-        button("114 سورة", () -> result(true));
-        button("100 سورة", () -> result(false));
-        button("120 سورة", () -> result(false));
-        back();
-    }
-
-    void result(boolean correct) {
-        setup("نتيجة المسابقة");
-        text(correct ? "أحسنت! إجابة صحيحة 🌟" :
-            "حاول مرة أخرى ❤️", 23, gold);
-        back();
+    void message(String value) {
+        Toast.makeText(this, value, Toast.LENGTH_LONG).show();
     }
 }
