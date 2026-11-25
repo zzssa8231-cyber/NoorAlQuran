@@ -211,11 +211,127 @@ public class MainActivity extends Activity {
 
         addButton("📖 القرآن الكريم", this::showSurahs);
         addButton("🎧 الاستماع إلى القرآن", this::audioScreen);
-        addButton("👨‍👩‍👧 قسم الكبار", () -> message("أهلاً بكم في قسم الكبار"));
+        addButton("👨‍👩‍👧 قسم الكبار", this::showAdultSection);
         addButton("🧒 عالم الأطفال", () -> message("أهلاً بكم في عالم الأطفال"));
         addButton("📿 المسبحة الإلكترونية", this::tasbeeh);
         addButton("💰 حاسبة الزكاة", this::zakat);
         addButton("❓ المسابقات والأسئلة", () -> message("المسابقات قيد التجهيز"));
+    }
+
+    void addAdultCard(String title, String description, Runnable action) {
+        LinearLayout card = new LinearLayout(this);
+        card.setOrientation(LinearLayout.VERTICAL);
+        card.setGravity(Gravity.CENTER);
+        card.setPadding(18, 16, 18, 16);
+        GradientDrawable bg = new GradientDrawable();
+        bg.setColor(Color.rgb(20, 63, 56));
+        bg.setCornerRadius(20);
+        bg.setStroke(2, Color.rgb(190, 158, 87));
+        card.setBackground(bg);
+
+        TextView heading = new TextView(this);
+        heading.setText(title);
+        heading.setTextColor(Color.rgb(238, 204, 125));
+        heading.setTextSize(20);
+        heading.setGravity(Gravity.CENTER);
+        card.addView(heading);
+
+        TextView detail = new TextView(this);
+        detail.setText(description);
+        detail.setTextColor(Color.rgb(248, 235, 202));
+        detail.setTextSize(14);
+        detail.setGravity(Gravity.CENTER);
+        detail.setPadding(4, 7, 4, 2);
+        card.addView(detail);
+
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, -2);
+        params.setMargins(0, 8, 0, 8);
+        layout.addView(card, params);
+        card.setOnClickListener(v -> action.run());
+    }
+
+    void showAdultSection() {
+        setup();
+        addText("❁ قسم الكبار ❁", 29, Color.rgb(238, 204, 125));
+        addText("زادُ القلب وطمأنينة الروح", 17, Color.WHITE);
+        addAdultCard("📖 القرآن الكريم", "قراءة السور بترتيب المصحف", this::showSurahs);
+        addAdultCard("🎧 الاستماع إلى القرآن", "اختر القارئ والسورة واستمتع بالتلاوة", this::audioScreen);
+        addAdultCard("🌅 أذكار الصباح والمساء", "أذكار مختارة مع عدّاد للتكرار", this::showAdhkar);
+        addAdultCard("📿 المسبحة الإلكترونية", "تسبيح واستغفار مع عدّاد", this::tasbeeh);
+        addAdultCard("💰 حاسبة الزكاة", "حساب ٢٫٥٪ من المبلغ المُدخل", this::zakat);
+        addAdultCard("🌿 وردي اليومي", "اختر سورة لتجعلها وردك اليوم", this::showDailyWird);
+        addText("اجعل لك وقتاً ثابتاً للقرآن والذكر والعمل الصالح", 14,
+            Color.rgb(238, 204, 125));
+        addButton("العودة للرئيسية", this::home);
+    }
+
+    void showAdhkar() {
+        setup();
+        addText("🌅 أذكار الصباح والمساء", 26, Color.rgb(238, 204, 125));
+        addText("اختر الذكر، ثم اضغط للتسبيح وعدّ مراتك", 15, Color.WHITE);
+        addAdultCard("سبحان الله وبحمده", "كرّر الذكر ١٠٠ مرة", () ->
+            showDhikrCounter("سبحان الله وبحمده", 100));
+        addAdultCard("أستغفر الله وأتوب إليه", "كرّر الاستغفار ١٠٠ مرة", () ->
+            showDhikrCounter("أستغفر الله وأتوب إليه", 100));
+        addAdultCard("لا إله إلا الله وحده لا شريك له، له الملك وله الحمد وهو على كل شيء قدير",
+            "ذكر عظيم، اجعل له نصيباً من يومك", () ->
+            showDhikrCounter("لا إله إلا الله وحده لا شريك له، له الملك وله الحمد وهو على كل شيء قدير", 100));
+        addAdultCard("سبحان الله، والحمد لله، ولا إله إلا الله، والله أكبر",
+            "أذكار يسيرة على اللسان", () ->
+            showDhikrCounter("سبحان الله، والحمد لله، ولا إله إلا الله، والله أكبر", 33));
+        addText("هذه أذكار مختارة وليست قائمة كاملة بأذكار الصباح والمساء.", 13,
+            Color.rgb(238, 204, 125));
+        addButton("رجوع إلى قسم الكبار", this::showAdultSection);
+    }
+
+    void showDhikrCounter(String dhikr, int target) {
+        setup();
+        addText("۞ الذكر ۞", 23, Color.rgb(238, 204, 125));
+        addQuranText(dhikr);
+        final int[] current = {0};
+        TextView counter = new TextView(this);
+        counter.setText("٠ / " + toArabicDigits(String.valueOf(target)));
+        counter.setTextColor(Color.WHITE);
+        counter.setTextSize(32);
+        counter.setGravity(Gravity.CENTER);
+        counter.setPadding(10, 22, 10, 22);
+        layout.addView(counter);
+
+        TextView progress = new TextView(this);
+        progress.setText("ابدأ بذكر الله");
+        progress.setTextColor(Color.rgb(238, 204, 125));
+        progress.setTextSize(16);
+        progress.setGravity(Gravity.CENTER);
+        layout.addView(progress);
+
+        addButton("📿 اضغط للتسبيح", () -> {
+            if (current[0] < target) current[0]++;
+            counter.setText(toArabicDigits(String.valueOf(current[0])) + " / "
+                + toArabicDigits(String.valueOf(target)));
+            if (current[0] >= target) {
+                progress.setText("أحسنت، أتممت العدد المحدد 🌿");
+            } else {
+                progress.setText("استمر، تقبّل الله ذكرك");
+            }
+        });
+        addButton("إعادة العدّاد", () -> {
+            current[0] = 0;
+            counter.setText("٠ / " + toArabicDigits(String.valueOf(target)));
+            progress.setText("ابدأ بذكر الله");
+        });
+        addButton("رجوع إلى الأذكار", this::showAdhkar);
+    }
+
+    void showDailyWird() {
+        setup();
+        addText("🌿 وردي اليومي", 27, Color.rgb(238, 204, 125));
+        addText("اختر سورة لقراءتها اليوم", 16, Color.WHITE);
+        Spinner picker = styledSpinner(surahs, 17);
+        layout.addView(picker, new LinearLayout.LayoutParams(-1, -2));
+        addButton("فتح السورة", () -> showSurah(picker.getSelectedItemPosition() + 1));
+        addText("يمكنك العودة يومياً واختيار موضع جديد للقراءة.", 14,
+            Color.rgb(248, 235, 202));
+        addButton("رجوع إلى قسم الكبار", this::showAdultSection);
     }
 
     Spinner styledSpinner(String[] items, int selected) {
