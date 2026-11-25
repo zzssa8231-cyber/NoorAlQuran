@@ -120,25 +120,36 @@ public class MainActivity extends Activity {
     }
 
 
-    void addVerseCard(String value) {
+    String toArabicDigits(String value) {
+        return value.replace('0', '٠').replace('1', '١')
+            .replace('2', '٢').replace('3', '٣')
+            .replace('4', '٤').replace('5', '٥')
+            .replace('6', '٦').replace('7', '٧')
+            .replace('8', '٨').replace('9', '٩');
+    }
+
+    void addQuranText(String value) {
         TextView text = new TextView(this);
         text.setText(value);
-        text.setTextSize(24);
+        text.setTextSize(26);
         text.setTextColor(Color.rgb(248, 235, 202));
         text.setGravity(Gravity.CENTER);
         text.setTextDirection(View.TEXT_DIRECTION_RTL);
-        text.setLineSpacing(12, 1.15f);
-        text.setPadding(18, 22, 18, 22);
+        text.setLineSpacing(16, 1.18f);
+        text.setPadding(20, 26, 20, 26);
+        if (android.os.Build.VERSION.SDK_INT >= 26) {
+            text.setJustificationMode(android.text.Layout.JUSTIFICATION_MODE_INTER_WORD);
+        }
 
-        GradientDrawable card = new GradientDrawable();
-        card.setColor(Color.rgb(20, 63, 56));
-        card.setCornerRadius(22);
-        card.setStroke(2, Color.rgb(190, 158, 87));
-        text.setBackground(card);
+        GradientDrawable page = new GradientDrawable();
+        page.setColor(Color.rgb(20, 63, 56));
+        page.setCornerRadius(18);
+        page.setStroke(2, Color.rgb(190, 158, 87));
+        text.setBackground(page);
 
         LinearLayout.LayoutParams params =
             new LinearLayout.LayoutParams(-1, -2);
-        params.setMargins(0, 10, 0, 10);
+        params.setMargins(0, 12, 0, 12);
         layout.addView(text, params);
     }
 
@@ -190,34 +201,27 @@ public class MainActivity extends Activity {
         addText("سورة " + surahs[number - 1], 28, Color.YELLOW);
         addButton("رجوع إلى السور", this::showSurahs);
 
+        StringBuilder surahText = new StringBuilder();
         int found = 0;
         for (String[] verse : verses) {
             if (Integer.parseInt(verse[0]) == number) {
-                addVerseCard(formatVerse(verse[2], verse[1]));
+                if (found > 0) surahText.append("   ");
+                surahText.append(verse[2].trim())
+                    .append("  ۝")
+                    .append(toArabicDigits(verse[1]));
                 found++;
             }
         }
 
         if (found == 0) {
             addText("لم يتم العثور على آيات هذه السورة", 18, Color.YELLOW);
+        } else {
+            addQuranText(surahText.toString());
         }
     }
 
 
-    String formatVerse(String verseText, String verseNumber) {
-        String basmala = "بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ";
-        String text = verseText.trim();
 
-        if (text.startsWith(basmala)) {
-            String rest = text.substring(basmala.length()).trim();
-            if (rest.isEmpty()) {
-                return basmala + "   (" + verseNumber + ")";
-            }
-            return basmala + "\n۞ ﴿" + rest + "﴾ ۞   (" + verseNumber + ")";
-        }
-
-        return "۞ ﴿" + text + "﴾ ۞   (" + verseNumber + ")";
-    }
 
     int count = 0;
 
