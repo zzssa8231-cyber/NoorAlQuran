@@ -21,6 +21,10 @@ import java.util.Date;
 import java.util.Calendar;
 import android.os.Handler;
 import org.json.JSONObject;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdSize;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.MobileAds;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -33,6 +37,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class MainActivity extends Activity {
+    static final String ADMOB_TEST_BANNER_ID = "ca-app-pub-3940256099942544/6300978111";
     static final String FIREBASE_DATABASE_URL = "https://nooralquran-3b05a-default-rtdb.asia-southeast1.firebasedatabase.app/";
 
     LinearLayout layout;
@@ -109,6 +114,7 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         selectedGovernorate = getSharedPreferences("noor_prefs", MODE_PRIVATE).getString("governorate", "بابل");
         prayerCalculationMethod = getSharedPreferences("noor_prefs", MODE_PRIVATE).getInt("prayer_method", 0);
+        MobileAds.initialize(this, initializationStatus -> {});
         try {
             loadQuran();
             home();
@@ -2490,6 +2496,12 @@ public class MainActivity extends Activity {
         addText("مستوياتك: مبتدئ ٠–٤٩ • مجتهد ٥٠–١٤٩ • متميز ١٥٠–٢٩٩ • نابغة ٣٠٠ نقطة فأكثر", 13, Color.rgb(242, 211, 145));
         addText("المسابقات تعليمية وترفيهية، ولا توجد جوائز مالية أو سحب نقدي حالياً.", 12, Color.LTGRAY);
         addButton("العودة للرئيسية", this::home);
+        addText("إعلان", 11, Color.LTGRAY);
+        AdView banner = new AdView(this);
+        banner.setAdSize(AdSize.BANNER);
+        banner.setAdUnitId(ADMOB_TEST_BANNER_ID);
+        layout.addView(banner, new LinearLayout.LayoutParams(-1, -2));
+        banner.loadAd(new AdRequest.Builder().build());
     }
 
     int dailyChallengeIndex = 0;
