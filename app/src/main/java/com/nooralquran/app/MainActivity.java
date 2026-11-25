@@ -212,7 +212,7 @@ public class MainActivity extends Activity {
         addButton("📖 القرآن الكريم", this::showSurahs);
         addButton("🎧 الاستماع إلى القرآن", this::audioScreen);
         addButton("👨‍👩‍👧 قسم الكبار", this::showAdultSection);
-        addButton("🧒 عالم الأطفال", () -> message("أهلاً بكم في عالم الأطفال"));
+        addButton("🧒 عالم الأطفال", this::showKidsSection);
         addButton("📿 المسبحة الإلكترونية", this::tasbeeh);
         addButton("💰 حاسبة الزكاة", this::zakat);
         addButton("❓ المسابقات والأسئلة", () -> message("المسابقات قيد التجهيز"));
@@ -306,6 +306,71 @@ public class MainActivity extends Activity {
         params.setMargins(0, 8, 0, 8);
         layout.addView(card, params);
         card.setOnClickListener(v -> action.run());
+    }
+
+    void addKidsCard(String title, String description, String emoji, int cardColor, Runnable action) {
+        LinearLayout card = new LinearLayout(this);
+        card.setOrientation(LinearLayout.VERTICAL);
+        card.setGravity(Gravity.CENTER);
+        card.setPadding(20, 18, 20, 18);
+
+        GradientDrawable bg = new GradientDrawable(
+            GradientDrawable.Orientation.TL_BR,
+            new int[]{cardColor, Color.rgb(255, 255, 255)}
+        );
+        bg.setCornerRadius(24);
+        bg.setStroke(2, Color.rgb(255, 207, 92));
+        card.setBackground(bg);
+        if (android.os.Build.VERSION.SDK_INT >= 21) {
+            card.setElevation(5);
+        }
+
+        TextView symbol = new TextView(this);
+        symbol.setText(emoji);
+        symbol.setTextSize(30);
+        symbol.setGravity(Gravity.CENTER);
+        card.addView(symbol);
+
+        TextView heading = new TextView(this);
+        heading.setText(title);
+        heading.setTextColor(Color.rgb(25, 73, 69));
+        heading.setTextSize(21);
+        heading.setTypeface(null, android.graphics.Typeface.BOLD);
+        heading.setGravity(Gravity.CENTER);
+        heading.setPadding(4, 6, 4, 4);
+        card.addView(heading);
+
+        TextView detail = new TextView(this);
+        detail.setText(description);
+        detail.setTextColor(Color.rgb(66, 86, 82));
+        detail.setTextSize(14);
+        detail.setGravity(Gravity.CENTER);
+        detail.setPadding(4, 5, 4, 2);
+        card.addView(detail);
+
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, -2);
+        params.setMargins(0, 9, 0, 9);
+        layout.addView(card, params);
+        card.setOnClickListener(v -> action.run());
+    }
+
+    void showKidsSection() {
+        setup();
+        addText("🌈 عالم نور للأطفال 🌈", 28, Color.rgb(255, 215, 120));
+        addText("نتعلم القرآن والذكر بمحبة وفرح", 17, Color.WHITE);
+        addKidsCard("📖 اقرأ القرآن", "افتح سور القرآن واقرأ بهدوء", "🌟",
+            Color.rgb(213, 242, 225), this::showSurahs);
+        addKidsCard("🎧 استمع إلى القرآن", "اختر القارئ والسورة واستمتع بالتلاوة", "🎵",
+            Color.rgb(220, 235, 255), this::audioScreen);
+        addKidsCard("🤲 أذكاري الجميلة", "أذكار مختارة مع عدّاد للتكرار", "🌼",
+            Color.rgb(255, 238, 202), this::showAdhkar);
+        addKidsCard("📿 مسبحتي الصغيرة", "سبّح واستغفر وتابع عدد التسبيحات", "🧸",
+            Color.rgb(244, 226, 250), this::tasbeeh);
+        addKidsCard("⭐ تحدي اليوم", "قريباً: أسئلة قرآنية ونقاط تشجيعية", "🏆",
+            Color.rgb(255, 225, 218), () -> message("تحدي اليوم قيد التجهيز"));
+        addText("أحسنت يا بطل! كل خطوة جميلة تقرّبك من الخير 💛", 16,
+            Color.rgb(255, 215, 120));
+        addButton("العودة للرئيسية", this::home);
     }
 
     void showAdultSection() {
