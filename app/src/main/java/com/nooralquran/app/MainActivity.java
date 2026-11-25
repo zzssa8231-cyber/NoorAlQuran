@@ -1224,6 +1224,143 @@ public class MainActivity extends Activity {
         card.setOnClickListener(v -> action.run());
     }
 
+    class KidsDrawingView extends View {
+        final java.util.ArrayList<android.graphics.Path> paths = new java.util.ArrayList<>();
+        final java.util.ArrayList<android.graphics.Paint> paints = new java.util.ArrayList<>();
+        android.graphics.Path currentPath;
+        android.graphics.Paint currentPaint;
+        int brushColor = Color.rgb(35, 125, 95);
+        float brushWidth = dp(7);
+
+        KidsDrawingView(android.content.Context context) {
+            super(context);
+            setBackgroundColor(Color.WHITE);
+            setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+        }
+        void setBrushColor(int color) { brushColor = color; }
+        void setBrushWidth(float width) { brushWidth = dp((int) width); }
+        void clearDrawing() { paths.clear(); paints.clear(); currentPath = null; invalidate(); }
+        @Override protected void onDraw(android.graphics.Canvas canvas) {
+            super.onDraw(canvas);
+            android.graphics.Paint border = new android.graphics.Paint(3);
+            border.setColor(Color.rgb(238, 214, 160));
+            border.setStyle(android.graphics.Paint.Style.STROKE);
+            border.setStrokeWidth(dp(2));
+            canvas.drawRoundRect(dp(2), dp(2), getWidth()-dp(2), getHeight()-dp(2), dp(14), dp(14), border);
+            for (int i=0; i<paths.size(); i++) canvas.drawPath(paths.get(i), paints.get(i));
+            if (currentPath != null && currentPaint != null) canvas.drawPath(currentPath, currentPaint);
+        }
+        @Override public boolean onTouchEvent(android.view.MotionEvent event) {
+            float x=event.getX(), y=event.getY();
+            if (event.getAction()==android.view.MotionEvent.ACTION_DOWN) {
+                currentPath = new android.graphics.Path();
+                currentPath.moveTo(x,y);
+                currentPaint = new android.graphics.Paint(3);
+                currentPaint.setColor(brushColor);
+                currentPaint.setStyle(android.graphics.Paint.Style.STROKE);
+                currentPaint.setStrokeWidth(brushWidth);
+                currentPaint.setStrokeCap(android.graphics.Paint.Cap.ROUND);
+                currentPaint.setStrokeJoin(android.graphics.Paint.Join.ROUND);
+                invalidate(); return true;
+            }
+            if (event.getAction()==android.view.MotionEvent.ACTION_MOVE && currentPath!=null) {
+                currentPath.lineTo(x,y); invalidate(); return true;
+            }
+            if (event.getAction()==android.view.MotionEvent.ACTION_UP && currentPath!=null) {
+                currentPath.lineTo(x,y);
+                paths.add(currentPath);
+                paints.add(currentPaint);
+                currentPath=null; currentPaint=null; invalidate(); return true;
+            }
+            return true;
+        }
+    }
+
+    void showKidsDrawing() {
+        setup();
+        addText("🎨 مرسمي الصغير", 28, Color.rgb(255,215,120));
+        addText("ارسم ولَوِّن كما تحب يا بطل!", 16, Color.WHITE);
+        KidsDrawingView board = new KidsDrawingView(this);
+        LinearLayout.LayoutParams boardParams = new LinearLayout.LayoutParams(-1, dp(310));
+        boardParams.setMargins(0, dp(10), 0, dp(12));
+        layout.addView(board, boardParams);
+        addText("اختر لونك", 17, Color.rgb(255,225,160));
+        int[] colors = {Color.BLACK, Color.RED, Color.BLUE, Color.GREEN, Color.YELLOW,
+            Color.MAGENTA, Color.CYAN, Color.rgb(255,128,0), Color.rgb(120,70,170), Color.rgb(35,125,95)};
+        LinearLayout palette = new LinearLayout(this);
+        palette.setGravity(Gravity.CENTER);
+        palette.setOrientation(LinearLayout.HORIZONTAL);
+        for (int color : colors) {
+            Button swatch = new Button(this);
+            swatch.setText("●");
+            swatch.setTextSize(18);
+            swatch.setTextColor(color);
+            swatch.setMinWidth(dp(34));
+            swatch.setPadding(0,0,0,0);
+            swatch.setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.WHITE));
+            LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(0, dp(48), 1);
+            p.setMargins(dp(2),dp(3),dp(2),dp(3));
+            palette.addView(swatch,p);
+            swatch.setOnClickListener(v -> board.setBrushColor(color));
+        }
+        layout.addView(palette);
+        LinearLayout tools = new LinearLayout(this);
+        tools.setGravity(Gravity.CENTER);
+        Button thick = new Button(this); thick.setText("قلم عريض");
+        Button thin = new Button(this); thin.setText("قلم رفيع");
+        Button eraser = new Button(this); eraser.setText("ممحاة");
+        tools.addView(thin,new LinearLayout.LayoutParams(0,-2,1));
+        tools.addView(thick,new LinearLayout.LayoutParams(0,-2,1));
+        tools.addView(eraser,new LinearLayout.LayoutParams(0,-2,1));
+        layout.addView(tools);
+        thin.setOnClickListener(v -> board.setBrushWidth(4));
+        thick.setOnClickListener(v -> board.setBrushWidth(12));
+        eraser.setOnClickListener(v -> board.setBrushColor(Color.WHITE));
+        addButton("🧹 مسح الرسمة والبدء من جديد", board::clearDrawing);
+        addText("ارسم بإصبعك داخل اللوحة. اختر الممحاة لمسح جزء من الرسم.", 13, Color.LTGRAY);
+        addButton("العودة إلى عالم الأطفال", this::showKidsSection);
+    }
+
+    void showKidsLearning() {
+        setup();
+        addText("📚 أتعلم وأكتشف", 28, Color.rgb(255,215,120));
+        addText("اضغط على البطاقة لتسمع الحرف والكلمة", 15, Color.WHITE);
+        final String[] letters = {"أ - أسد","ب - بطة","ت - تفاحة","ث - ثعلب","ج - جمل","ح - حصان",
+            "خ - خروف","د - دب","ذ - ذرة","ر - رمان","ز - زهرة","س - سمكة",
+            "ش - شمس","ص - صقر","ض - ضفدع","ط - طائرة","ظ - ظرف","ع - عنب",
+            "غ - غزال","ف - فراشة","ق - قمر","ك - كتاب","ل - ليمون","م - موز",
+            "ن - نجم","هـ - هلال","و - وردة","ي - يد"};
+        android.speech.tts.TextToSpeech speaker = new android.speech.tts.TextToSpeech(this, status -> {
+            if (status == android.speech.tts.TextToSpeech.SUCCESS)
+                speakerLanguageReady(speaker);
+        });
+        addText("🔤 الحروف العربية", 20, Color.rgb(255,225,160));
+        for (String item : letters) {
+            Button b = new Button(this);
+            b.setText(item + "   🔊");
+            b.setTextSize(18);
+            b.setAllCaps(false);
+            b.setTextColor(Color.rgb(25,73,69));
+            b.setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.rgb(220,245,230)));
+            layout.addView(b,new LinearLayout.LayoutParams(-1,-2));
+            b.setOnClickListener(v -> {
+                if (speaker != null) speaker.speak(item.replace(" - ", " مثل "), android.speech.tts.TextToSpeech.QUEUE_FLUSH, null, "kids-letter");
+            });
+        }
+        addText("🔢 الأرقام من ١ إلى ١٠", 20, Color.rgb(255,225,160));
+        addText("١  •  ٢  •  ٣  •  ٤  •  ٥  •  ٦  •  ٧  •  ٨  •  ٩  •  ١٠", 23, Color.WHITE);
+        addText("🌈 الألوان: أحمر، أزرق، أصفر، أخضر، أبيض، أسود", 17, Color.WHITE);
+        addText("⭐ تذكّر: تعلم حرفاً جديداً كل يوم!", 16, Color.rgb(255,215,120));
+        addButton("العودة إلى عالم الأطفال", () -> {
+            try { speaker.stop(); speaker.shutdown(); } catch (Exception ignored) {}
+            showKidsSection();
+        });
+    }
+
+    void speakerLanguageReady(android.speech.tts.TextToSpeech speaker) {
+        try { speaker.setLanguage(new Locale("ar")); } catch (Exception ignored) {}
+    }
+
     void showKidsSection() {
         setup();
         addText("🌈 عالم نور للأطفال 🌈", 28, Color.rgb(255, 215, 120));
@@ -1236,6 +1373,10 @@ public class MainActivity extends Activity {
             Color.rgb(255, 238, 202), this::showAdhkar);
         addKidsCard("📿 مسبحتي الصغيرة", "سبّح واستغفر وتابع عدد التسبيحات", "🧸",
             Color.rgb(244, 226, 250), this::tasbeeh);
+        addKidsCard("🎨 مرسمي الصغير", "ارسم بالألوان واختر القلم والممحاة وامسح لوحتك", "🖍️",
+            Color.rgb(255, 231, 190), this::showKidsDrawing);
+        addKidsCard("📚 أتعلم وأكتشف", "تعلم الحروف العربية والأرقام والألوان مع النطق الصوتي", "🔤",
+            Color.rgb(220, 245, 230), this::showKidsLearning);
         addKidsCard("⭐ تحدي اليوم", "قريباً: أسئلة قرآنية ونقاط تشجيعية", "🏆",
             Color.rgb(255, 225, 218), () -> message("تحدي اليوم قيد التجهيز"));
         addText("أحسنت يا بطل! كل خطوة جميلة تقرّبك من الخير 💛", 16,
