@@ -697,7 +697,7 @@ public class MainActivity extends Activity {
         addHomeTile(grid, "📿", "المسبحة", "تسبيح واستغفار", this::tasbeeh, Color.rgb(53,62,76));
         addHomeTile(grid, "💰", "حاسبة الزكاة", "حساب الزكاة", this::zakat, Color.rgb(62,65,52));
         addHomeTile(grid, "✨", "أسماء الله الحسنى", "تأمل وتدبر", this::showNamesOfAllah, Color.rgb(46,70,68));
-        addHomeTile(grid, "🏆", "المسابقات", "أسئلة قرآنية", () -> message("المسابقات قيد التجهيز"), Color.rgb(63,60,76));
+        addHomeTile(grid, "🏆", "المسابقات", "أسئلة وجوائز ونقاط", this::showCompetitions, Color.rgb(63,60,76));
         addHomeTile(grid, "⚙️", "الإعدادات", "تخصيص التطبيق", this::showSettings, Color.rgb(49,65,58));
 
         LinearLayout prayerPreview = new LinearLayout(this);
@@ -1854,6 +1854,203 @@ public class MainActivity extends Activity {
             .setNegativeButton("إلغاء", (d,w) -> d.dismiss())
             .setPositiveButton("تصفير", (d,w) -> { count=0; counter.setText("٠"); prefs.edit().putInt("tasbeeh_count",0).apply(); goal.setText("ابدأ ذكرك من جديد"); }).show());
         addButton("رجوع", this::home);
+    }
+
+
+    String[] quizQuestions = {
+        "ما السورة التي تُسمّى أمّ الكتاب؟",
+        "كم عدد أركان الإسلام؟",
+        "ما أطول سورة في القرآن الكريم؟",
+        "في أي شهر يصوم المسلمون؟",
+        "ما اسم الليلة التي هي خير من ألف شهر؟",
+        "كم عدد أجزاء القرآن الكريم؟",
+        "ما السورة التي لا تبدأ بالبسملة؟",
+        "من النبي الذي ابتلعه الحوت؟",
+        "ما قبلة المسلمين في الصلاة؟",
+        "ما أقصر سورة في القرآن الكريم؟"
+    };
+    String[][] quizOptions = {
+        {"الفاتحة","البقرة","الإخلاص","الناس"},
+        {"ثلاثة","أربعة","خمسة","ستة"},
+        {"آل عمران","البقرة","النساء","المائدة"},
+        {"شعبان","رمضان","محرم","شوال"},
+        {"ليلة القدر","ليلة النصف من شعبان","ليلة الإسراء","ليلة الجمعة"},
+        {"٢٠ جزءاً","٢٥ جزءاً","٣٠ جزءاً","٤٠ جزءاً"},
+        {"التوبة","يونس","الأنفال","هود"},
+        {"موسى عليه السلام","يونس عليه السلام","إبراهيم عليه السلام","يوسف عليه السلام"},
+        {"المسجد الأقصى","الكعبة المشرفة","المسجد النبوي","جبل عرفات"},
+        {"الكوثر","العصر","الإخلاص","الفلق"}
+    };
+    int[] quizCorrect = {0,2,1,1,0,2,0,1,1,0};
+    String[] quizExplanations = {
+        "سورة الفاتحة تُسمّى أمّ الكتاب وأمّ القرآن.",
+        "أركان الإسلام خمسة.",
+        "سورة البقرة هي أطول سور القرآن الكريم.",
+        "يصوم المسلمون شهر رمضان.",
+        "ليلة القدر خير من ألف شهر.",
+        "القرآن الكريم ثلاثون جزءاً.",
+        "سورة التوبة لا تبدأ بالبسملة.",
+        "النبي يونس عليه السلام.",
+        "قبلة المسلمين هي الكعبة المشرفة.",
+        "سورة الكوثر هي أقصر سور القرآن."
+    };
+    int quizIndex = 0;
+    int quizScore = 0;
+    boolean quizAnswered = false;
+    TextView quizFeedback;
+
+    void showCompetitions() {
+        setup();
+        layout.setPadding(dp(14), dp(12), dp(14), dp(22));
+        android.content.SharedPreferences prefs = getSharedPreferences("noor_quiz", MODE_PRIVATE);
+        int points = prefs.getInt("points", 0);
+        int played = prefs.getInt("played", 0);
+
+        LinearLayout hero = new LinearLayout(this);
+        hero.setOrientation(LinearLayout.VERTICAL);
+        hero.setGravity(Gravity.CENTER);
+        hero.setPadding(dp(18), dp(20), dp(18), dp(20));
+        hero.setBackground(premiumBackground(Color.rgb(13, 55, 47), Color.rgb(218, 184, 111), 24));
+        TextView icon = new TextView(this);
+        icon.setText("🏆");
+        icon.setTextSize(38);
+        icon.setGravity(Gravity.CENTER);
+        hero.addView(icon);
+        TextView title = new TextView(this);
+        title.setText("مسابقات نور القرآن");
+        title.setTextColor(Color.rgb(255, 229, 170));
+        title.setTextSize(26);
+        title.setTypeface(android.graphics.Typeface.SERIF, android.graphics.Typeface.BOLD);
+        title.setGravity(Gravity.CENTER);
+        hero.addView(title);
+        TextView desc = new TextView(this);
+        desc.setText("اختبر معلوماتك واجمع النقاط مع كل إجابة صحيحة");
+        desc.setTextColor(Color.WHITE);
+        desc.setTextSize(14);
+        desc.setGravity(Gravity.CENTER);
+        desc.setPadding(0, dp(8), 0, 0);
+        hero.addView(desc);
+        layout.addView(hero);
+
+        LinearLayout scoreCard = new LinearLayout(this);
+        scoreCard.setOrientation(LinearLayout.HORIZONTAL);
+        scoreCard.setGravity(Gravity.CENTER);
+        scoreCard.setPadding(dp(10), dp(14), dp(10), dp(14));
+        scoreCard.setBackground(premiumBackground(Color.rgb(20, 63, 56), Color.rgb(190, 158, 87), 18));
+        TextView total = new TextView(this);
+        total.setText("⭐ رصيدك\n" + toArabicDigits(String.valueOf(points)) + " نقطة");
+        total.setTextColor(Color.rgb(255, 224, 157));
+        total.setTextSize(18);
+        total.setGravity(Gravity.CENTER);
+        scoreCard.addView(total, new LinearLayout.LayoutParams(0, -2, 1));
+        TextView games = new TextView(this);
+        games.setText("🎯 المشاركات\n" + toArabicDigits(String.valueOf(played)));
+        games.setTextColor(Color.WHITE);
+        games.setTextSize(16);
+        games.setGravity(Gravity.CENTER);
+        scoreCard.addView(games, new LinearLayout.LayoutParams(0, -2, 1));
+        LinearLayout.LayoutParams scoreParams = new LinearLayout.LayoutParams(-1, -2);
+        scoreParams.setMargins(0, dp(12), 0, dp(10));
+        layout.addView(scoreCard, scoreParams);
+
+        addAdultCard("📖 المسابقة القرآنية والإسلامية", "١٠ أسئلة اختيار من متعدد • ١٠ نقاط لكل إجابة صحيحة", () -> startQuiz());
+        addAdultCard("🎁 كيف تربح؟", "اجمع النقاط بالإجابة الصحيحة، ثم تابع رصيدك داخل التطبيق.", () ->
+            message("كل إجابة صحيحة تمنحك ١٠ نقاط. النقاط رمزية داخل التطبيق وليست أموالاً نقدية."));
+        addText("مستوياتك: مبتدئ ٠–٤٩ • مجتهد ٥٠–١٤٩ • متميز ١٥٠–٢٩٩ • نابغة ٣٠٠ نقطة فأكثر", 13, Color.rgb(242, 211, 145));
+        addText("المسابقات تعليمية وترفيهية، ولا توجد جوائز مالية أو سحب نقدي حالياً.", 12, Color.LTGRAY);
+        addButton("العودة للرئيسية", this::home);
+    }
+
+    void startQuiz() {
+        quizIndex = 0;
+        quizScore = 0;
+        showQuizQuestion();
+    }
+
+    void showQuizQuestion() {
+        setup();
+        layout.setPadding(dp(14), dp(12), dp(14), dp(22));
+        addText("🏆 المسابقة القرآنية", 25, Color.rgb(242, 211, 145));
+        addText("السؤال " + toArabicDigits(String.valueOf(quizIndex + 1)) + " من ١٠", 16, Color.WHITE);
+
+        android.widget.ProgressBar progress = new android.widget.ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
+        progress.setMax(10);
+        progress.setProgress(quizIndex + 1);
+        progress.setProgressTintList(android.content.res.ColorStateList.valueOf(Color.rgb(218, 184, 111)));
+        layout.addView(progress, new LinearLayout.LayoutParams(-1, dp(7)));
+
+        TextView question = new TextView(this);
+        question.setText(quizQuestions[quizIndex]);
+        question.setTextColor(Color.rgb(255, 229, 170));
+        question.setTextSize(21);
+        question.setTypeface(null, android.graphics.Typeface.BOLD);
+        question.setGravity(Gravity.CENTER);
+        question.setPadding(dp(12), dp(24), dp(12), dp(22));
+        question.setBackground(premiumBackground(Color.rgb(13, 55, 47), Color.rgb(218, 184, 111), 20));
+        LinearLayout.LayoutParams qp = new LinearLayout.LayoutParams(-1, -2);
+        qp.setMargins(0, dp(14), 0, dp(12));
+        layout.addView(question, qp);
+
+        quizFeedback = new TextView(this);
+        quizFeedback.setText("اختر الإجابة الصحيحة");
+        quizFeedback.setTextColor(Color.WHITE);
+        quizFeedback.setTextSize(15);
+        quizFeedback.setGravity(Gravity.CENTER);
+        quizFeedback.setPadding(dp(8), dp(12), dp(8), dp(12));
+        layout.addView(quizFeedback);
+
+        quizAnswered = false;
+        for (int i = 0; i < 4; i++) {
+            final int choice = i;
+            Button option = new Button(this);
+            option.setText(quizOptions[quizIndex][i]);
+            option.setTextSize(16);
+            option.setTextColor(Color.WHITE);
+            option.setAllCaps(false);
+            option.setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.rgb(25, 105, 87)));
+            LinearLayout.LayoutParams op = new LinearLayout.LayoutParams(-1, -2);
+            op.setMargins(0, dp(5), 0, dp(5));
+            layout.addView(option, op);
+            option.setOnClickListener(v -> {
+                if (quizAnswered) return;
+                quizAnswered = true;
+                for (int j = 0; j < layout.getChildCount(); j++) {
+                    View child = layout.getChildAt(j);
+                    if (child instanceof Button) child.setEnabled(false);
+                }
+                if (choice == quizCorrect[quizIndex]) {
+                    quizScore += 10;
+                    option.setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.rgb(35, 135, 83)));
+                    quizFeedback.setText("إجابة صحيحة! +١٠ نقاط\n" + quizExplanations[quizIndex]);
+                } else {
+                    option.setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.rgb(145, 65, 55)));
+                    quizFeedback.setText("ليست الإجابة الصحيحة. الإجابة: " + quizOptions[quizIndex][quizCorrect[quizIndex]]
+                        + "\n" + quizExplanations[quizIndex]);
+                }
+                addButton(quizIndex == 9 ? "عرض النتيجة 🏆" : "السؤال التالي ←", () -> {
+                    if (quizIndex == 9) finishQuiz();
+                    else { quizIndex++; showQuizQuestion(); }
+                });
+            });
+        }
+        addButton("إنهاء المسابقة", this::showCompetitions);
+    }
+
+    void finishQuiz() {
+        android.content.SharedPreferences prefs = getSharedPreferences("noor_quiz", MODE_PRIVATE);
+        int totalPoints = prefs.getInt("points", 0) + quizScore;
+        int played = prefs.getInt("played", 0) + 1;
+        prefs.edit().putInt("points", totalPoints).putInt("played", played).apply();
+        setup();
+        layout.setPadding(dp(14), dp(16), dp(14), dp(22));
+        addText("🎉 أحسنت! انتهت المسابقة", 25, Color.rgb(242, 211, 145));
+        addText("نتيجتك: " + toArabicDigits(String.valueOf(quizScore)) + " من ١٠٠ نقطة", 22, Color.WHITE);
+        addText("رصيدك الكلي: " + toArabicDigits(String.valueOf(totalPoints)) + " نقطة", 20, Color.rgb(255, 224, 157));
+        String level = totalPoints >= 300 ? "نابغة" : totalPoints >= 150 ? "متميز" : totalPoints >= 50 ? "مجتهد" : "مبتدئ";
+        addAdultCard("🏅 مستواك: " + level, "واصل التعلم واجمع المزيد من النقاط", () -> showCompetitions());
+        addButton("إعادة المسابقة", this::startQuiz);
+        addButton("العودة للمسابقات", this::showCompetitions);
+        addButton("العودة للرئيسية", this::home);
     }
 
     void zakat() {
