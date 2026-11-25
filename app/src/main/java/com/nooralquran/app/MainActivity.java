@@ -2434,6 +2434,65 @@ public class MainActivity extends Activity {
     boolean quizAnswered = false;
     TextView quizFeedback;
 
+
+    void showAdvertiserHub() {
+        setup();
+        addText("📢 أعلن معنا في نور القرآن",27,Color.rgb(242,211,145));
+        addText("أرسل طلب إعلان أو رعاية للمسابقات. لا يُنشر أي إعلان قبل المراجعة والموافقة.",15,Color.WHITE);
+        addAdultCard("📝 طلب إعلان جديد","بيانات نشاطك والباقـة المناسبة",this::showAdvertiserRequest);
+        addAdultCard("🏆 رعاية تحدي اليوم","ادعم الأنشطة التعليمية والمسابقات",this::showAdvertiserRequest);
+        addText("الباقات المقترحة: إعلان صغير ٥٠٬٠٠٠ د.ع، إعلان مميز ١٠٠٬٠٠٠ د.ع، راعي تحدي اليوم ١٥٠٬٠٠٠ د.ع شهرياً. الأسعار قابلة للتفاوض.",14,Color.rgb(238,204,125));
+        addButton("العودة للمسابقات",this::showCompetitions);
+    }
+    void showAdvertiserRequest() {
+        setup();
+        addText("📝 طلب الإعلان والرعاية",25,Color.rgb(242,211,145));
+        addText("املأ البيانات. سيُحفظ الطلب للمراجعة ولن يظهر إعلانك تلقائياً.",14,Color.WHITE);
+        EditText business=teacherInput("اسم الشركة أو المكتبة أو المركز");
+        EditText contact=teacherInput("اسم الشخص المسؤول");
+        EditText phone=teacherInput("رقم الهاتف مع رمز الدولة");
+        Spinner packageType=teacherSpinner(new String[]{"اختر الباقة","إعلان صغير — ٥٠٬٠٠٠ د.ع شهرياً","إعلان مميز — ١٠٠٬٠٠٠ د.ع شهرياً","راعي تحدي اليوم — ١٥٠٬٠٠٠ د.ع شهرياً"});
+        EditText description=teacherInput("وصف الإعلان أو النشاط");
+        EditText duration=teacherInput("المدة المطلوبة (مثلاً شهر واحد)");
+        EditText link=teacherInput("رابط الموقع أو صفحة التواصل (اختياري)");
+        addButton("إرسال الطلب ومشاركته عبر واتساب",() -> {
+            String company=business.getText().toString().trim(), person=contact.getText().toString().trim();
+            String mobile=phone.getText().toString().trim(), desc=description.getText().toString().trim();
+            if(company.isEmpty()||person.isEmpty()||mobile.isEmpty()||packageType.getSelectedItemPosition()==0||desc.isEmpty()) { message("أكمل اسم النشاط والمسؤول والهاتف والباقة ووصف الإعلان."); return; }
+            String selected=packageType.getSelectedItem().toString(), requestedDuration=duration.getText().toString().trim(), website=link.getText().toString().trim();
+            Map<String,Object> data=new HashMap<>();
+            data.put("businessName",company); data.put("contactPerson",person); data.put("phone",mobile); data.put("package",selected);
+            data.put("description",desc); data.put("duration",requestedDuration); data.put("link",website); data.put("placement","competitions");
+            data.put("status","pending_review"); data.put("createdAt",System.currentTimeMillis());
+            ensureFirebaseLogin(() -> FirebaseDatabase.getInstance(FIREBASE_DATABASE_URL).getReference("advertiserRequests").push().setValue(data).addOnCompleteListener(task -> {
+                if(!task.isSuccessful()) { message("تعذر حفظ الطلب. تحقق من الإنترنت وصلاحيات Firebase."); return; }
+                String shareText="طلب إعلان في نور القرآن\nالنشاط: "+company+"\nالمسؤول: "+person+"\nالهاتف: "+mobile+"\nالباقة: "+selected+"\nالوصف: "+desc+"\nالمدة: "+requestedDuration+(website.isEmpty()?"":"\nالرابط: "+website);
+                try { android.content.Intent share=new android.content.Intent(android.content.Intent.ACTION_SEND); share.setType("text/plain"); share.putExtra(android.content.Intent.EXTRA_TEXT,shareText); startActivity(android.content.Intent.createChooser(share,"إرسال الطلب عبر واتساب أو تطبيق آخر")); } catch(Exception ignored) {}
+                message("تم حفظ الطلب للمراجعة. اختر واتساب من قائمة المشاركة لإرساله أيضاً."); showCompetitions();
+            }));
+        });
+        addButton("رجوع",this::showAdvertiserHub);
+    }
+    void showApprovedCompetitionSponsors() {
+        final LinearLayout target=layout;
+        FirebaseDatabase.getInstance(FIREBASE_DATABASE_URL).getReference("approvedSponsors").child("competitions").orderByChild("active").equalTo(true).limitToFirst(5)
+            .addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override public void onDataChange(DataSnapshot snapshot) {
+                    if(layout!=target||!snapshot.exists()) return;
+                    addText("🤝 رعاة تحديات نور القرآن",18,Color.rgb(242,211,145));
+                    for(DataSnapshot item:snapshot.getChildren()) {
+                        String name=item.child("name").getValue(String.class), desc=item.child("description").getValue(String.class), url=item.child("url").getValue(String.class);
+                        if(name==null||name.trim().isEmpty()) continue;
+                        addAdultCard("⭐ "+name,desc==null?"راعي أنشطة نور القرآن":desc,() -> {
+                            if(url!=null&&(url.startsWith("https://")||url.startsWith("http://"))) { try { startActivity(new android.content.Intent(android.content.Intent.ACTION_VIEW,android.net.Uri.parse(url))); } catch(Exception e) { message("تعذر فتح الرابط."); } }
+                            else message("لا يوجد رابط لهذا الراعي.");
+                        });
+                    }
+                }
+                @Override public void onCancelled(DatabaseError error) {}
+            });
+    }
+
     void showCompetitions() {
         setup();
         layout.setPadding(dp(14), dp(12), dp(14), dp(22));
@@ -2496,7 +2555,7 @@ public class MainActivity extends Activity {
         addText("مستوياتك: مبتدئ ٠–٤٩ • مجتهد ٥٠–١٤٩ • متميز ١٥٠–٢٩٩ • نابغة ٣٠٠ نقطة فأكثر", 13, Color.rgb(242, 211, 145));
         addText("المسابقات تعليمية وترفيهية، ولا توجد جوائز مالية أو سحب نقدي حالياً.", 12, Color.LTGRAY);
         addButton("العودة للرئيسية", this::home);
-        addText("إعلان", 11, Color.LTGRAY);
+        addAdultCard("📢 أعلن معنا / اطلب رعاية","قدّم طلب إعلانك في المسابقات وتحدي اليوم",this::showAdvertiserHub);\n        showApprovedCompetitionSponsors();\n        addText("إعلان", 11, Color.LTGRAY);
         AdView banner = new AdView(this);
         banner.setAdSize(AdSize.BANNER);
         banner.setAdUnitId(ADMOB_TEST_BANNER_ID);
