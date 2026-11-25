@@ -65,13 +65,25 @@ public class MainActivity extends Activity {
 
                 if (parts.length == 3) {
                     try {
-                        int surah = Integer.parseInt(parts[0].trim());
                         int ayah = Integer.parseInt(parts[1].trim());
-                        verses.add(new String[]{
-                            String.valueOf(surah),
-                            String.valueOf(ayah),
-                            parts[2]
-                        });
+                        String firstPart = parts[0].trim();
+                        int surah;
+
+                        // The first Fatiha line in this downloaded file starts with |1|
+                        if (firstPart.isEmpty() && ayah == 1 &&
+                                parts[2].contains("بِسْمِ")) {
+                            surah = 1;
+                        } else {
+                            surah = Integer.parseInt(firstPart);
+                        }
+
+                        if (surah >= 1 && surah <= 114 && ayah >= 1) {
+                            verses.add(new String[]{
+                                String.valueOf(surah),
+                                String.valueOf(ayah),
+                                parts[2].trim()
+                            });
+                        }
                     } catch (NumberFormatException ignored) {
                     }
                 }
@@ -157,7 +169,7 @@ public class MainActivity extends Activity {
         int found = 0;
         for (String[] verse : verses) {
             if (Integer.parseInt(verse[0]) == number) {
-                addText("﴿" + verse[2] + "﴾  (" + verse[1] + ")",
+                addText(formatVerse(verse[2], verse[1]),
                     23, Color.WHITE);
                 found++;
             }
@@ -166,6 +178,22 @@ public class MainActivity extends Activity {
         if (found == 0) {
             addText("لم يتم العثور على آيات هذه السورة", 18, Color.YELLOW);
         }
+    }
+
+
+    String formatVerse(String verseText, String verseNumber) {
+        String basmala = "بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ";
+        String text = verseText.trim();
+
+        if (text.startsWith(basmala)) {
+            String rest = text.substring(basmala.length()).trim();
+            if (rest.isEmpty()) {
+                return basmala + "   (" + verseNumber + ")";
+            }
+            return basmala + "\\n۞ ﴿" + rest + "﴾ ۞   (" + verseNumber + ")";
+        }
+
+        return "۞ ﴿" + text + "﴾ ۞   (" + verseNumber + ")";
     }
 
     int count = 0;
