@@ -260,9 +260,110 @@ public class MainActivity extends Activity {
         addAdultCard("📿 المسبحة الإلكترونية", "تسبيح واستغفار مع عدّاد", this::tasbeeh);
         addAdultCard("💰 حاسبة الزكاة", "حساب ٢٫٥٪ من المبلغ المُدخل", this::zakat);
         addAdultCard("🌿 وردي اليومي", "اختر سورة لتجعلها وردك اليوم", this::showDailyWird);
+        addAdultCard("🔖 متابعة القراءة", "العودة إلى آخر سورة فتحتها", this::continueReading);
+        addAdultCard("✨ أسماء الله الحسنى", "تأمل في مجموعة من أسماء الله الحسنى", this::showNamesOfAllah);
+        addAdultCard("🤲 أدعية من القرآن", "أدعية قرآنية مع مواضعها", this::showQuranDuas);
+        addAdultCard("🗓️ خطة عبادتي اليومية", "ضع علامة على ما أنجزته اليوم", this::showDailyPlan);
         addText("اجعل لك وقتاً ثابتاً للقرآن والذكر والعمل الصالح", 14,
             Color.rgb(238, 204, 125));
         addButton("العودة للرئيسية", this::home);
+    }
+
+    void continueReading() {
+        int last = getSharedPreferences("noor_prefs", MODE_PRIVATE)
+            .getInt("last_surah", 1);
+        showSurah(last);
+    }
+
+    void showNamesOfAllah() {
+        setup();
+        addText("✧ أسماء الله الحسنى ✧", 27, Color.rgb(238, 204, 125));
+        addText("مجموعة للتأمل والتذكر", 15, Color.WHITE);
+        String[] names = {
+            "الرَّحْمَٰن","الرَّحِيم","الْمَلِك","الْقُدُّوس",
+            "السَّلَام","الْمُؤْمِن","الْمُهَيْمِن","الْعَزِيز",
+            "الْجَبَّار","الْمُتَكَبِّر","الْخَالِق","الْبَارِئ",
+            "الْمُصَوِّر","الْغَفَّار","الْقَهَّار","الْوَهَّاب",
+            "الرَّزَّاق","الْفَتَّاح","الْعَلِيم","السَّمِيع",
+            "الْبَصِير","الْحَكَم","الْعَدْل","اللَّطِيف"
+        };
+        for (int i = 0; i < names.length; i++) {
+            addAdultCard("۞ " + toArabicDigits(String.valueOf(i + 1))
+                + "  " + names[i], "تأمل في معنى الاسم وادعُ الله به", () ->
+                message("نسأل الله أن يرزقنا حسن معرفته ودعائه"));
+        }
+        addText("هذه مجموعة من الأسماء، وليست عرضاً كاملاً للأسماء التسعة والتسعين.", 13,
+            Color.rgb(238, 204, 125));
+        addButton("رجوع إلى قسم الكبار", this::showAdultSection);
+    }
+
+    void showQuranDuas() {
+        setup();
+        addText("🤲 أدعية من القرآن الكريم", 26, Color.rgb(238, 204, 125));
+        addAdultCard("رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الْآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّارِ",
+            "سورة البقرة • الآية ٢٠١", () -> showDuaDetail(
+            "رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الْآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّارِ",
+            "البقرة: ٢٠١"));
+        addAdultCard("رَبِّ زِدْنِي عِلْمًا", "سورة طه • الآية ١١٤",
+            () -> showDuaDetail("رَبِّ زِدْنِي عِلْمًا", "طه: ١١٤"));
+        addAdultCard("رَبَّنَا لَا تُزِغْ قُلُوبَنَا بَعْدَ إِذْ هَدَيْتَنَا وَهَبْ لَنَا مِن لَّدُنكَ رَحْمَةً إِنَّكَ أَنتَ الْوَهَّابُ",
+            "سورة آل عمران • الآية ٨", () -> showDuaDetail(
+            "رَبَّنَا لَا تُزِغْ قُلُوبَنَا بَعْدَ إِذْ هَدَيْتَنَا وَهَبْ لَنَا مِن لَّدُنكَ رَحْمَةً إِنَّكَ أَنتَ الْوَهَّابُ",
+            "آل عمران: ٨"));
+        addAdultCard("رَبِّ اشْرَحْ لِي صَدْرِي ۝ وَيَسِّرْ لِي أَمْرِي",
+            "سورة طه • الآيتان ٢٥–٢٦", () -> showDuaDetail(
+            "رَبِّ اشْرَحْ لِي صَدْرِي ۝ وَيَسِّرْ لِي أَمْرِي", "طه: ٢٥–٢٦"));
+        addAdultCard("رَبَّنَا ظَلَمْنَا أَنفُسَنَا وَإِن لَّمْ تَغْفِرْ لَنَا وَتَرْحَمْنَا لَنَكُونَنَّ مِنَ الْخَاسِرِينَ",
+            "سورة الأعراف • الآية ٢٣", () -> showDuaDetail(
+            "رَبَّنَا ظَلَمْنَا أَنفُسَنَا وَإِن لَّمْ تَغْفِرْ لَنَا وَتَرْحَمْنَا لَنَكُونَنَّ مِنَ الْخَاسِرِينَ",
+            "الأعراف: ٢٣"));
+        addButton("رجوع إلى قسم الكبار", this::showAdultSection);
+    }
+
+    void showDuaDetail(String dua, String reference) {
+        setup();
+        addText("۞ دعاء قرآني ۞", 25, Color.rgb(238, 204, 125));
+        addQuranText(dua);
+        addText("الموضع: " + reference, 16, Color.WHITE);
+        addButton("نسخ الدعاء", () -> {
+            android.content.ClipboardManager clipboard =
+                (android.content.ClipboardManager)getSystemService(CLIPBOARD_SERVICE);
+            clipboard.setPrimaryClip(android.content.ClipData.newPlainText("دعاء قرآني", dua));
+            message("تم نسخ الدعاء");
+        });
+        addButton("رجوع إلى الأدعية", this::showQuranDuas);
+    }
+
+    void showDailyPlan() {
+        setup();
+        addText("🗓️ خطة عبادتي اليومية", 26, Color.rgb(238, 204, 125));
+        addText("ضع علامة عند إتمام العمل. تُحفظ العلامات على هذا الجهاز.", 14, Color.WHITE);
+        String[] tasks = {"قراءة ورد من القرآن","أذكار الصباح","أذكار المساء",
+            "الصلاة على النبي ﷺ","الاستغفار","صدقة أو عمل خير"};
+        android.content.SharedPreferences prefs =
+            getSharedPreferences("noor_daily_plan", MODE_PRIVATE);
+        String today = new java.text.SimpleDateFormat("yyyyMMdd", Locale.US)
+            .format(new java.util.Date());
+        boolean sameDay = today.equals(prefs.getString("plan_date", ""));
+        if (!sameDay) {
+            prefs.edit().clear().putString("plan_date", today).apply();
+        }
+        for (int i = 0; i < tasks.length; i++) {
+            final String key = "task_" + i;
+            CheckBox check = new CheckBox(this);
+            check.setText(tasks[i]);
+            check.setTextColor(Color.rgb(248, 235, 202));
+            check.setTextSize(17);
+            check.setButtonTintList(android.content.res.ColorStateList.valueOf(
+                Color.rgb(238, 204, 125)));
+            check.setChecked(prefs.getBoolean(key, false));
+            check.setOnCheckedChangeListener((button, checked) ->
+                prefs.edit().putBoolean(key, checked).apply());
+            layout.addView(check);
+        }
+        addText("تذكير: هذه قائمة تنظيم شخصية وليست حكماً شرعياً.", 13,
+            Color.rgb(238, 204, 125));
+        addButton("رجوع إلى قسم الكبار", this::showAdultSection);
     }
 
     void showAdhkar() {
@@ -562,6 +663,8 @@ public class MainActivity extends Activity {
     }
 
     void showSurah(int number) {
+        getSharedPreferences("noor_prefs", MODE_PRIVATE).edit()
+            .putInt("last_surah", number).apply();
         setup();
         addText("سورة " + surahs[number - 1], 28, Color.YELLOW);
         addButton("رجوع إلى السور", this::showSurahs);
