@@ -1,0 +1,28 @@
+{
+  "project_info": {
+    "project_number": "105078866374",
+    "project_id": "nooralquran-3b05a",
+    "storage_bucket": "nooralquran-3b05a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:105078866374:android:564e8c34dc9cbf9fca72c7",
+        "android_client_info": {
+          "package_name": "com.nooralquran.app"
+        }
+      },
+      "api_key": [
+        {
+          "current_key": "AIzaSyBsPyBIrd3XWtDm-LyZ6EnIsqr6PCbV8pU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
