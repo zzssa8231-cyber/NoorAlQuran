@@ -264,16 +264,16 @@ public class MainActivity extends Activity {
     }
 
     void addAudioButtonRow(String[] labels, Runnable[] actions) {
-        LinearLayout row = new LinearLayout(this);
-        row.setOrientation(LinearLayout.HORIZONTAL);
-        row.setGravity(Gravity.CENTER);
+        LinearLayout column = new LinearLayout(this);
+        column.setOrientation(LinearLayout.VERTICAL);
+        column.setGravity(Gravity.CENTER);
         for (int i = 0; i < labels.length; i++) {
             Button button = makeAudioButton(labels[i], actions[i]);
-            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, -2, 1f);
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, -2);
             params.setMargins(3, 5, 3, 5);
-            row.addView(button, params);
+            column.addView(button, params);
         }
-        layout.addView(row, new LinearLayout.LayoutParams(-1, -2));
+        layout.addView(column, new LinearLayout.LayoutParams(-1, -2));
     }
 
     void addAdultCard(String title, String description, Runnable action) {
@@ -312,14 +312,6 @@ public class MainActivity extends Activity {
         setup();
         addText("❁ قسم الكبار ❁", 29, Color.rgb(238, 204, 125));
         addText("زادُ القلب وطمأنينة الروح", 17, Color.WHITE);
-        HorizontalScrollView horizontalMenu = new HorizontalScrollView(this);
-        horizontalMenu.setHorizontalScrollBarEnabled(false);
-        horizontalMenu.setFillViewport(false);
-        LinearLayout cardRow = new LinearLayout(this);
-        cardRow.setOrientation(LinearLayout.HORIZONTAL);
-        cardRow.setPadding(8, 8, 8, 8);
-        horizontalMenu.addView(cardRow, new HorizontalScrollView.LayoutParams(-2, -2));
-        layout.addView(horizontalMenu, new LinearLayout.LayoutParams(-1, -2));
         addAdultCardHorizontal(cardRow, "📖 القرآن الكريم", "قراءة السور بترتيب المصحف", this::showSurahs);
         addAdultCardHorizontal(cardRow, "🎧 الاستماع إلى القرآن", "اختر القارئ والسورة واستمتع بالتلاوة", this::audioScreen);
         addAdultCardHorizontal(cardRow, "🌅 أذكار الصباح والمساء", "أذكار مختارة مع عدّاد للتكرار", this::showAdhkar);
@@ -556,13 +548,13 @@ public class MainActivity extends Activity {
         addText("❁ روضة التلاوات القرآنية ❁", 27, Color.rgb(238, 204, 125));
         addText("اختر قارئك وسورتك المفضلة", 16, Color.WHITE);
 
-        LinearLayout selectorsRow = new LinearLayout(this);
-        selectorsRow.setOrientation(LinearLayout.HORIZONTAL);
-        selectorsRow.setGravity(Gravity.CENTER_VERTICAL);
+        LinearLayout selectorsColumn = new LinearLayout(this);
+        selectorsColumn.setOrientation(LinearLayout.VERTICAL);
+        selectorsColumn.setPadding(4, 4, 4, 4);
 
         LinearLayout reciterColumn = new LinearLayout(this);
         reciterColumn.setOrientation(LinearLayout.VERTICAL);
-        reciterColumn.setLayoutParams(new LinearLayout.LayoutParams(0, -2, 1f));
+        reciterColumn.setLayoutParams(new LinearLayout.LayoutParams(-1, -2));
         TextView reciterLabel = new TextView(this);
         reciterLabel.setText("✦ اختر القارئ");
         reciterLabel.setTextColor(Color.rgb(238, 204, 125));
@@ -573,7 +565,7 @@ public class MainActivity extends Activity {
 
         LinearLayout surahColumn = new LinearLayout(this);
         surahColumn.setOrientation(LinearLayout.VERTICAL);
-        surahColumn.setLayoutParams(new LinearLayout.LayoutParams(0, -2, 1f));
+        surahColumn.setLayoutParams(new LinearLayout.LayoutParams(-1, -2));
         TextView surahLabel = new TextView(this);
         surahLabel.setText("✦ اختر السورة");
         surahLabel.setTextColor(Color.rgb(238, 204, 125));
@@ -582,9 +574,9 @@ public class MainActivity extends Activity {
         Spinner surahPicker = styledSpinner(surahs, audioSurah - 1);
         surahColumn.addView(surahPicker, new LinearLayout.LayoutParams(-1, -2));
 
-        selectorsRow.addView(reciterColumn);
-        selectorsRow.addView(surahColumn);
-        layout.addView(selectorsRow, new LinearLayout.LayoutParams(-1, -2));
+        selectorsColumn.addView(reciterColumn);
+        selectorsColumn.addView(surahColumn);
+        layout.addView(selectorsColumn, new LinearLayout.LayoutParams(-1, -2));
 
         audioStatus = new TextView(this);
         audioStatus.setText("۞ اختر القارئ والسورة ثم اضغط تشغيل ۞");
