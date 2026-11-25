@@ -543,6 +543,19 @@ public class MainActivity extends Activity {
         layout.addView(label);
     }
 
+    void styleAudioPanel(LinearLayout panel) {
+        panel.setPadding(14, 12, 14, 12);
+        GradientDrawable panelBg = new GradientDrawable();
+        panelBg.setColor(Color.rgb(20, 63, 56));
+        panelBg.setCornerRadius(18);
+        panelBg.setStroke(2, Color.rgb(190, 158, 87));
+        panel.setBackground(panelBg);
+        LinearLayout.LayoutParams panelParams =
+            new LinearLayout.LayoutParams(-1, -2);
+        panelParams.setMargins(0, 8, 0, 8);
+        panel.setLayoutParams(panelParams);
+    }
+
     void audioScreen() {
         setup();
         addText("❁ روضة التلاوات القرآنية ❁", 27, Color.rgb(238, 204, 125));
@@ -554,7 +567,7 @@ public class MainActivity extends Activity {
 
         LinearLayout reciterColumn = new LinearLayout(this);
         reciterColumn.setOrientation(LinearLayout.VERTICAL);
-        reciterColumn.setLayoutParams(new LinearLayout.LayoutParams(-1, -2));
+        styleAudioPanel(reciterColumn);
         TextView reciterLabel = new TextView(this);
         reciterLabel.setText("✦ اختر القارئ");
         reciterLabel.setTextColor(Color.rgb(238, 204, 125));
@@ -565,7 +578,7 @@ public class MainActivity extends Activity {
 
         LinearLayout surahColumn = new LinearLayout(this);
         surahColumn.setOrientation(LinearLayout.VERTICAL);
-        surahColumn.setLayoutParams(new LinearLayout.LayoutParams(-1, -2));
+        styleAudioPanel(surahColumn);
         TextView surahLabel = new TextView(this);
         surahLabel.setText("✦ اختر السورة");
         surahLabel.setTextColor(Color.rgb(238, 204, 125));
