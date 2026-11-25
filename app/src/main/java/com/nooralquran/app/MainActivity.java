@@ -47,6 +47,9 @@ public class MainActivity extends Activity {
     TextView homeClock;
     TextView homeDate;
     TextView prayerStatus;
+    TextView homePrayerCountdown;
+    final Handler prayerCountdownHandler = new Handler();
+    Runnable prayerCountdownRunnable;
     TextView hijriDateView;
     String selectedGovernorate = "بابل";
     int prayerCalculationMethod = 0;
@@ -499,6 +502,7 @@ public class MainActivity extends Activity {
                     String date = new SimpleDateFormat("EEEE، dd MMMM yyyy", new Locale("ar")).format(new Date());
                     homeDate.setText("التاريخ الميلادي: " + date);
                 }
+                updatePrayerCountdown();
                 clockHandler.postDelayed(this, 1000);
             }
         };
@@ -678,6 +682,29 @@ public class MainActivity extends Activity {
         prayerStatus.setPadding(4, dp(8), 4, dp(4));
         prayerPreview.addView(prayerStatus);
         layout.addView(prayerPreview, new LinearLayout.LayoutParams(-1, -2));
+
+        LinearLayout countdownCard = new LinearLayout(this);
+        countdownCard.setOrientation(LinearLayout.VERTICAL);
+        countdownCard.setGravity(Gravity.CENTER);
+        countdownCard.setPadding(dp(14), dp(14), dp(14), dp(14));
+        countdownCard.setBackground(premiumBackground(Color.rgb(10,48,42), Color.rgb(218,184,111), 20));
+        LinearLayout.LayoutParams countdownParams = new LinearLayout.LayoutParams(-1, -2);
+        countdownParams.setMargins(0, dp(10), 0, dp(8));
+        TextView countdownTitle = new TextView(this);
+        countdownTitle.setText("⏳ الصلاة القادمة");
+        countdownTitle.setTextColor(Color.rgb(255,224,157));
+        countdownTitle.setTextSize(18);
+        countdownTitle.setGravity(Gravity.CENTER);
+        countdownCard.addView(countdownTitle);
+        homePrayerCountdown = new TextView(this);
+        homePrayerCountdown.setText("جارٍ تحميل مواقيت الصلاة...");
+        homePrayerCountdown.setTextColor(Color.WHITE);
+        homePrayerCountdown.setTextSize(21);
+        homePrayerCountdown.setGravity(Gravity.CENTER);
+        homePrayerCountdown.setPadding(4, dp(9), 4, dp(3));
+        countdownCard.addView(homePrayerCountdown);
+        layout.addView(countdownCard, countdownParams);
+        fetchHomePrayerTimes();
         addButton("عرض جدول مواقيت الصلاة", this::showPrayerTimes);
 
         TextView closing = new TextView(this);
@@ -763,6 +790,83 @@ public class MainActivity extends Activity {
         if (code >= 80 && code <= 82) return "🌦️ زخات مطر";
         if (code >= 95) return "⛈️ عواصف رعدية";
         return "🌤️ حالة جوية متغيرة";
+    }
+
+    void fetchHomePrayerTimes() {
+        final int index = Math.max(0, Math.min(governorateNames.length - 1,
+            java.util.Arrays.asList(governorateNames).indexOf(selectedGovernorate)));
+        new android.os.AsyncTask<Void,Void,String>() {
+            protected String doInBackground(Void... unused) {
+                HttpURLConnection connection = null;
+                try {
+                    String date = new SimpleDateFormat("dd-MM-yyyy", Locale.US).format(new Date());
+                    double lat = governorateCoordinates[index][0], lon = governorateCoordinates[index][1];
+                    URL url = new URL("https://api.aladhan.com/v1/timings/" + date
+                        + "?latitude=" + lat + "&longitude=" + lon + "&method=" + prayerCalculationMethod);
+                    connection = (HttpURLConnection)url.openConnection();
+                    connection.setConnectTimeout(12000); connection.setReadTimeout(12000);
+                    connection.connect();
+                    if(connection.getResponseCode()!=200) return null;
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream(),"UTF-8"));
+                    StringBuilder body = new StringBuilder(); String line;
+                    while((line=reader.readLine())!=null) body.append(line);
+                    reader.close();
+                    JSONObject timings = new JSONObject(body.toString()).getJSONObject("data").getJSONObject("timings");
+                    String[] keys={"Fajr","Dhuhr","Asr","Maghrib","Isha"};
+                    StringBuilder values=new StringBuilder();
+                    for(String key:keys){ if(values.length()>0) values.append("|"); values.append(timings.getString(key).split(" ")[0]); }
+                    return values.toString();
+                } catch(Exception e){ return null; }
+                finally { if(connection!=null) connection.disconnect(); }
+            }
+            protected void onPostExecute(String values) {
+                if(values==null) {
+                    if(homePrayerCountdown!=null) homePrayerCountdown.setText("تعذر تحميل المواقيت. افتح مواقيت الصلاة للتحديث.");
+                    return;
+                }
+                getSharedPreferences("noor_prefs",MODE_PRIVATE).edit()
+                    .putString("home_prayer_times",values)
+                    .putString("home_prayer_date",new SimpleDateFormat("yyyy-MM-dd",Locale.US).format(new Date()))
+                    .apply();
+                updatePrayerCountdown();
+            }
+        }.executeOnExecutor(android.os.AsyncTask.THREAD_POOL_EXECUTOR);
+    }
+
+    void updatePrayerCountdown() {
+        if(homePrayerCountdown==null) return;
+        android.content.SharedPreferences prefs=getSharedPreferences("noor_prefs",MODE_PRIVATE);
+        String savedDate=prefs.getString("home_prayer_date","");
+        String today=new SimpleDateFormat("yyyy-MM-dd",Locale.US).format(new Date());
+        if(!today.equals(savedDate)) { homePrayerCountdown.setText("جارٍ تحديث مواقيت اليوم..."); fetchHomePrayerTimes(); return; }
+        String raw=prefs.getString("home_prayer_times","");
+        if(raw.length()==0) { homePrayerCountdown.setText("جارٍ تحميل مواقيت الصلاة..."); return; }
+        try {
+            String[] times=raw.split("\\|");
+            String[] names={"الفجر","الظهر","العصر","المغرب","العشاء"};
+            java.text.SimpleDateFormat parser=new java.text.SimpleDateFormat("HH:mm",Locale.US);
+            Calendar now=Calendar.getInstance();
+            Calendar next=null; String nextName="";
+            for(int i=0;i<times.length;i++){
+                Date parsed=parser.parse(times[i]);
+                Calendar candidate=Calendar.getInstance();
+                candidate.setTime(parsed);
+                candidate.set(Calendar.YEAR,now.get(Calendar.YEAR));
+                candidate.set(Calendar.MONTH,now.get(Calendar.MONTH));
+                candidate.set(Calendar.DAY_OF_MONTH,now.get(Calendar.DAY_OF_MONTH));
+                candidate.set(Calendar.SECOND,0); candidate.set(Calendar.MILLISECOND,0);
+                if(candidate.after(now)){next=candidate; nextName=names[i]; break;}
+            }
+            if(next==null){
+                Date parsed=parser.parse(times[0]);
+                next=Calendar.getInstance(); next.setTime(parsed);
+                next.add(Calendar.DAY_OF_YEAR,1);
+                nextName="الفجر";
+            }
+            long millis=Math.max(0,next.getTimeInMillis()-System.currentTimeMillis());
+            long hours=millis/3600000, minutes=(millis/60000)%60, seconds=(millis/1000)%60;
+            homePrayerCountdown.setText("صلاة "+nextName+" بعد\n"+String.format(Locale.US,"%02d:%02d:%02d",hours,minutes,seconds));
+        } catch(Exception e){homePrayerCountdown.setText("تعذر حساب الصلاة القادمة.");}
     }
 
     void showPrayerTimes() {
