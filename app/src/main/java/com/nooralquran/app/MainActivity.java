@@ -253,64 +253,58 @@ public class MainActivity extends Activity {
 
     void showSettings() {
         setup();
-        addText("⚙ إعدادات نور القرآن", 27, Color.rgb(242,211,145));
-        addText("خصص التطبيق بالطريقة التي تناسبك", 15, Color.WHITE);
+        addText("⚙ إعدادات نور القرآن", 28, Color.rgb(242,211,145));
+        addText("تحكّم بتفضيلات التطبيق واحفظ اختياراتك", 15, Color.WHITE);
+        android.content.SharedPreferences prefs = getSharedPreferences("noor_prefs", MODE_PRIVATE);
 
-        addAdultCard("📍 المحافظة", "المحافظة المختارة حالياً: " + selectedGovernorate, this::showPrayerTimes);
-
+        addAdultCard("📍 المحافظة", "المحافظة الحالية: " + selectedGovernorate, this::showPrayerTimes);
         addText("طريقة حساب مواقيت الصلاة", 17, Color.rgb(242,211,145));
-        String[] methods = {
-            "طريقة أم القرى", "رابطة العالم الإسلامي", "الهيئة المصرية العامة للمساحة",
-            "جامعة العلوم الإسلامية - كراتشي", "تقويم شمال أمريكا", "طريقة طهران"
-        };
+        String[] methods = {"طريقة أم القرى","رابطة العالم الإسلامي","الهيئة المصرية العامة للمساحة","جامعة العلوم الإسلامية - كراتشي","تقويم شمال أمريكا","طريقة طهران"};
         Spinner methodPicker = styledSpinner(methods, Math.max(0, Math.min(prayerCalculationMethod, methods.length - 1)));
         layout.addView(methodPicker, new LinearLayout.LayoutParams(-1, -2));
 
-        android.content.SharedPreferences prefs = getSharedPreferences("noor_prefs", MODE_PRIVATE);
-        CheckBox arabicNumbers = new CheckBox(this);
-        arabicNumbers.setText("استخدام الأرقام العربية في العرض");
-        arabicNumbers.setTextColor(Color.WHITE);
-        arabicNumbers.setTextSize(16);
-        arabicNumbers.setButtonTintList(android.content.res.ColorStateList.valueOf(Color.rgb(238,204,125)));
-        arabicNumbers.setChecked(prefs.getBoolean("arabic_numbers", true));
-        layout.addView(arabicNumbers);
+        CheckBox arabicNumbers = makeSettingCheck("استخدام الأرقام العربية", "arabic_numbers", true, prefs);
+        CheckBox keepLast = makeSettingCheck("حفظ آخر سورة قرأتها", "save_last_surah", true, prefs);
+        CheckBox confirmExit = makeSettingCheck("طلب تأكيد قبل الخروج", "confirm_exit", true, prefs);
+        CheckBox vibration = makeSettingCheck("اهتزاز خفيف عند التسبيح", "tasbeeh_vibration", true, prefs);
+        CheckBox weather = makeSettingCheck("إظهار الطقس في الصفحة الرئيسية", "show_weather", true, prefs);
+        CheckBox hijri = makeSettingCheck("إظهار التاريخ الهجري عند توفر الإنترنت", "show_hijri", true, prefs);
+        CheckBox prayerPreview = makeSettingCheck("إظهار بطاقة مواقيت الصلاة", "show_prayer_preview", true, prefs);
 
-        CheckBox keepLast = new CheckBox(this);
-        keepLast.setText("حفظ آخر سورة قرأتها");
-        keepLast.setTextColor(Color.WHITE);
-        keepLast.setTextSize(16);
-        keepLast.setButtonTintList(android.content.res.ColorStateList.valueOf(Color.rgb(238,204,125)));
-        keepLast.setChecked(prefs.getBoolean("save_last_surah", true));
-        layout.addView(keepLast);
+        addText("المظهر", 19, Color.rgb(242,211,145));
+        addAdultCard("🌙 الأخضر الزمردي والذهبي", "المظهر الحالي للتطبيق", () -> message("المظهر الحالي: الأخضر الزمردي والذهبي."));
+        addText("الخصوصية والبيانات", 19, Color.rgb(242,211,145));
+        addAdultCard("🛡️ البيانات", "التفضيلات تحفظ على هذا الجهاز فقط", () -> message("لا تتم مزامنة هذه التفضيلات مع خادم."));
+        addAdultCard("ℹ حول التطبيق", "نور القرآن • للقراءة والتلاوة والذكر", () -> message("نسأل الله أن يجعل هذا العمل نافعاً ومباركاً."));
 
-        CheckBox confirmExit = new CheckBox(this);
-        confirmExit.setText("طلب تأكيد قبل الخروج");
-        confirmExit.setTextColor(Color.WHITE);
-        confirmExit.setTextSize(16);
-        confirmExit.setButtonTintList(android.content.res.ColorStateList.valueOf(Color.rgb(238,204,125)));
-        confirmExit.setChecked(prefs.getBoolean("confirm_exit", true));
-        layout.addView(confirmExit);
-
-        addAdultCard("🕋 مواقيت الصلاة", "تغيير المحافظة وعرض جدول الصلاة", this::showPrayerTimes);
-        addAdultCard("🔔 التنبيهات", "إعدادات التنبيهات ستضاف بعد تجهيز خدمة الإشعارات وأذوناتها", () ->
-            message("لم نفعل تنبيهات غير مهيأة حتى لا نعدك بوظيفة غير موجودة."));
-        addAdultCard("🎨 المظهر", "تصميم أخضر داكن بإطارات ذهبية", () ->
-            message("المظهر الحالي: أخضر داكن وذهبي."));
-        addAdultCard("ℹ حول التطبيق", "نور القرآن - للقراءة والتلاوة والذكر", () ->
-            message("نسأل الله أن يجعل هذا العمل خالصاً لوجهه الكريم."));
-
-        addButton("💾 حفظ الإعدادات", () -> {
+        addButton("💾 حفظ جميع الإعدادات", () -> {
             prayerCalculationMethod = methodPicker.getSelectedItemPosition();
-            prefs.edit()
-                .putString("governorate", selectedGovernorate)
+            prefs.edit().putString("governorate", selectedGovernorate)
                 .putInt("prayer_method", prayerCalculationMethod)
                 .putBoolean("arabic_numbers", arabicNumbers.isChecked())
                 .putBoolean("save_last_surah", keepLast.isChecked())
                 .putBoolean("confirm_exit", confirmExit.isChecked())
-                .apply();
-            message("تم حفظ الإعدادات");
+                .putBoolean("tasbeeh_vibration", vibration.isChecked())
+                .putBoolean("show_weather", weather.isChecked())
+                .putBoolean("show_hijri", hijri.isChecked())
+                .putBoolean("show_prayer_preview", prayerPreview.isChecked()).apply();
+            message("تم حفظ الإعدادات على جهازك");
         });
+        addButton("🌤️ فتح الطقس", this::showWeather);
         addButton("العودة للرئيسية", this::home);
+    }
+
+    CheckBox makeSettingCheck(String label, String key, boolean defaultValue,
+                              android.content.SharedPreferences prefs) {
+        CheckBox check = new CheckBox(this);
+        check.setText(label);
+        check.setTextColor(Color.WHITE);
+        check.setTextSize(16);
+        check.setPadding(dp(4), dp(7), dp(4), dp(7));
+        check.setButtonTintList(android.content.res.ColorStateList.valueOf(Color.rgb(238,204,125)));
+        check.setChecked(prefs.getBoolean(key, defaultValue));
+        layout.addView(check);
+        return check;
     }
 
     void showTravelDuas() {
@@ -606,6 +600,7 @@ public class MainActivity extends Activity {
         layout.addView(grid, new LinearLayout.LayoutParams(-1, -2));
         addHomeTile(grid, "📖", "القرآن الكريم", "قراءة السور", this::showSurahs, Color.rgb(24,76,64));
         addHomeTile(grid, "🎧", "التلاوة والاستماع", "خمسة قراء", this::audioScreen, Color.rgb(27,72,78));
+        addHomeTile(grid, "🌤️", "الطقس", "حالة الجو لمحافظتك", this::showWeather, Color.rgb(48,75,83));
         addHomeTile(grid, "🕌", "مواقيت الصلاة", "محافظات العراق", this::showPrayerTimes, Color.rgb(31,70,58));
         addHomeTile(grid, "🤲", "الأدعية والزيارات", "أذكار ومناجاة", this::showWeeklyDuasVisits, Color.rgb(56,62,78));
         addHomeTile(grid, "👨‍👩‍👧", "قسم الكبار", "عبادات يومية", this::showAdultSection, Color.rgb(53,67,59));
@@ -614,6 +609,7 @@ public class MainActivity extends Activity {
         addHomeTile(grid, "💰", "حاسبة الزكاة", "حساب الزكاة", this::zakat, Color.rgb(62,65,52));
         addHomeTile(grid, "✨", "أسماء الله الحسنى", "تأمل وتدبر", this::showNamesOfAllah, Color.rgb(46,70,68));
         addHomeTile(grid, "🏆", "المسابقات", "أسئلة قرآنية", () -> message("المسابقات قيد التجهيز"), Color.rgb(63,60,76));
+        addHomeTile(grid, "⚙️", "الإعدادات", "تخصيص التطبيق", this::showSettings, Color.rgb(49,65,58));
 
         LinearLayout prayerPreview = new LinearLayout(this);
         prayerPreview.setOrientation(LinearLayout.VERTICAL);
@@ -643,6 +639,82 @@ public class MainActivity extends Activity {
         closing.setGravity(Gravity.CENTER);
         closing.setPadding(8, dp(18), 8, dp(8));
         layout.addView(closing);
+    }
+
+    void showWeather() {
+        setup();
+        addText("🌤️ الطقس في العراق", 27, Color.rgb(242,211,145));
+        addText("اختر المحافظة لعرض حالة الطقس الحالية", 15, Color.WHITE);
+        Spinner cityPicker = styledSpinner(governorateNames,
+            Math.max(0, java.util.Arrays.asList(governorateNames).indexOf(selectedGovernorate)));
+        layout.addView(cityPicker, new LinearLayout.LayoutParams(-1, -2));
+        TextView result = new TextView(this);
+        result.setText("اضغط تحديث لجلب حالة الطقس");
+        result.setTextColor(Color.rgb(255,224,157));
+        result.setTextSize(19);
+        result.setGravity(Gravity.CENTER);
+        result.setPadding(dp(14), dp(24), dp(14), dp(24));
+        result.setBackground(premiumBackground(Color.rgb(20,63,56), Color.rgb(205,170,94), 20));
+        layout.addView(result, new LinearLayout.LayoutParams(-1, -2));
+        Runnable refresh = () -> fetchWeather(cityPicker.getSelectedItemPosition(), result);
+        addButton("🔄 تحديث الطقس", refresh);
+        cityPicker.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            public void onItemSelected(AdapterView<?> p, View v, int pos, long id) { fetchWeather(pos, result); }
+            public void onNothingSelected(AdapterView<?> p) {}
+        });
+        addButton("العودة للرئيسية", this::home);
+    }
+
+    void fetchWeather(int index, TextView result) {
+        if (index < 0 || index >= governorateNames.length) return;
+        final int chosen = index;
+        result.setText("جارٍ تحميل الطقس...");
+        new android.os.AsyncTask<Void,Void,String>() {
+            protected String doInBackground(Void... unused) {
+                HttpURLConnection connection = null;
+                try {
+                    double lat = governorateCoordinates[chosen][0];
+                    double lon = governorateCoordinates[chosen][1];
+                    URL url = new URL("https://api.open-meteo.com/v1/forecast?latitude=" + lat
+                        + "&longitude=" + lon + "&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m&timezone=Asia%2FBaghdad");
+                    connection = (HttpURLConnection)url.openConnection();
+                    connection.setConnectTimeout(12000);
+                    connection.setReadTimeout(12000);
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream(), "UTF-8"));
+                    StringBuilder body = new StringBuilder(); String line;
+                    while ((line=reader.readLine())!=null) body.append(line);
+                    reader.close();
+                    JSONObject current = new JSONObject(body.toString()).getJSONObject("current");
+                    return current.getString("temperature_2m") + "|" + current.getString("apparent_temperature")
+                        + "|" + current.getString("relative_humidity_2m") + "|" + current.getString("wind_speed_10m")
+                        + "|" + current.getString("weather_code") + "|" + current.getString("time");
+                } catch(Exception e) { return null; }
+                finally { if(connection!=null) connection.disconnect(); }
+            }
+            protected void onPostExecute(String data) {
+                if (data == null) { result.setText("تعذر جلب الطقس. تحقق من الإنترنت ثم حاول مجدداً."); return; }
+                try {
+                    String[] v = data.split("\\|");
+                    int code = Integer.parseInt(v[4]);
+                    String description = weatherDescription(code);
+                    result.setText("📍 " + governorateNames[chosen] + "\n\n" + description
+                        + "\n\n🌡️ الحرارة: " + v[0] + "°\nالإحساس: " + v[1] + "°"
+                        + "\n💧 الرطوبة: " + v[2] + "%\n💨 الرياح: " + v[3] + " كم/س"
+                        + "\n\nآخر تحديث: " + v[5]);
+                } catch(Exception e) { result.setText("وصلت بيانات طقس غير مكتملة."); }
+            }
+        }.executeOnExecutor(android.os.AsyncTask.THREAD_POOL_EXECUTOR);
+    }
+
+    String weatherDescription(int code) {
+        if (code == 0) return "☀️ صحو";
+        if (code <= 3) return "⛅ غائم جزئياً";
+        if (code == 45 || code == 48) return "🌫️ ضباب";
+        if (code >= 51 && code <= 67) return "🌧️ رذاذ أو أمطار";
+        if (code >= 71 && code <= 77) return "❄️ ثلوج";
+        if (code >= 80 && code <= 82) return "🌦️ زخات مطر";
+        if (code >= 95) return "⛈️ عواصف رعدية";
+        return "🌤️ حالة جوية متغيرة";
     }
 
     void showPrayerTimes() {
@@ -998,24 +1070,46 @@ public class MainActivity extends Activity {
 
     void showNamesOfAllah() {
         setup();
-        addText("✧ أسماء الله الحسنى ✧", 27, Color.rgb(238, 204, 125));
-        addText("مجموعة للتأمل والتذكر", 15, Color.WHITE);
+        addText("✧ أسماء الله الحسنى كاملة ✧", 27, Color.rgb(238, 204, 125));
+        addText("الأسماء التسعة والتسعون • اقرأ وتأمل", 15, Color.WHITE);
         String[] names = {
-            "الرَّحْمَٰن","الرَّحِيم","الْمَلِك","الْقُدُّوس",
-            "السَّلَام","الْمُؤْمِن","الْمُهَيْمِن","الْعَزِيز",
-            "الْجَبَّار","الْمُتَكَبِّر","الْخَالِق","الْبَارِئ",
-            "الْمُصَوِّر","الْغَفَّار","الْقَهَّار","الْوَهَّاب",
-            "الرَّزَّاق","الْفَتَّاح","الْعَلِيم","السَّمِيع",
-            "الْبَصِير","الْحَكَم","الْعَدْل","اللَّطِيف"
+            "الرَّحْمَٰن","الرَّحِيم","الْمَلِك","الْقُدُّوس","السَّلَام","الْمُؤْمِن","الْمُهَيْمِن","الْعَزِيز","الْجَبَّار","الْمُتَكَبِّر",
+            "الْخَالِق","الْبَارِئ","الْمُصَوِّر","الْغَفَّار","الْقَهَّار","الْوَهَّاب","الرَّزَّاق","الْفَتَّاح","الْعَلِيم","الْقَابِض",
+            "الْبَاسِط","الْخَافِض","الرَّافِع","الْمُعِزُّ","الْمُذِلُّ","السَّمِيع","الْبَصِير","الْحَكَم","الْعَدْل","اللَّطِيف",
+            "الْخَبِير","الْحَلِيم","الْعَظِيم","الْغَفُور","الشَّكُور","الْعَلِيُّ","الْكَبِير","الْحَفِيظ","الْمُقِيت","الْحَسِيب",
+            "الْجَلِيل","الْكَرِيم","الرَّقِيب","الْمُجِيب","الْوَاسِع","الْحَكِيم","الْوَدُود","الْمَجِيد","الْبَاعِث","الشَّهِيد",
+            "الْحَقُّ","الْوَكِيل","الْقَوِيُّ","الْمَتِين","الْوَلِيُّ","الْحَمِيد","الْمُحْصِي","الْمُبْدِئ","الْمُعِيد","الْمُحْيِي",
+            "الْمُمِيت","الْحَيُّ","الْقَيُّوم","الْوَاجِد","الْمَاجِد","الْوَاحِد","الصَّمَد","الْقَادِر","الْمُقْتَدِر","الْمُقَدِّم",
+            "الْمُؤَخِّر","الْأَوَّل","الْآخِر","الظَّاهِر","الْبَاطِن","الْوَالِي","الْمُتَعَالِي","الْبَرُّ","التَّوَّاب","الْمُنْتَقِم",
+            "الْعَفُوُّ","الرَّؤُوف","مَالِكُ الْمُلْك","ذُو الْجَلَالِ وَالْإِكْرَام","الْمُقْسِط","الْجَامِع","الْغَنِيُّ","الْمُغْنِي","الْمَانِع","الضَّارُّ",
+            "النَّافِع","النُّور","الْهَادِي","الْبَدِيع","الْبَاقِي","الْوَارِث","الرَّشِيد","الصَّبُور"
         };
+        android.widget.GridLayout namesGrid = new android.widget.GridLayout(this);
+        namesGrid.setColumnCount(2);
+        namesGrid.setPadding(0, dp(6), 0, dp(8));
+        layout.addView(namesGrid, new LinearLayout.LayoutParams(-1, -2));
         for (int i = 0; i < names.length; i++) {
-            addAdultCard("۞ " + toArabicDigits(String.valueOf(i + 1))
-                + "  " + names[i], "تأمل في معنى الاسم وادعُ الله به", () ->
-                message("نسأل الله أن يرزقنا حسن معرفته ودعائه"));
+            final String name = names[i];
+            LinearLayout card = new LinearLayout(this);
+            card.setGravity(Gravity.CENTER);
+            card.setPadding(dp(5), dp(13), dp(5), dp(13));
+            card.setBackground(premiumBackground(Color.rgb(20,63,56), Color.rgb(205,170,94), 15));
+            TextView label = new TextView(this);
+            label.setText(toArabicDigits(String.valueOf(i + 1)) + "  ۞  " + name);
+            label.setTextColor(Color.rgb(255,224,157));
+            label.setTextSize(17);
+            label.setGravity(Gravity.CENTER);
+            card.addView(label);
+            android.widget.GridLayout.LayoutParams p = new android.widget.GridLayout.LayoutParams();
+            p.width = 0; p.height = dp(66);
+            p.columnSpec = android.widget.GridLayout.spec(android.widget.GridLayout.UNDEFINED, 1f);
+            p.setMargins(dp(4), dp(4), dp(4), dp(4));
+            namesGrid.addView(card, p);
+            card.setOnClickListener(v -> message(name + " • تذكّر الله بهذا الاسم وادعه به"));
         }
-        addText("هذه مجموعة من الأسماء، وليست عرضاً كاملاً للأسماء التسعة والتسعين.", 13,
-            Color.rgb(238, 204, 125));
-        addButton("رجوع إلى قسم الكبار", this::showAdultSection);
+        addText("تنبيه: توجد اختلافات في ترتيب وعدّ بعض القوائم المتداولة للأسماء الحسنى؛ هذه قائمة مشهورة للتذكير.", 12, Color.rgb(238,204,125));
+        addButton("العودة إلى قسم الكبار", this::showAdultSection);
+        addButton("العودة للرئيسية", this::home);
     }
 
     void showQuranDuas() {
@@ -1470,22 +1564,76 @@ public class MainActivity extends Activity {
 
     void tasbeeh() {
         setup();
-        addText("المسبحة الإلكترونية", 27, Color.WHITE);
-        TextView counter = new TextView(this);
-        counter.setTextSize(35);
-        counter.setTextColor(Color.YELLOW);
-        counter.setGravity(Gravity.CENTER);
-        counter.setText("0");
-        layout.addView(counter);
+        android.content.SharedPreferences prefs = getSharedPreferences("noor_prefs", MODE_PRIVATE);
+        count = prefs.getInt("tasbeeh_count", 0);
+        addText("۞ المسبحة الإلكترونية ۞", 27, Color.rgb(242,211,145));
+        addText("اذكر الله بقلب حاضر وطمأنينة", 15, Color.WHITE);
 
-        addButton("سبّح", () -> {
+        LinearLayout art = new LinearLayout(this);
+        art.setOrientation(LinearLayout.VERTICAL);
+        art.setGravity(Gravity.CENTER);
+        art.setPadding(dp(14), dp(20), dp(14), dp(20));
+        art.setBackground(premiumBackground(Color.rgb(13,48,43), Color.rgb(205,170,94), 24));
+        TextView beads = new TextView(this);
+        beads.setText("●  ◉  ●  ◉  ●  ◉  ●\n   ◉       📿       ◉\n●  ◉  ●  ◉  ●  ◉  ●");
+        beads.setTextColor(Color.rgb(237,202,128));
+        beads.setTextSize(23);
+        beads.setGravity(Gravity.CENTER);
+        beads.setLineSpacing(dp(9), 1f);
+        art.addView(beads);
+        TextView tasbeehCaption = new TextView(this);
+        tasbeehCaption.setText("مسبحة نور القرآن");
+        tasbeehCaption.setTextColor(Color.rgb(255,224,157));
+        tasbeehCaption.setTextSize(18);
+        tasbeehCaption.setGravity(Gravity.CENTER);
+        tasbeehCaption.setPadding(0, dp(12), 0, 0);
+        art.addView(tasbeehCaption);
+        layout.addView(art, new LinearLayout.LayoutParams(-1, -2));
+
+        final String[] phrases = {"سُبْحَانَ الله","الْحَمْدُ لِلَّه","لَا إِلَهَ إِلَّا الله","اللهُ أَكْبَر","أَسْتَغْفِرُ الله"};
+        Spinner phrasePicker = styledSpinner(phrases, 0);
+        layout.addView(phrasePicker, new LinearLayout.LayoutParams(-1, -2));
+
+        TextView counter = new TextView(this);
+        counter.setText(toArabicDigits(String.valueOf(count)));
+        counter.setTextColor(Color.rgb(255,224,157));
+        counter.setTextSize(46);
+        counter.setTypeface(null, android.graphics.Typeface.BOLD);
+        counter.setGravity(Gravity.CENTER);
+        counter.setPadding(dp(18), dp(18), dp(18), dp(18));
+        counter.setBackground(premiumBackground(Color.rgb(20,63,56), Color.rgb(218,184,111), 80));
+        LinearLayout.LayoutParams counterParams = new LinearLayout.LayoutParams(dp(170), dp(150));
+        counterParams.gravity = Gravity.CENTER;
+        counterParams.setMargins(0, dp(14), 0, dp(14));
+        layout.addView(counter, counterParams);
+
+        TextView goal = new TextView(this);
+        goal.setText("استمر بالذكر، تقبّل الله منك");
+        goal.setTextColor(Color.WHITE);
+        goal.setTextSize(14);
+        goal.setGravity(Gravity.CENTER);
+        layout.addView(goal);
+
+        addButton("📿  تسبيح", () -> {
             count++;
-            counter.setText(String.valueOf(count));
+            counter.setText(toArabicDigits(String.valueOf(count)));
+            prefs.edit().putInt("tasbeeh_count", count).apply();
+            if (prefs.getBoolean("tasbeeh_vibration", true)) {
+                try {
+                    android.os.Vibrator vibrator = (android.os.Vibrator)getSystemService(VIBRATOR_SERVICE);
+                    if (vibrator != null && vibrator.hasVibrator()) {
+                        if (android.os.Build.VERSION.SDK_INT >= 26)
+                            vibrator.vibrate(android.os.VibrationEffect.createOneShot(25, android.os.VibrationEffect.DEFAULT_AMPLITUDE));
+                        else vibrator.vibrate(25);
+                    }
+                } catch (Exception ignored) {}
+            }
+            if (count % 33 == 0) goal.setText("أحسنت، أكملت ٣٣ تسبيحة 🌿");
         });
-        addButton("تصفير", () -> {
-            count = 0;
-            counter.setText("0");
-        });
+        addButton("إعادة العدّاد", () -> new android.app.AlertDialog.Builder(this)
+            .setTitle("تصفير المسبحة").setMessage("هل تريد تصفير العدد الحالي؟")
+            .setNegativeButton("إلغاء", (d,w) -> d.dismiss())
+            .setPositiveButton("تصفير", (d,w) -> { count=0; counter.setText("٠"); prefs.edit().putInt("tasbeeh_count",0).apply(); goal.setText("ابدأ ذكرك من جديد"); }).show());
         addButton("رجوع", this::home);
     }
 
