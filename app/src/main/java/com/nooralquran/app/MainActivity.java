@@ -218,6 +218,64 @@ public class MainActivity extends Activity {
         addButton("❓ المسابقات والأسئلة", () -> message("المسابقات قيد التجهيز"));
     }
 
+    void addAdultCardHorizontal(LinearLayout row, String title, String description, Runnable action) {
+        LinearLayout card = new LinearLayout(this);
+        card.setOrientation(LinearLayout.VERTICAL);
+        card.setGravity(Gravity.CENTER);
+        card.setPadding(16, 18, 16, 18);
+        GradientDrawable bg = new GradientDrawable();
+        bg.setColor(Color.rgb(20, 63, 56));
+        bg.setCornerRadius(20);
+        bg.setStroke(2, Color.rgb(190, 158, 87));
+        card.setBackground(bg);
+
+        TextView heading = new TextView(this);
+        heading.setText(title);
+        heading.setTextColor(Color.rgb(238, 204, 125));
+        heading.setTextSize(18);
+        heading.setGravity(Gravity.CENTER);
+        card.addView(heading);
+
+        TextView detail = new TextView(this);
+        detail.setText(description);
+        detail.setTextColor(Color.rgb(248, 235, 202));
+        detail.setTextSize(13);
+        detail.setGravity(Gravity.CENTER);
+        detail.setPadding(4, 8, 4, 4);
+        card.addView(detail);
+
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+            (int)(getResources().getDisplayMetrics().density * 220), -2);
+        params.setMargins(7, 4, 7, 4);
+        row.addView(card, params);
+        card.setOnClickListener(v -> action.run());
+    }
+
+    Button makeAudioButton(String label, Runnable action) {
+        Button button = new Button(this);
+        button.setText(label);
+        button.setTextSize(13);
+        button.setTextColor(Color.WHITE);
+        button.setAllCaps(false);
+        button.setBackgroundTintList(android.content.res.ColorStateList.valueOf(
+            Color.rgb(25, 125, 100)));
+        button.setOnClickListener(v -> action.run());
+        return button;
+    }
+
+    void addAudioButtonRow(String[] labels, Runnable[] actions) {
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setGravity(Gravity.CENTER);
+        for (int i = 0; i < labels.length; i++) {
+            Button button = makeAudioButton(labels[i], actions[i]);
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, -2, 1f);
+            params.setMargins(3, 5, 3, 5);
+            row.addView(button, params);
+        }
+        layout.addView(row, new LinearLayout.LayoutParams(-1, -2));
+    }
+
     void addAdultCard(String title, String description, Runnable action) {
         LinearLayout card = new LinearLayout(this);
         card.setOrientation(LinearLayout.VERTICAL);
@@ -254,16 +312,24 @@ public class MainActivity extends Activity {
         setup();
         addText("❁ قسم الكبار ❁", 29, Color.rgb(238, 204, 125));
         addText("زادُ القلب وطمأنينة الروح", 17, Color.WHITE);
-        addAdultCard("📖 القرآن الكريم", "قراءة السور بترتيب المصحف", this::showSurahs);
-        addAdultCard("🎧 الاستماع إلى القرآن", "اختر القارئ والسورة واستمتع بالتلاوة", this::audioScreen);
-        addAdultCard("🌅 أذكار الصباح والمساء", "أذكار مختارة مع عدّاد للتكرار", this::showAdhkar);
-        addAdultCard("📿 المسبحة الإلكترونية", "تسبيح واستغفار مع عدّاد", this::tasbeeh);
-        addAdultCard("💰 حاسبة الزكاة", "حساب ٢٫٥٪ من المبلغ المُدخل", this::zakat);
-        addAdultCard("🌿 وردي اليومي", "اختر سورة لتجعلها وردك اليوم", this::showDailyWird);
-        addAdultCard("🔖 متابعة القراءة", "العودة إلى آخر سورة فتحتها", this::continueReading);
-        addAdultCard("✨ أسماء الله الحسنى", "تأمل في مجموعة من أسماء الله الحسنى", this::showNamesOfAllah);
-        addAdultCard("🤲 أدعية من القرآن", "أدعية قرآنية مع مواضعها", this::showQuranDuas);
-        addAdultCard("🗓️ خطة عبادتي اليومية", "ضع علامة على ما أنجزته اليوم", this::showDailyPlan);
+        HorizontalScrollView horizontalMenu = new HorizontalScrollView(this);
+        horizontalMenu.setHorizontalScrollBarEnabled(false);
+        horizontalMenu.setFillViewport(false);
+        LinearLayout cardRow = new LinearLayout(this);
+        cardRow.setOrientation(LinearLayout.HORIZONTAL);
+        cardRow.setPadding(8, 8, 8, 8);
+        horizontalMenu.addView(cardRow, new HorizontalScrollView.LayoutParams(-2, -2));
+        layout.addView(horizontalMenu, new LinearLayout.LayoutParams(-1, -2));
+        addAdultCardHorizontal(cardRow, "📖 القرآن الكريم", "قراءة السور بترتيب المصحف", this::showSurahs);
+        addAdultCardHorizontal(cardRow, "🎧 الاستماع إلى القرآن", "اختر القارئ والسورة واستمتع بالتلاوة", this::audioScreen);
+        addAdultCardHorizontal(cardRow, "🌅 أذكار الصباح والمساء", "أذكار مختارة مع عدّاد للتكرار", this::showAdhkar);
+        addAdultCardHorizontal(cardRow, "📿 المسبحة الإلكترونية", "تسبيح واستغفار مع عدّاد", this::tasbeeh);
+        addAdultCardHorizontal(cardRow, "💰 حاسبة الزكاة", "حساب ٢٫٥٪ من المبلغ المُدخل", this::zakat);
+        addAdultCardHorizontal(cardRow, "🌿 وردي اليومي", "اختر سورة لتجعلها وردك اليوم", this::showDailyWird);
+        addAdultCardHorizontal(cardRow, "🔖 متابعة القراءة", "العودة إلى آخر سورة فتحتها", this::continueReading);
+        addAdultCardHorizontal(cardRow, "✨ أسماء الله الحسنى", "تأمل في مجموعة من أسماء الله الحسنى", this::showNamesOfAllah);
+        addAdultCardHorizontal(cardRow, "🤲 أدعية من القرآن", "أدعية قرآنية مع مواضعها", this::showQuranDuas);
+        addAdultCardHorizontal(cardRow, "🗓️ خطة عبادتي اليومية", "ضع علامة على ما أنجزته اليوم", this::showDailyPlan);
         addText("اجعل لك وقتاً ثابتاً للقرآن والذكر والعمل الصالح", 14,
             Color.rgb(238, 204, 125));
         addButton("العودة للرئيسية", this::home);
@@ -490,13 +556,35 @@ public class MainActivity extends Activity {
         addText("❁ روضة التلاوات القرآنية ❁", 27, Color.rgb(238, 204, 125));
         addText("اختر قارئك وسورتك المفضلة", 16, Color.WHITE);
 
-        addAudioLabel("✦ اختر القارئ");
-        Spinner reciterPicker = styledSpinner(reciterNames, selectedReciter);
-        layout.addView(reciterPicker, new LinearLayout.LayoutParams(-1, -2));
+        LinearLayout selectorsRow = new LinearLayout(this);
+        selectorsRow.setOrientation(LinearLayout.HORIZONTAL);
+        selectorsRow.setGravity(Gravity.CENTER_VERTICAL);
 
-        addAudioLabel("✦ اختر السورة");
+        LinearLayout reciterColumn = new LinearLayout(this);
+        reciterColumn.setOrientation(LinearLayout.VERTICAL);
+        reciterColumn.setLayoutParams(new LinearLayout.LayoutParams(0, -2, 1f));
+        TextView reciterLabel = new TextView(this);
+        reciterLabel.setText("✦ اختر القارئ");
+        reciterLabel.setTextColor(Color.rgb(238, 204, 125));
+        reciterLabel.setGravity(Gravity.CENTER);
+        reciterColumn.addView(reciterLabel);
+        Spinner reciterPicker = styledSpinner(reciterNames, selectedReciter);
+        reciterColumn.addView(reciterPicker, new LinearLayout.LayoutParams(-1, -2));
+
+        LinearLayout surahColumn = new LinearLayout(this);
+        surahColumn.setOrientation(LinearLayout.VERTICAL);
+        surahColumn.setLayoutParams(new LinearLayout.LayoutParams(0, -2, 1f));
+        TextView surahLabel = new TextView(this);
+        surahLabel.setText("✦ اختر السورة");
+        surahLabel.setTextColor(Color.rgb(238, 204, 125));
+        surahLabel.setGravity(Gravity.CENTER);
+        surahColumn.addView(surahLabel);
         Spinner surahPicker = styledSpinner(surahs, audioSurah - 1);
-        layout.addView(surahPicker, new LinearLayout.LayoutParams(-1, -2));
+        surahColumn.addView(surahPicker, new LinearLayout.LayoutParams(-1, -2));
+
+        selectorsRow.addView(reciterColumn);
+        selectorsRow.addView(surahColumn);
+        layout.addView(selectorsRow, new LinearLayout.LayoutParams(-1, -2));
 
         audioStatus = new TextView(this);
         audioStatus.setText("۞ اختر القارئ والسورة ثم اضغط تشغيل ۞");
@@ -531,31 +619,35 @@ public class MainActivity extends Activity {
             public void onNothingSelected(AdapterView<?> parent) {}
         });
 
-        addButton("▶  تشغيل التلاوة", () -> {
-            selectedReciter = reciterPicker.getSelectedItemPosition();
-            audioSurah = surahPicker.getSelectedItemPosition() + 1;
-            audioAyah = 1;
-            audioAyahCount = countAyahs(audioSurah);
-            if (audioAyahCount == 0) {
-                audioStatus.setText("تعذر تحديد آيات السورة من ملف القرآن");
-            } else {
-                playCurrentAyah();
-            }
-        });
-        addButton("⏸  إيقاف مؤقت / متابعة", this::toggleAudio);
-        addButton("⏭  الآية التالية", () -> {
-            if (audioAyahCount > 0 && audioAyah < audioAyahCount) {
-                audioAyah++;
-                playCurrentAyah();
-            }
-        });
-        addButton("⏮  إعادة الآية الحالية", () -> {
-            if (audioAyahCount > 0) playCurrentAyah();
-        });
-        addButton("⏹  إيقاف التلاوة", this::stopAudio);
+        addAudioButtonRow(new String[]{"▶ تشغيل", "⏸ إيقاف مؤقت"},
+            new Runnable[]{
+                () -> {
+                    selectedReciter = reciterPicker.getSelectedItemPosition();
+                    audioSurah = surahPicker.getSelectedItemPosition() + 1;
+                    audioAyah = 1;
+                    audioAyahCount = countAyahs(audioSurah);
+                    if (audioAyahCount == 0) {
+                        audioStatus.setText("تعذر تحديد آيات السورة من ملف القرآن");
+                    } else {
+                        playCurrentAyah();
+                    }
+                },
+                this::toggleAudio
+            });
+        addAudioButtonRow(new String[]{"⏭ الآية التالية", "⏮ إعادة الآية"},
+            new Runnable[]{
+                () -> {
+                    if (audioAyahCount > 0 && audioAyah < audioAyahCount) {
+                        audioAyah++;
+                        playCurrentAyah();
+                    }
+                },
+                () -> { if (audioAyahCount > 0) playCurrentAyah(); }
+            });
+        addAudioButtonRow(new String[]{"⏹ إيقاف التلاوة", "↩ رجوع"},
+            new Runnable[]{this::stopAudio, this::home});
         addText("الصوت عبر EveryAyah.com • يتطلب اتصالاً بالإنترنت", 12,
             Color.rgb(190, 200, 190));
-        addButton("رجوع", this::home);
     }
 
     int countAyahs(int surahNumber) {
