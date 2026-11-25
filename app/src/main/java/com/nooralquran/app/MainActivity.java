@@ -25,6 +25,15 @@ public class MainActivity extends Activity {
     int audioAyahCount = 0;
     TextView audioStatus;
     boolean audioPreparing = false;
+    int selectedReciter = 0;
+    String[] reciterNames = {
+        "مشاري العفاسي", "محمود خليل الحصري", "ماهر المعيقلي",
+        "عبد الباسط عبد الصمد", "محمد صديق المنشاوي"
+    };
+    String[] reciterFolders = {
+        "Alafasy_128kbps", "Husary_128kbps", "MaherAlMuaiqly128kbps",
+        "Abdul_Basit_Murattal_64kbps", "Minshawy_Murattal_128kbps"
+    };
 
     String[] surahs = {
         "الفاتحة","البقرة","آل عمران","النساء","المائدة",
@@ -209,29 +218,105 @@ public class MainActivity extends Activity {
         addButton("❓ المسابقات والأسئلة", () -> message("المسابقات قيد التجهيز"));
     }
 
+    Spinner styledSpinner(String[] items, int selected) {
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(
+            this, android.R.layout.simple_spinner_item, items) {
+            @Override
+            public View getView(int position, View convertView,
+                                android.view.ViewGroup parent) {
+                TextView view = (TextView) super.getView(position, convertView, parent);
+                view.setTextColor(Color.rgb(248, 235, 202));
+                view.setTextSize(18);
+                view.setGravity(Gravity.CENTER);
+                view.setPadding(14, 14, 14, 14);
+                return view;
+            }
+
+            @Override
+            public View getDropDownView(int position, View convertView,
+                                        android.view.ViewGroup parent) {
+                TextView view = (TextView) super.getDropDownView(position, convertView, parent);
+                view.setTextColor(Color.rgb(248, 235, 202));
+                view.setTextSize(17);
+                view.setGravity(Gravity.CENTER);
+                view.setPadding(18, 16, 18, 16);
+                view.setBackgroundColor(position % 2 == 0
+                    ? Color.rgb(20, 63, 56) : Color.rgb(27, 78, 68));
+                return view;
+            }
+        };
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        Spinner spinner = new Spinner(this);
+        spinner.setAdapter(adapter);
+        spinner.setSelection(selected);
+        GradientDrawable bg = new GradientDrawable();
+        bg.setColor(Color.rgb(20, 63, 56));
+        bg.setCornerRadius(16);
+        bg.setStroke(2, Color.rgb(190, 158, 87));
+        spinner.setBackground(bg);
+        spinner.setPadding(12, 4, 12, 4);
+        return spinner;
+    }
+
+    void addAudioLabel(String value) {
+        TextView label = new TextView(this);
+        label.setText(value);
+        label.setTextColor(Color.rgb(238, 204, 125));
+        label.setTextSize(17);
+        label.setGravity(Gravity.RIGHT);
+        label.setPadding(4, 14, 4, 6);
+        layout.addView(label);
+    }
+
     void audioScreen() {
         setup();
-        addText("الاستماع إلى القرآن الكريم", 27, Color.WHITE);
-        addText("تلاوة الشيخ مشاري العفاسي", 18, Color.rgb(238, 204, 125));
+        addText("❁ روضة التلاوات القرآنية ❁", 27, Color.rgb(238, 204, 125));
+        addText("اختر قارئك وسورتك المفضلة", 16, Color.WHITE);
 
-        Spinner picker = new Spinner(this);
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(
-            this, android.R.layout.simple_spinner_item, surahs);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        picker.setAdapter(adapter);
-        picker.setSelection(audioSurah - 1);
-        layout.addView(picker, new LinearLayout.LayoutParams(-1, -2));
+        addAudioLabel("✦ اختر القارئ");
+        Spinner reciterPicker = styledSpinner(reciterNames, selectedReciter);
+        layout.addView(reciterPicker, new LinearLayout.LayoutParams(-1, -2));
+
+        addAudioLabel("✦ اختر السورة");
+        Spinner surahPicker = styledSpinner(surahs, audioSurah - 1);
+        layout.addView(surahPicker, new LinearLayout.LayoutParams(-1, -2));
 
         audioStatus = new TextView(this);
-        audioStatus.setText("اختر السورة ثم اضغط تشغيل");
-        audioStatus.setTextColor(Color.WHITE);
+        audioStatus.setText("۞ اختر القارئ والسورة ثم اضغط تشغيل ۞");
+        audioStatus.setTextColor(Color.rgb(248, 235, 202));
         audioStatus.setTextSize(17);
         audioStatus.setGravity(Gravity.CENTER);
-        audioStatus.setPadding(10, 22, 10, 22);
-        layout.addView(audioStatus);
+        audioStatus.setTextDirection(View.TEXT_DIRECTION_RTL);
+        audioStatus.setPadding(16, 20, 16, 20);
+        GradientDrawable statusBg = new GradientDrawable();
+        statusBg.setColor(Color.rgb(20, 63, 56));
+        statusBg.setCornerRadius(18);
+        statusBg.setStroke(2, Color.rgb(190, 158, 87));
+        audioStatus.setBackground(statusBg);
+        LinearLayout.LayoutParams statusParams = new LinearLayout.LayoutParams(-1, -2);
+        statusParams.setMargins(0, 20, 0, 14);
+        layout.addView(audioStatus, statusParams);
 
-        addButton("▶ تشغيل السورة", () -> {
-            audioSurah = picker.getSelectedItemPosition() + 1;
+        reciterPicker.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if (selectedReciter != position && audioPlayer != null) stopAudio();
+                selectedReciter = position;
+                if (audioStatus != null) audioStatus.setText("القارئ المختار: " + reciterNames[selectedReciter]);
+            }
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
+
+        surahPicker.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                audioSurah = position + 1;
+                if (audioStatus != null) audioStatus.setText("السورة المختارة: " + surahs[audioSurah - 1]);
+            }
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
+
+        addButton("▶  تشغيل التلاوة", () -> {
+            selectedReciter = reciterPicker.getSelectedItemPosition();
+            audioSurah = surahPicker.getSelectedItemPosition() + 1;
             audioAyah = 1;
             audioAyahCount = countAyahs(audioSurah);
             if (audioAyahCount == 0) {
@@ -240,8 +325,19 @@ public class MainActivity extends Activity {
                 playCurrentAyah();
             }
         });
-        addButton("⏸ إيقاف مؤقت / متابعة", this::toggleAudio);
-        addButton("⏹ إيقاف", this::stopAudio);
+        addButton("⏸  إيقاف مؤقت / متابعة", this::toggleAudio);
+        addButton("⏭  الآية التالية", () -> {
+            if (audioAyahCount > 0 && audioAyah < audioAyahCount) {
+                audioAyah++;
+                playCurrentAyah();
+            }
+        });
+        addButton("⏮  إعادة الآية الحالية", () -> {
+            if (audioAyahCount > 0) playCurrentAyah();
+        });
+        addButton("⏹  إيقاف التلاوة", this::stopAudio);
+        addText("الصوت عبر EveryAyah.com • يتطلب اتصالاً بالإنترنت", 12,
+            Color.rgb(190, 200, 190));
         addButton("رجوع", this::home);
     }
 
@@ -267,13 +363,14 @@ public class MainActivity extends Activity {
         try {
             String file = String.format(Locale.US, "%03d%03d.mp3",
                 audioSurah, audioAyah);
-            String url = "https://everyayah.com/data/Alafasy_128kbps/" + file;
+            String url = "https://everyayah.com/data/" + reciterFolders[selectedReciter] + "/" + file;
             audioPlayer = new MediaPlayer();
             audioPlayer.setAudioStreamType(android.media.AudioManager.STREAM_MUSIC);
             audioPlayer.setDataSource(url);
             audioPlayer.setOnPreparedListener(player -> {
                 audioPreparing = false;
-                audioStatus.setText("يُتلى الآن: سورة " + surahs[audioSurah - 1]
+                audioStatus.setText("يُتلى الآن ۞ " + reciterNames[selectedReciter]
+                    + " ۞ سورة " + surahs[audioSurah - 1]
                     + " - الآية " + toArabicDigits(String.valueOf(audioAyah)));
                 player.start();
             });
