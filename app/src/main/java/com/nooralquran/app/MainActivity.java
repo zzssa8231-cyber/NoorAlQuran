@@ -8,6 +8,8 @@ import android.graphics.drawable.GradientDrawable;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.*;
+import android.media.MediaPlayer;
+import java.util.Locale;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -17,6 +19,12 @@ public class MainActivity extends Activity {
 
     LinearLayout layout;
     List<String[]> verses = new ArrayList<>();
+    MediaPlayer audioPlayer;
+    int audioSurah = 1;
+    int audioAyah = 1;
+    int audioAyahCount = 0;
+    TextView audioStatus;
+    boolean audioPreparing = false;
 
     String[] surahs = {
         "الفاتحة","البقرة","آل عمران","النساء","المائدة",
@@ -193,12 +201,139 @@ public class MainActivity extends Activity {
         addText("نورٌ يضيء حياتك", 18, Color.YELLOW);
 
         addButton("📖 القرآن الكريم", this::showSurahs);
-        addButton("🎧 الاستماع إلى القرآن", () -> message("قسم التلاوة الصوتية قيد التجهيز"));
+        addButton("🎧 الاستماع إلى القرآن", this::audioScreen);
         addButton("👨‍👩‍👧 قسم الكبار", () -> message("أهلاً بكم في قسم الكبار"));
         addButton("🧒 عالم الأطفال", () -> message("أهلاً بكم في عالم الأطفال"));
         addButton("📿 المسبحة الإلكترونية", this::tasbeeh);
         addButton("💰 حاسبة الزكاة", this::zakat);
         addButton("❓ المسابقات والأسئلة", () -> message("المسابقات قيد التجهيز"));
+    }
+
+    void audioScreen() {
+        setup();
+        addText("الاستماع إلى القرآن الكريم", 27, Color.WHITE);
+        addText("تلاوة الشيخ مشاري العفاسي", 18, Color.rgb(238, 204, 125));
+
+        Spinner picker = new Spinner(this);
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+            this, android.R.layout.simple_spinner_item, surahs);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        picker.setAdapter(adapter);
+        picker.setSelection(audioSurah - 1);
+        layout.addView(picker, new LinearLayout.LayoutParams(-1, -2));
+
+        audioStatus = new TextView(this);
+        audioStatus.setText("اختر السورة ثم اضغط تشغيل");
+        audioStatus.setTextColor(Color.WHITE);
+        audioStatus.setTextSize(17);
+        audioStatus.setGravity(Gravity.CENTER);
+        audioStatus.setPadding(10, 22, 10, 22);
+        layout.addView(audioStatus);
+
+        addButton("▶ تشغيل السورة", () -> {
+            audioSurah = picker.getSelectedItemPosition() + 1;
+            audioAyah = 1;
+            audioAyahCount = countAyahs(audioSurah);
+            if (audioAyahCount == 0) {
+                audioStatus.setText("تعذر تحديد آيات السورة من ملف القرآن");
+            } else {
+                playCurrentAyah();
+            }
+        });
+        addButton("⏸ إيقاف مؤقت / متابعة", this::toggleAudio);
+        addButton("⏹ إيقاف", this::stopAudio);
+        addButton("رجوع", this::home);
+    }
+
+    int countAyahs(int surahNumber) {
+        int total = 0;
+        for (String[] verse : verses) {
+            if (Integer.parseInt(verse[0]) == surahNumber) total++;
+        }
+        return total;
+    }
+
+    void playCurrentAyah() {
+        if (audioAyah > audioAyahCount) {
+            audioStatus.setText("انتهت سورة " + surahs[audioSurah - 1]);
+            releaseAudio();
+            return;
+        }
+        releaseAudio();
+        audioPreparing = true;
+        audioStatus.setText("جارٍ تحميل سورة " + surahs[audioSurah - 1]
+            + " - الآية " + toArabicDigits(String.valueOf(audioAyah)));
+
+        try {
+            String file = String.format(Locale.US, "%03d%03d.mp3",
+                audioSurah, audioAyah);
+            String url = "https://everyayah.com/data/Alafasy_128kbps/" + file;
+            audioPlayer = new MediaPlayer();
+            audioPlayer.setAudioStreamType(android.media.AudioManager.STREAM_MUSIC);
+            audioPlayer.setDataSource(url);
+            audioPlayer.setOnPreparedListener(player -> {
+                audioPreparing = false;
+                audioStatus.setText("يُتلى الآن: سورة " + surahs[audioSurah - 1]
+                    + " - الآية " + toArabicDigits(String.valueOf(audioAyah)));
+                player.start();
+            });
+            audioPlayer.setOnCompletionListener(player -> {
+                audioAyah++;
+                playCurrentAyah();
+            });
+            audioPlayer.setOnErrorListener((player, what, extra) -> {
+                audioPreparing = false;
+                audioStatus.setText("تعذر تشغيل الصوت. تحقق من الإنترنت ثم حاول مجدداً.");
+                releaseAudio();
+                return true;
+            });
+            audioPlayer.prepareAsync();
+        } catch (Exception e) {
+            audioPreparing = false;
+            audioStatus.setText("تعذر بدء التلاوة. تحقق من اتصال الإنترنت.");
+            releaseAudio();
+        }
+    }
+
+    void toggleAudio() {
+        if (audioPlayer != null && audioPlayer.isPlaying()) {
+            audioPlayer.pause();
+            audioStatus.setText("التلاوة متوقفة مؤقتاً");
+        } else if (audioPlayer != null && !audioPreparing) {
+            audioPlayer.start();
+            audioStatus.setText("التلاوة مستمرة");
+        } else if (audioPlayer == null) {
+            audioStatusMessage("اختر السورة واضغط تشغيل أولاً");
+        }
+    }
+
+    void stopAudio() {
+        releaseAudio();
+        audioAyah = 1;
+        if (audioStatus != null) audioStatus.setText("تم إيقاف التلاوة");
+    }
+
+    void releaseAudio() {
+        if (audioPlayer != null) {
+            try { audioPlayer.setOnPreparedListener(null); } catch (Exception ignored) {}
+            try { audioPlayer.setOnCompletionListener(null); } catch (Exception ignored) {}
+            try { audioPlayer.setOnErrorListener(null); } catch (Exception ignored) {}
+            try { audioPlayer.stop(); } catch (Exception ignored) {}
+            try { audioPlayer.release(); } catch (Exception ignored) {}
+            audioPlayer = null;
+        }
+        audioPreparing = false;
+    }
+
+    void audioStatusMessage(String value) {
+        if (audioStatus != null) audioStatus.setText(value);
+        else message(value);
+    }
+
+    @Override
+    protected void onDestroy() {
+        releaseAudio();
+        super.onDestroy();
     }
 
     void showSurahs() {
