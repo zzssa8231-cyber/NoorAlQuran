@@ -454,7 +454,7 @@ public class MainActivity extends Activity {
         tile.setOrientation(LinearLayout.VERTICAL);
         tile.setGravity(Gravity.CENTER);
         tile.setPadding(dp(8), dp(12), dp(8), dp(12));
-        tile.setBackground(premiumBackground(tint, Color.rgb(205,170,94), 20));
+        tile.setBackground(premiumBackground(Color.rgb(12,52,45), Color.rgb(218,184,111), 20));
         if (android.os.Build.VERSION.SDK_INT >= 21) tile.setElevation(dp(4));
 
         TextView symbol = new TextView(this);
@@ -505,6 +505,52 @@ public class MainActivity extends Activity {
         clockHandler.post(clockRunnable);
     }
 
+    class MosqueHeaderArt extends View {
+        final android.graphics.Paint p = new android.graphics.Paint(3);
+        MosqueHeaderArt() { super(MainActivity.this); }
+        @Override protected void onDraw(android.graphics.Canvas c) {
+            super.onDraw(c);
+            float w=getWidth(), h=getHeight();
+            p.setStyle(android.graphics.Paint.Style.FILL);
+            p.setColor(Color.rgb(8,38,34));
+            c.drawRoundRect(0,0,w,h,dp(18),dp(18),p);
+            p.setColor(Color.rgb(255,222,145));
+            for(int i=0;i<24;i++){
+                float x=(i*73f+31f)%Math.max(1,w), y=(i*37f+19f)%Math.max(1,h*0.58f);
+                c.drawCircle(x,y,dp(i%4==0?2:1),p);
+            }
+            // Crescent moon
+            p.setColor(Color.rgb(255,220,132));
+            c.drawCircle(w*0.82f,h*0.22f,dp(22),p);
+            p.setColor(Color.rgb(8,38,34));
+            c.drawCircle(w*0.85f,h*0.18f,dp(20),p);
+            // Minarets
+            p.setColor(Color.rgb(193,151,76));
+            c.drawRect(w*.12f,h*.32f,w*.17f,h*.88f,p);
+            c.drawRect(w*.81f,h*.29f,w*.86f,h*.88f,p);
+            c.drawRect(w*.105f,h*.28f,w*.185f,h*.34f,p);
+            c.drawRect(w*.795f,h*.25f,w*.875f,h*.31f,p);
+            c.drawCircle(w*.145f,h*.25f,dp(5),p);
+            c.drawCircle(w*.835f,h*.22f,dp(5),p);
+            // Central mosque and domes
+            p.setColor(Color.rgb(218,184,111));
+            c.drawRect(w*.25f,h*.62f,w*.75f,h*.9f,p);
+            c.drawOval(w*.39f,h*.34f,w*.61f,h*.69f,p);
+            c.drawOval(w*.27f,h*.51f,w*.40f,h*.68f,p);
+            c.drawOval(w*.60f,h*.51f,w*.73f,h*.68f,p);
+            // Door and windows
+            p.setColor(Color.rgb(10,48,42));
+            c.drawRoundRect(w*.455f,h*.70f,w*.545f,h*.9f,dp(22),dp(22),p);
+            c.drawRoundRect(w*.30f,h*.70f,w*.35f,h*.81f,dp(8),dp(8),p);
+            c.drawRoundRect(w*.65f,h*.70f,w*.70f,h*.81f,dp(8),dp(8),p);
+            p.setStyle(android.graphics.Paint.Style.STROKE);
+            p.setStrokeWidth(dp(2));
+            p.setColor(Color.rgb(255,225,153));
+            c.drawLine(w*.08f,h*.91f,w*.92f,h*.91f,p);
+            p.setStyle(android.graphics.Paint.Style.FILL);
+        }
+    }
+
     void home() {
         setup();
         layout.setPadding(dp(14), dp(10), dp(14), dp(22));
@@ -529,6 +575,8 @@ public class MainActivity extends Activity {
         ornament.setTextSize(19);
         ornament.setGravity(Gravity.CENTER);
         hero.addView(ornament);
+
+        hero.addView(new MosqueHeaderArt(), new LinearLayout.LayoutParams(-1, dp(158)));
 
         TextView logo = new TextView(this);
         logo.setText("نُــورُ القُــرآن");
@@ -586,7 +634,7 @@ public class MainActivity extends Activity {
             "دعاء اليوم وزيارته ومناجاته في صفحة واحدة", this::showTodayDevotions);
 
         TextView sectionTitle = new TextView(this);
-        sectionTitle.setText("✧  اكتشف أقسام نور القرآن  ✧");
+        sectionTitle.setText("✧  أبواب النور والطمأنينة  ✧");
         sectionTitle.setTextColor(Color.rgb(255, 224, 157));
         sectionTitle.setTextSize(20);
         sectionTitle.setTypeface(null, android.graphics.Typeface.BOLD);
