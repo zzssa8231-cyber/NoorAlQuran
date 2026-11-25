@@ -157,7 +157,7 @@ public class MainActivity extends Activity {
         int found = 0;
         for (String[] verse : verses) {
             if (Integer.parseInt(verse[0]) == number) {
-                addText(verse[2] + "  ۞ " + verse[1],
+                addText("﴿" + verse[2] + "﴾  (" + verse[1] + ")",
                     23, Color.WHITE);
                 found++;
             }
