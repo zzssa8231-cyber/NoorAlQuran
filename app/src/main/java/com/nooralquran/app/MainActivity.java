@@ -49,6 +49,7 @@ public class MainActivity extends Activity {
     TextView prayerStatus;
     TextView hijriDateView;
     String selectedGovernorate = "بابل";
+    int prayerCalculationMethod = 0;
     String[] governorateNames = {
         "بابل","بغداد","البصرة","النجف","كربلاء","واسط","القادسية",
         "المثنى","ذي قار","ميسان","ديالى","كركوك","صلاح الدين",
@@ -91,6 +92,8 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        selectedGovernorate = getSharedPreferences("noor_prefs", MODE_PRIVATE).getString("governorate", "بابل");
+        prayerCalculationMethod = getSharedPreferences("noor_prefs", MODE_PRIVATE).getInt("prayer_method", 0);
         loadQuran();
         home();
     }
@@ -149,28 +152,15 @@ public class MainActivity extends Activity {
         layout.setGravity(Gravity.CENTER);
         layout.setPadding(20, 25, 20, 25);
         layout.setBackgroundColor(Color.rgb(12, 45, 42));
-        scroll.addView(layout);
-        setContentView(scroll);
+        LinearLayout root = new LinearLayout(this);
+        root.setOrientation(LinearLayout.VERTICAL);
+        root.setBackgroundColor(Color.rgb(12,45,42));
+        root.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1f));
 
         LinearLayout topBar = new LinearLayout(this);
         topBar.setOrientation(LinearLayout.HORIZONTAL);
-        topBar.setGravity(Gravity.CENTER_VERTICAL);
-        topBar.setPadding(dp(4), dp(4), dp(4), dp(8));
-
-        Button exit = new Button(this);
-        exit.setText("خروج");
-        exit.setTextSize(13);
-        exit.setAllCaps(false);
-        exit.setTextColor(Color.WHITE);
-        exit.setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.rgb(126,54,48)));
-        topBar.addView(exit, new LinearLayout.LayoutParams(0, dp(44), 1));
-        exit.setOnClickListener(v -> new android.app.AlertDialog.Builder(this)
-            .setTitle("الخروج من نور القرآن")
-            .setMessage("هل تريد إغلاق التطبيق؟")
-            .setNegativeButton("إلغاء", (d,w) -> d.dismiss())
-            .setPositiveButton("خروج", (d,w) -> finish())
-            .show());
-
+        topBar.setGravity(Gravity.CENTER_VERTICAL | Gravity.RIGHT);
+        topBar.setPadding(dp(4), dp(12), dp(4), dp(5));
         Button menu = new Button(this);
         menu.setText("☰");
         menu.setTextSize(22);
@@ -180,6 +170,32 @@ public class MainActivity extends Activity {
         topBar.addView(menu, new LinearLayout.LayoutParams(dp(58), dp(44)));
         menu.setOnClickListener(v -> showMainMenu(menu));
         layout.addView(topBar, 0);
+
+        LinearLayout footer = new LinearLayout(this);
+        footer.setGravity(Gravity.CENTER);
+        footer.setPadding(dp(12), dp(5), dp(12), dp(8));
+        footer.setBackgroundColor(Color.rgb(9,36,33));
+        Button exit = new Button(this);
+        exit.setText("⏻  خروج من التطبيق");
+        exit.setTextSize(14);
+        exit.setAllCaps(false);
+        exit.setTextColor(Color.WHITE);
+        exit.setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.rgb(126,54,48)));
+        footer.addView(exit, new LinearLayout.LayoutParams(-1, dp(46)));
+        exit.setOnClickListener(v -> {
+            if (!getSharedPreferences("noor_prefs", MODE_PRIVATE).getBoolean("confirm_exit", true)) {
+                finish();
+                return;
+            }
+            new android.app.AlertDialog.Builder(this)
+                .setTitle("الخروج من نور القرآن")
+                .setMessage("هل تريد إغلاق التطبيق؟")
+                .setNegativeButton("إلغاء", (d,w) -> d.dismiss())
+                .setPositiveButton("خروج", (d,w) -> finish())
+                .show();
+        });
+        root.addView(footer, new LinearLayout.LayoutParams(-1, -2));
+        setContentView(root);
     }
 
     void showMainMenu(View anchor) {
@@ -195,9 +211,63 @@ public class MainActivity extends Activity {
 
     void showSettings() {
         setup();
-        addText("⚙ الإعدادات", 27, Color.rgb(242,211,145));
-        addAdultCard("المحافظة ومواقيت الصلاة", "المحافظة الافتراضية: " + selectedGovernorate, this::showPrayerTimes);
-        addAdultCard("حول التطبيق", "نور القرآن - تطبيق للقراءة والذكر والعبادة", () -> message("نسأل الله القبول"));
+        addText("⚙ إعدادات نور القرآن", 27, Color.rgb(242,211,145));
+        addText("خصص التطبيق بالطريقة التي تناسبك", 15, Color.WHITE);
+
+        addAdultCard("📍 المحافظة", "المحافظة المختارة حالياً: " + selectedGovernorate, this::showPrayerTimes);
+
+        addText("طريقة حساب مواقيت الصلاة", 17, Color.rgb(242,211,145));
+        String[] methods = {
+            "طريقة أم القرى", "رابطة العالم الإسلامي", "الهيئة المصرية العامة للمساحة",
+            "جامعة العلوم الإسلامية - كراتشي", "تقويم شمال أمريكا", "طريقة طهران"
+        };
+        Spinner methodPicker = styledSpinner(methods, Math.max(0, Math.min(prayerCalculationMethod, methods.length - 1)));
+        layout.addView(methodPicker, new LinearLayout.LayoutParams(-1, -2));
+
+        android.content.SharedPreferences prefs = getSharedPreferences("noor_prefs", MODE_PRIVATE);
+        CheckBox arabicNumbers = new CheckBox(this);
+        arabicNumbers.setText("استخدام الأرقام العربية في العرض");
+        arabicNumbers.setTextColor(Color.WHITE);
+        arabicNumbers.setTextSize(16);
+        arabicNumbers.setButtonTintList(android.content.res.ColorStateList.valueOf(Color.rgb(238,204,125)));
+        arabicNumbers.setChecked(prefs.getBoolean("arabic_numbers", true));
+        layout.addView(arabicNumbers);
+
+        CheckBox keepLast = new CheckBox(this);
+        keepLast.setText("حفظ آخر سورة قرأتها");
+        keepLast.setTextColor(Color.WHITE);
+        keepLast.setTextSize(16);
+        keepLast.setButtonTintList(android.content.res.ColorStateList.valueOf(Color.rgb(238,204,125)));
+        keepLast.setChecked(prefs.getBoolean("save_last_surah", true));
+        layout.addView(keepLast);
+
+        CheckBox confirmExit = new CheckBox(this);
+        confirmExit.setText("طلب تأكيد قبل الخروج");
+        confirmExit.setTextColor(Color.WHITE);
+        confirmExit.setTextSize(16);
+        confirmExit.setButtonTintList(android.content.res.ColorStateList.valueOf(Color.rgb(238,204,125)));
+        confirmExit.setChecked(prefs.getBoolean("confirm_exit", true));
+        layout.addView(confirmExit);
+
+        addAdultCard("🕋 مواقيت الصلاة", "تغيير المحافظة وعرض جدول الصلاة", this::showPrayerTimes);
+        addAdultCard("🔔 التنبيهات", "إعدادات التنبيهات ستضاف بعد تجهيز خدمة الإشعارات وأذوناتها", () ->
+            message("لم نفعل تنبيهات غير مهيأة حتى لا نعدك بوظيفة غير موجودة."));
+        addAdultCard("🎨 المظهر", "تصميم أخضر داكن بإطارات ذهبية", () ->
+            message("المظهر الحالي: أخضر داكن وذهبي."));
+        addAdultCard("ℹ حول التطبيق", "نور القرآن - للقراءة والتلاوة والذكر", () ->
+            message("نسأل الله أن يجعل هذا العمل خالصاً لوجهه الكريم."));
+
+        addButton("💾 حفظ الإعدادات", () -> {
+            prayerCalculationMethod = methodPicker.getSelectedItemPosition();
+            prefs.edit()
+                .putString("governorate", selectedGovernorate)
+                .putInt("prayer_method", prayerCalculationMethod)
+                .putBoolean("arabic_numbers", arabicNumbers.isChecked())
+                .putBoolean("save_last_surah", keepLast.isChecked())
+                .putBoolean("confirm_exit", confirmExit.isChecked())
+                .apply();
+            message("تم حفظ الإعدادات");
+        });
         addButton("العودة للرئيسية", this::home);
     }
 
@@ -556,7 +626,7 @@ public class MainActivity extends Activity {
                     double lat = governorateCoordinates[chosen][0];
                     double lon = governorateCoordinates[chosen][1];
                     URL url = new URL("https://api.aladhan.com/v1/timings/" + date
-                        + "?latitude=" + lat + "&longitude=" + lon + "&method=0");
+                        + "?latitude=" + lat + "&longitude=" + lon + "&method=" + prayerCalculationMethod);
                     connection = (HttpURLConnection) url.openConnection();
                     connection.setRequestMethod("GET");
                     connection.setConnectTimeout(12000);
@@ -1245,8 +1315,10 @@ public class MainActivity extends Activity {
     }
 
     void showSurah(int number) {
-        getSharedPreferences("noor_prefs", MODE_PRIVATE).edit()
-            .putInt("last_surah", number).apply();
+        if (getSharedPreferences("noor_prefs", MODE_PRIVATE).getBoolean("save_last_surah", true)) {
+            getSharedPreferences("noor_prefs", MODE_PRIVATE).edit()
+                .putInt("last_surah", number).apply();
+        }
         setup();
         addText("سورة " + surahs[number - 1], 28, Color.YELLOW);
         addButton("رجوع إلى السور", this::showSurahs);
