@@ -312,16 +312,16 @@ public class MainActivity extends Activity {
         setup();
         addText("❁ قسم الكبار ❁", 29, Color.rgb(238, 204, 125));
         addText("زادُ القلب وطمأنينة الروح", 17, Color.WHITE);
-        addAdultCardHorizontal(cardRow, "📖 القرآن الكريم", "قراءة السور بترتيب المصحف", this::showSurahs);
-        addAdultCardHorizontal(cardRow, "🎧 الاستماع إلى القرآن", "اختر القارئ والسورة واستمتع بالتلاوة", this::audioScreen);
-        addAdultCardHorizontal(cardRow, "🌅 أذكار الصباح والمساء", "أذكار مختارة مع عدّاد للتكرار", this::showAdhkar);
-        addAdultCardHorizontal(cardRow, "📿 المسبحة الإلكترونية", "تسبيح واستغفار مع عدّاد", this::tasbeeh);
-        addAdultCardHorizontal(cardRow, "💰 حاسبة الزكاة", "حساب ٢٫٥٪ من المبلغ المُدخل", this::zakat);
-        addAdultCardHorizontal(cardRow, "🌿 وردي اليومي", "اختر سورة لتجعلها وردك اليوم", this::showDailyWird);
-        addAdultCardHorizontal(cardRow, "🔖 متابعة القراءة", "العودة إلى آخر سورة فتحتها", this::continueReading);
-        addAdultCardHorizontal(cardRow, "✨ أسماء الله الحسنى", "تأمل في مجموعة من أسماء الله الحسنى", this::showNamesOfAllah);
-        addAdultCardHorizontal(cardRow, "🤲 أدعية من القرآن", "أدعية قرآنية مع مواضعها", this::showQuranDuas);
-        addAdultCardHorizontal(cardRow, "🗓️ خطة عبادتي اليومية", "ضع علامة على ما أنجزته اليوم", this::showDailyPlan);
+        addAdultCard("📖 القرآن الكريم", "قراءة السور بترتيب المصحف", this::showSurahs);
+        addAdultCard("🎧 الاستماع إلى القرآن", "اختر القارئ والسورة واستمتع بالتلاوة", this::audioScreen);
+        addAdultCard("🌅 أذكار الصباح والمساء", "أذكار مختارة مع عدّاد للتكرار", this::showAdhkar);
+        addAdultCard("📿 المسبحة الإلكترونية", "تسبيح واستغفار مع عدّاد", this::tasbeeh);
+        addAdultCard("💰 حاسبة الزكاة", "حساب ٢٫٥٪ من المبلغ المُدخل", this::zakat);
+        addAdultCard("🌿 وردي اليومي", "اختر سورة لتجعلها وردك اليوم", this::showDailyWird);
+        addAdultCard("🔖 متابعة القراءة", "العودة إلى آخر سورة فتحتها", this::continueReading);
+        addAdultCard("✨ أسماء الله الحسنى", "تأمل في مجموعة من أسماء الله الحسنى", this::showNamesOfAllah);
+        addAdultCard("🤲 أدعية من القرآن", "أدعية قرآنية مع مواضعها", this::showQuranDuas);
+        addAdultCard("🗓️ خطة عبادتي اليومية", "ضع علامة على ما أنجزته اليوم", this::showDailyPlan);
         addText("اجعل لك وقتاً ثابتاً للقرآن والذكر والعمل الصالح", 14,
             Color.rgb(238, 204, 125));
         addButton("العودة للرئيسية", this::home);
