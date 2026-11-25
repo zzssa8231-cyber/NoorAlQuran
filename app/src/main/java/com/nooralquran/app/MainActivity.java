@@ -18,6 +18,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Calendar;
 import android.os.Handler;
 import org.json.JSONObject;
 
@@ -150,6 +151,105 @@ public class MainActivity extends Activity {
         layout.setBackgroundColor(Color.rgb(12, 45, 42));
         scroll.addView(layout);
         setContentView(scroll);
+
+        LinearLayout topBar = new LinearLayout(this);
+        topBar.setOrientation(LinearLayout.HORIZONTAL);
+        topBar.setGravity(Gravity.CENTER_VERTICAL);
+        topBar.setPadding(dp(4), dp(4), dp(4), dp(8));
+
+        Button exit = new Button(this);
+        exit.setText("خروج");
+        exit.setTextSize(13);
+        exit.setAllCaps(false);
+        exit.setTextColor(Color.WHITE);
+        exit.setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.rgb(126,54,48)));
+        topBar.addView(exit, new LinearLayout.LayoutParams(0, dp(44), 1));
+        exit.setOnClickListener(v -> new android.app.AlertDialog.Builder(this)
+            .setTitle("الخروج من نور القرآن")
+            .setMessage("هل تريد إغلاق التطبيق؟")
+            .setNegativeButton("إلغاء", (d,w) -> d.dismiss())
+            .setPositiveButton("خروج", (d,w) -> finish())
+            .show());
+
+        Button menu = new Button(this);
+        menu.setText("☰");
+        menu.setTextSize(22);
+        menu.setAllCaps(false);
+        menu.setTextColor(Color.rgb(255,224,157));
+        menu.setBackground(premiumBackground(Color.rgb(20,63,56), Color.rgb(205,170,94), 14));
+        topBar.addView(menu, new LinearLayout.LayoutParams(dp(58), dp(44)));
+        menu.setOnClickListener(v -> showMainMenu(menu));
+        layout.addView(topBar, 0);
+    }
+
+    void showMainMenu(View anchor) {
+        android.widget.PopupMenu popup = new android.widget.PopupMenu(this, anchor);
+        popup.getMenu().add("⚙ الإعدادات").setOnMenuItemClickListener(item -> { showSettings(); return true; });
+        popup.getMenu().add("🤲 الأدعية والزيارات والمناجاة").setOnMenuItemClickListener(item -> { showWeeklyDuasVisits(); return true; });
+        popup.getMenu().add("🧳 أدعية السفر").setOnMenuItemClickListener(item -> { showTravelDuas(); return true; });
+        popup.getMenu().add("🕋 الحج والعمرة").setOnMenuItemClickListener(item -> { showHajjUmrah(); return true; });
+        popup.getMenu().add("🌙 الإمساكية").setOnMenuItemClickListener(item -> { showImsakiyah(); return true; });
+        popup.getMenu().add("🕌 مواقيت الصلاة").setOnMenuItemClickListener(item -> { showPrayerTimes(); return true; });
+        popup.show();
+    }
+
+    void showSettings() {
+        setup();
+        addText("⚙ الإعدادات", 27, Color.rgb(242,211,145));
+        addAdultCard("المحافظة ومواقيت الصلاة", "المحافظة الافتراضية: " + selectedGovernorate, this::showPrayerTimes);
+        addAdultCard("حول التطبيق", "نور القرآن - تطبيق للقراءة والذكر والعبادة", () -> message("نسأل الله القبول"));
+        addButton("العودة للرئيسية", this::home);
+    }
+
+    void showTravelDuas() {
+        setup();
+        addText("🧳 أدعية السفر", 27, Color.rgb(242,211,145));
+        addQuranText("سُبْحَانَ الَّذِي سَخَّرَ لَنَا هَذَا وَمَا كُنَّا لَهُ مُقْرِنِينَ ۝ وَإِنَّا إِلَىٰ رَبِّنَا لَمُنقَلِبُونَ");
+        addText("سورة الزخرف: ١٣–١٤", 14, Color.WHITE);
+        addAdultCard("دعاء الركوب والسفر", "يُعرض النص القرآني أعلاه من سورة الزخرف", () -> message("يمكن قراءة الآيتين وترديدهما عند الركوب"));
+        addButton("العودة للرئيسية", this::home);
+    }
+
+    void showHajjUmrah() {
+        setup();
+        addText("🕋 الحج والعمرة", 27, Color.rgb(242,211,145));
+        addAdultCard("التلبية", "لَبَّيْكَ اللَّهُمَّ لَبَّيْكَ، لَبَّيْكَ لَا شَرِيكَ لَكَ لَبَّيْكَ، إِنَّ الْحَمْدَ وَالنِّعْمَةَ لَكَ وَالْمُلْكَ، لَا شَرِيكَ لَكَ", () -> showDuaDetail("لَبَّيْكَ اللَّهُمَّ لَبَّيْكَ، لَبَّيْكَ لَا شَرِيكَ لَكَ لَبَّيْكَ، إِنَّ الْحَمْدَ وَالنِّعْمَةَ لَكَ وَالْمُلْكَ، لَا شَرِيكَ لَكَ", "التلبية"));
+        addAdultCard("مناسك الحج والعمرة", "قسم إرشادي للمناسك والأذكار", () -> message("تفاصيل المناسك تحتاج مراجعة فقهية وفق مرجعك"));
+        addButton("العودة للرئيسية", this::home);
+    }
+
+    void showImsakiyah() {
+        setup();
+        addText("🌙 الإمساكية ومواقيت الصيام", 25, Color.rgb(242,211,145));
+        addText("اختر المحافظة لعرض مواقيت الفجر والمغرب من جدول الصلاة.", 16, Color.WHITE);
+        addAdultCard("مواقيت الفجر والمغرب", "المحافظة الحالية: " + selectedGovernorate, this::showPrayerTimes);
+        addText("توقيت الإمساك يكون قبل الفجر وفق التقويم المعتمد محلياً؛ راجع إمساكية الوقف أو الجهة الدينية في محافظتك.", 13, Color.rgb(238,204,125));
+        addButton("العودة للرئيسية", this::home);
+    }
+
+    String todayArabicName() {
+        String[] days = {"الأحد","الإثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"};
+        return days[Calendar.getInstance().get(Calendar.DAY_OF_WEEK) - 1];
+    }
+
+    void showTodayDevotions() {
+        String day = todayArabicName();
+        setup();
+        addText("🌿 ورد يوم " + day, 28, Color.rgb(242,211,145));
+        addText("محتوى اليوم في مكان واحد", 16, Color.WHITE);
+        addAdultCard("🤲 دعاء يوم " + day, "قسم دعاء اليوم", () -> showDailyTextNotice("دعاء", day));
+        addAdultCard("🕌 زيارة يوم " + day, "قسم زيارة اليوم", () -> showDailyTextNotice("زيارة", day));
+        addAdultCard("✨ مناجاة يوم " + day, "قسم مناجاة اليوم", () -> showDailyTextNotice("مناجاة", day));
+        addText("ستظهر النصوص الكاملة بعد اعتماد مصدرها الموثوق، حتى لا ننسب نصاً غير صحيح إلى أهل البيت عليهم السلام.", 13, Color.rgb(238,204,125));
+        addButton("العودة للرئيسية", this::home);
+    }
+
+    void showDailyTextNotice(String type, String day) {
+        setup();
+        addText(type + " يوم " + day, 25, Color.rgb(242,211,145));
+        addText("هذا الموضع مخصص للنص الكامل الموثق لهذا اليوم.", 17, Color.WHITE);
+        addText("لم أضع نصاً منسوباً دون مصدر معتمد تجنباً للخطأ في النصوص الدينية.", 14, Color.rgb(238,204,125));
+        addButton("رجوع إلى ورد اليوم", this::showTodayDevotions);
     }
 
     void addText(String value, int size, int color) {
@@ -329,6 +429,7 @@ public class MainActivity extends Activity {
         layout.addView(datePanel, new LinearLayout.LayoutParams(-1, -2));
         startHomeClock();
 
+        addAdultCard("🌿 ورد اليوم: " + todayArabicName(), "دعاء اليوم وزيارته ومناجاته في صفحة واحدة", this::showTodayDevotions);
         addText("اختر وجهتك", 20, Color.rgb(242,211,145));
         android.widget.GridLayout grid = new android.widget.GridLayout(this);
         grid.setColumnCount(2);
@@ -507,7 +608,9 @@ public class MainActivity extends Activity {
         addAdultCard("🤲 أدعية أيام الأسبوع", "أدعية منسوبة لأيام الأسبوع", this::showWeeklyDuas);
         addAdultCard("🕌 زيارات أيام الأسبوع", "زيارة مخصصة لكل يوم", this::showWeeklyVisits);
         addAdultCard("🌹 أدعية أهل البيت عليهم السلام", "مجموعة أدعية مأثورة", () -> message("سيتم إدراج النصوص الموثقة في قسم الأدعية"));
-        addAdultCard("✨ زيارات أهل البيت عليهم السلام", "الزيارات المأثورة", () -> message("سيتم إدراج نصوص الزيارات الموثقة"));
+        addAdultCard("✨ زيارات أهل البيت عليهم السلام", "الزيارات المأثورة", () -> message("قسم الزيارات الموثقة قيد استكمال النصوص"));
+        addAdultCard("🌿 مناجاة أيام الأسبوع", "مناجاة لكل يوم من أيام الأسبوع", this::showWeeklyMunasajat);
+        addAdultCard("📅 ورد اليوم", "دعاء وزيارة ومناجاة اليوم الحالي", this::showTodayDevotions);
         addButton("العودة للرئيسية", this::home);
     }
 
@@ -524,6 +627,14 @@ public class MainActivity extends Activity {
         addText("زيارات أيام الأسبوع", 26, Color.rgb(242,211,145));
         String[] days = {"السبت","الأحد","الإثنين","الثلاثاء","الأربعاء","الخميس","الجمعة"};
         for (String day : days) addAdultCard("زيارة يوم " + day, "زيارة اليوم من الزيارات المأثورة", () -> message("نص زيارة يوم " + day + " يحتاج إدراج مصدره المعتمد"));
+        addButton("رجوع", this::showWeeklyDuasVisits);
+    }
+
+    void showWeeklyMunasajat() {
+        setup();
+        addText("✨ مناجاة أيام الأسبوع", 26, Color.rgb(242,211,145));
+        String[] days = {"السبت","الأحد","الإثنين","الثلاثاء","الأربعاء","الخميس","الجمعة"};
+        for (String day : days) addAdultCard("مناجاة يوم " + day, "موضع النص الموثق لمناجاة هذا اليوم", () -> showDailyTextNotice("مناجاة", day));
         addButton("رجوع", this::showWeeklyDuasVisits);
     }
 
