@@ -1330,9 +1330,10 @@ public class MainActivity extends Activity {
             "ش - شمس","ص - صقر","ض - ضفدع","ط - طائرة","ظ - ظرف","ع - عنب",
             "غ - غزال","ف - فراشة","ق - قمر","ك - كتاب","ل - ليمون","م - موز",
             "ن - نجم","هـ - هلال","و - وردة","ي - يد"};
-        android.speech.tts.TextToSpeech speaker = new android.speech.tts.TextToSpeech(this, status -> {
-            if (status == android.speech.tts.TextToSpeech.SUCCESS)
-                speakerLanguageReady(speaker);
+        final android.speech.tts.TextToSpeech[] speaker = new android.speech.tts.TextToSpeech[1];
+        speaker[0] = new android.speech.tts.TextToSpeech(this, status -> {
+            if (status == android.speech.tts.TextToSpeech.SUCCESS && speaker[0] != null)
+                speakerLanguageReady(speaker[0]);
         });
         addText("🔤 الحروف العربية", 20, Color.rgb(255,225,160));
         for (String item : letters) {
@@ -1344,7 +1345,7 @@ public class MainActivity extends Activity {
             b.setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.rgb(220,245,230)));
             layout.addView(b,new LinearLayout.LayoutParams(-1,-2));
             b.setOnClickListener(v -> {
-                if (speaker != null) speaker.speak(item.replace(" - ", " مثل "), android.speech.tts.TextToSpeech.QUEUE_FLUSH, null, "kids-letter");
+                if (speaker[0] != null) speaker[0].speak(item.replace(" - ", " مثل "), android.speech.tts.TextToSpeech.QUEUE_FLUSH, null, "kids-letter");
             });
         }
         addText("🔢 الأرقام من ١ إلى ١٠", 20, Color.rgb(255,225,160));
@@ -1352,7 +1353,7 @@ public class MainActivity extends Activity {
         addText("🌈 الألوان: أحمر، أزرق، أصفر، أخضر، أبيض، أسود", 17, Color.WHITE);
         addText("⭐ تذكّر: تعلم حرفاً جديداً كل يوم!", 16, Color.rgb(255,215,120));
         addButton("العودة إلى عالم الأطفال", () -> {
-            try { speaker.stop(); speaker.shutdown(); } catch (Exception ignored) {}
+            try { if (speaker[0] != null) { speaker[0].stop(); speaker[0].shutdown(); } } catch (Exception ignored) {}
             showKidsSection();
         });
     }
