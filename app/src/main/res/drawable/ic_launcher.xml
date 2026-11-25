@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="512dp"
+    android:height="512dp"
+    android:viewportWidth="512"
+    android:viewportHeight="512">
+    <path android:fillColor="#062B25" android:pathData="M0,0h512v512h-512z"/>
+    <path android:fillColor="#0D4938" android:pathData="M20,20h472v472h-472z"/>
+    <path android:strokeColor="#E6B94F" android:strokeWidth="10" android:fillColor="#00000000" android:pathData="M32,32h448v448h-448z"/>
+    <path android:strokeColor="#C99535" android:strokeWidth="4" android:fillColor="#00000000" android:pathData="M52,52h408v408h-408z"/>
+    <path android:fillColor="#F5D77E" android:pathData="M390,72a42,42 0,1 0,44 56a35,35 0,1 1,-44 -56"/>
+    <path android:fillColor="#D9A83F" android:pathData="M74,160h28v170h-28zM66,145h44v18h-44zM88,120a14,14 0,1 0,0 28a14,14 0,1 0,0 -28zM410,160h28v170h-28zM402,145h44v18h-44zM424,120a14,14 0,1 0,0 28a14,14 0,1 0,0 -28z"/>
+    <path android:fillColor="#E9C36B" android:pathData="M140,290h232v90h-232zM190,240a66,66 0,0 1,132 0v50h-132zM150,270a34,34 0,0 1,68 0v20h-68zM294,270a34,34 0,0 1,68 0v20h-68z"/>
+    <path android:fillColor="#0A3A30" android:pathData="M242,315h28v65h-28zM166,310h18v32h-18zM328,310h18v32h-18z"/>
+    <path android:fillColor="#D8A33B" android:pathData="M126,390l130,-72 130,72 -130,68z"/>
+    <path android:fillColor="#FFF0BD" android:pathData="M150,386l106,-55 106,55 -106,54z"/>
+    <path android:fillColor="#0D513C" android:pathData="M164,384l92,-45 92,45 -92,44z"/>
+    <path android:strokeColor="#E9C36B" android:strokeWidth="4" android:fillColor="#00000000" android:pathData="M256,340v82M181,384l75,38 75,-38"/>
+    <path android:fillColor="#06372D" android:pathData="M60,414h392v54h-392z"/>
+    <path android:strokeColor="#F0C75F" android:strokeWidth="5" android:fillColor="#00000000" android:pathData="M60,414h392v54h-392z"/>
+    <path android:fillColor="#F7D77E" android:pathData="M80,440l14,-14 14,14 -14,14zM404,440l14,-14 14,14 -14,14z"/>
+</vector>
