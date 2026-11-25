@@ -1054,14 +1054,41 @@ public class MainActivity extends Activity {
 
     void showWeeklyDuasVisits() {
         setup();
-        addText("الأدعية والزيارات", 27, Color.rgb(242,211,145));
-        addAdultCard("🤲 أدعية أيام الأسبوع", "أدعية منسوبة لأيام الأسبوع", this::showWeeklyDuas);
-        addAdultCard("🕌 زيارات أيام الأسبوع", "زيارة مخصصة لكل يوم", this::showWeeklyVisits);
-        addAdultCard("🌹 أدعية أهل البيت عليهم السلام", "مجموعة أدعية مأثورة", () -> message("سيتم إدراج النصوص الموثقة في قسم الأدعية"));
-        addAdultCard("✨ زيارات أهل البيت عليهم السلام", "الزيارات المأثورة", () -> message("قسم الزيارات الموثقة قيد استكمال النصوص"));
-        addAdultCard("🌿 مناجاة أيام الأسبوع", "مناجاة لكل يوم من أيام الأسبوع", this::showWeeklyMunasajat);
+        addText("🤲 الأدعية والزيارات والمناجاة", 27, Color.rgb(242,211,145));
+        addText("مختارات من كتاب مفاتيح الجنان للشيخ عباس القمي، مع فتح النص من مصدره.", 14, Color.WHITE);
+        addAdultCard("🤲 أدعية أيام الأسبوع", "دعاء مستقل لكل يوم", this::showWeeklyDuas);
+        addAdultCard("🌹 أدعية أهل البيت عليهم السلام", "دعاء الصباح وكميل والتوسل والسمات والعشرات", this::showAhlulBaytDuas);
+        addAdultCard("🕌 زيارات أيام الأسبوع", "زيارات النبي والأئمة بحسب أيام الأسبوع", this::showWeeklyVisits);
+        addAdultCard("✨ زيارات أهل البيت عليهم السلام", "زيارة أمين الله ووارث والجامعة الكبيرة وغيرها", this::showAhlulBaytVisits);
+        addAdultCard("🌿 المناجاة الخمس عشرة", "مناجاة الإمام زين العابدين عليه السلام", this::showWeeklyMunasajat);
         addAdultCard("📅 ورد اليوم", "دعاء وزيارة ومناجاة اليوم الحالي", this::showTodayDevotions);
         addButton("العودة للرئيسية", this::home);
+    }
+
+    void showAhlulBaytDuas() {
+        setup();
+        addText("🌹 أدعية أهل البيت عليهم السلام", 25, Color.rgb(242,211,145));
+        addText("اختر الدعاء لفتح نصه في مفاتيح الجنان.", 14, Color.WHITE);
+        String[] names = {"دعاء الصباح لأمير المؤمنين عليه السلام","دعاء كميل بن زياد","دعاء العشرات","دعاء السمات","دعاء التوسل بالأئمة عليهم السلام","دعاء الفرج"};
+        int[] pages = {112,115,121,125,167,168};
+        for (int i=0;i<names.length;i++) {
+            final int page=pages[i]; final String name=names[i];
+            addAdultCard("🤲 "+name, "مفاتيح الجنان • افتح النص الكامل", () -> openMafatihPage(page,name));
+        }
+        addButton("رجوع", this::showWeeklyDuasVisits);
+    }
+
+    void showAhlulBaytVisits() {
+        setup();
+        addText("🕌 زيارات أهل البيت عليهم السلام", 25, Color.rgb(242,211,145));
+        addText("زيارات مختارة من أبواب الزيارات في مفاتيح الجنان.", 14, Color.WHITE);
+        String[] names = {"زيارة النبي صلى الله عليه وآله","زيارة فاطمة الزهراء عليها السلام","زيارة أمين الله","زيارة وارث للإمام الحسين عليه السلام","الزيارة الجامعة الكبيرة","زيارة صاحب الزمان عليه السلام"};
+        int[] pages = {105,107,218,524,650,111};
+        for (int i=0;i<names.length;i++) {
+            final int page=pages[i]; final String name=names[i];
+            addAdultCard("🌿 "+name, "مفاتيح الجنان • افتح نص الزيارة", () -> openMafatihPage(page,name));
+        }
+        addButton("رجوع", this::showWeeklyDuasVisits);
     }
 
     void openMafatihPage(int page, String title) {
