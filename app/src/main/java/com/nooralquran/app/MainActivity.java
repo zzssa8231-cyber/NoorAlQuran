@@ -1468,8 +1468,9 @@ public class MainActivity extends Activity {
 
     void showKidsAcademy() {
         setup();
-        addText("🎓 أكاديمية نور للأطفال", 28, Color.rgb(255, 215, 120));
+        addText("🎓 أكاديمية نور بلس للأطفال", 28, Color.rgb(255, 215, 120));
         addText("مسارات تعليمية ممتعة للحروف العربية والتلاوة والألعاب", 16, Color.WHITE);
+        addText("الاشتراك الشهري: ٣٠٬٠٠٠ دينار عراقي", 16, Color.rgb(255, 225, 160));
         addText("🌱 دروس مجانية للتجربة", 21, Color.rgb(255, 225, 160));
         addKidsCard("🔤 الحروف العربية", "تعلم الحروف مع النطق والأمثلة", "📚",
             Color.rgb(220, 245, 230), this::showKidsLearning);
@@ -1492,9 +1493,33 @@ public class MainActivity extends Activity {
     void showKidsPremiumInfo() {
         setup();
         addText("⭐ محتوى نور بلس للأطفال", 26, Color.rgb(255, 215, 120));
-        addText("هذا المسار مخصص للمشتركين، وسيضم دروساً متدرجة وتمارين تفاعلية وألعاباً تعليمية.", 17, Color.WHITE);
-        addText("🔒 الشراء غير مفعّل بعد. نحتاج أولاً إلى إنشاء منتج الاشتراك في Google Play Console وربط Google Play Billing والتحقق من عملية الشراء قبل فتح الدروس المدفوعة.", 15, Color.rgb(255, 225, 160));
-        addButton("العودة إلى الأكاديمية", this::showKidsAcademy);
+        addText("هذا المسار مخصص للمشتركين، ويشمل الحروف والكتابة والتلاوة والألعاب التعليمية المتدرجة.", 17, Color.WHITE);
+        addText("الاشتراك الشهري: ٣٠٬٠٠٠ دينار عراقي", 17, Color.rgb(255, 225, 160));
+        addText("🔒 الدفع والفتح التلقائي للدروس غير مفعّلين بعد. سيتم ذلك بعد إعداد Google Play Console وربط Google Play Billing والتحقق من الشراء.", 15, Color.rgb(255, 225, 160));
+        addButton("العودة إلى أكاديمية الأطفال", this::showKidsAcademy);
+    }
+
+    void showAdultsAcademy() {
+        setup();
+        addText("🎓 أكاديمية نور بلس للكبار", 28, Color.rgb(242, 211, 145));
+        addText("مسارات منظمة لتحسين التلاوة وبناء ورد قرآني ثابت", 16, Color.WHITE);
+        addText("الاشتراك الشهري: ٣٠٬٠٠٠ دينار عراقي", 16, Color.rgb(255, 225, 160));
+        addText("🌿 مسارات التعلم", 21, Color.rgb(242, 211, 145));
+        addAdultCard("🗣️ تصحيح التلاوة ومخارج الحروف", "تدريبات للاستماع والنطق الصحيح ومراجعة مخارج الحروف", this::showAdultsPremiumInfo);
+        addAdultCard("📘 أحكام التجويد", "أحكام النون والميم والمدود والوقف والابتداء", this::showAdultsPremiumInfo);
+        addAdultCard("📖 الحفظ والمراجعة", "خطط للحفظ والتثبيت ومتابعة الإنجاز", this::showAdultsPremiumInfo);
+        addAdultCard("📝 اختبارات وشهادات", "اختبارات مستوى ومراجعة وشهادات إتمام", this::showAdultsPremiumInfo);
+        addText("يمكنك الاستفادة من قراءة القرآن والاستماع والأذكار المتاحة مجاناً في التطبيق.", 14, Color.LTGRAY);
+        addButton("العودة إلى قسم الكبار", this::showAdultSection);
+    }
+
+    void showAdultsPremiumInfo() {
+        setup();
+        addText("⭐ مسار نور بلس للكبار", 26, Color.rgb(242, 211, 145));
+        addText("يتضمن هذا المسار دروساً متدرجة في تصحيح التلاوة ومخارج الحروف وأحكام التجويد والحفظ والمراجعة والاختبارات.", 17, Color.WHITE);
+        addText("السعر المعتمد: ٣٠٬٠٠٠ دينار عراقي شهرياً", 17, Color.rgb(255, 225, 160));
+        addText("🔒 الاشتراك والدفع الفعلي لم يُفعّلا بعد. يلزم إعداد حساب Google Play Console وربط Google Play Billing والتحقق الآمن من الشراء قبل فتح المحتوى.", 15, Color.rgb(255, 225, 160));
+        addButton("العودة إلى أكاديمية الكبار", this::showAdultsAcademy);
     }
 
     void showKidsSection() {
@@ -1538,6 +1563,7 @@ public class MainActivity extends Activity {
         addAdultCard("✨ أسماء الله الحسنى", "تأمل في مجموعة من أسماء الله الحسنى", this::showNamesOfAllah);
         addAdultCard("🤲 أدعية من القرآن", "أدعية قرآنية مع مواضعها", this::showQuranDuas);
         addAdultCard("🗓️ خطة عبادتي اليومية", "ضع علامة على ما أنجزته اليوم", this::showDailyPlan);
+        addAdultCard("🎓 أكاديمية نور بلس للكبار", "تعلم التلاوة والتجويد والحفظ والمراجعة", this::showAdultsAcademy);
         addText("اجعل لك وقتاً ثابتاً للقرآن والذكر والعمل الصالح", 14,
             Color.rgb(238, 204, 125));
         addButton("العودة للرئيسية", this::home);
