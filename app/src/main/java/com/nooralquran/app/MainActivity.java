@@ -1064,27 +1064,60 @@ public class MainActivity extends Activity {
         addButton("العودة للرئيسية", this::home);
     }
 
+    void openMafatihPage(int page, String title) {
+        try {
+            String url = "https://books.rafed.net/view/1731/page/" + page;
+            android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_VIEW,
+                android.net.Uri.parse(url));
+            startActivity(intent);
+        } catch (Exception e) {
+            message("تعذر فتح نص " + title + ". تحقق من اتصال الإنترنت.");
+        }
+    }
+
     void showWeeklyDuas() {
         setup();
-        addText("أدعية أيام الأسبوع", 26, Color.rgb(242,211,145));
-        String[] days = {"السبت","الأحد","الإثنين","الثلاثاء","الأربعاء","الخميس","الجمعة"};
-        for (String day : days) addAdultCard("دعاء يوم " + day, "يفتح نص الدعاء الموثق لهذا اليوم", () -> message("نص دعاء يوم " + day + " يحتاج إدراج مصدره المعتمد"));
+        addText("🤲 أدعية أيام الأسبوع", 26, Color.rgb(242,211,145));
+        addText("النصوص بحسب مفاتيح الجنان، نقلاً عن ملحقات الصحيفة السجادية. افتح اليوم لقراءة الدعاء كاملاً.", 14, Color.WHITE);
+        String[] days = {"الأحد","الإثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"};
+        int[] pages = {72,73,74,75,76,77,78};
+        for (int i = 0; i < days.length; i++) {
+            final int page = pages[i];
+            final String day = days[i];
+            addAdultCard("دعاء يوم " + day, "مفاتيح الجنان • الصفحة " + page, () -> openMafatihPage(page, "دعاء يوم " + day));
+        }
         addButton("رجوع", this::showWeeklyDuasVisits);
     }
 
     void showWeeklyVisits() {
         setup();
-        addText("زيارات أيام الأسبوع", 26, Color.rgb(242,211,145));
-        String[] days = {"السبت","الأحد","الإثنين","الثلاثاء","الأربعاء","الخميس","الجمعة"};
-        for (String day : days) addAdultCard("زيارة يوم " + day, "زيارة اليوم من الزيارات المأثورة", () -> message("نص زيارة يوم " + day + " يحتاج إدراج مصدره المعتمد"));
+        addText("🕌 زيارات أيام الأسبوع", 26, Color.rgb(242,211,145));
+        addText("الزيارات اليومية كما رتبها الشيخ عباس القمي في مفاتيح الجنان.", 14, Color.WHITE);
+        String[] days = {"السبت — زيارة النبي ﷺ","الأحد — زيارة أمير المؤمنين والزهراء","الإثنين — زيارة الحسن والحسين","الثلاثاء — زيارة السجاد والباقر والصادق","الأربعاء — زيارة الكاظم والرضا والجواد والهادي","الخميس — زيارة الإمام العسكري","الجمعة — زيارة صاحب الزمان"};
+        int[] pages = {114,116,118,119,120,121,121};
+        for (int i = 0; i < days.length; i++) {
+            final int page = pages[i];
+            final String day = days[i];
+            addAdultCard(day, "مفاتيح الجنان • الصفحة " + page, () -> openMafatihPage(page, day));
+        }
         addButton("رجوع", this::showWeeklyDuasVisits);
     }
 
     void showWeeklyMunasajat() {
         setup();
-        addText("✨ مناجاة أيام الأسبوع", 26, Color.rgb(242,211,145));
-        String[] days = {"السبت","الأحد","الإثنين","الثلاثاء","الأربعاء","الخميس","الجمعة"};
-        for (String day : days) addAdultCard("مناجاة يوم " + day, "موضع النص الموثق لمناجاة هذا اليوم", () -> showDailyTextNotice("مناجاة", day));
+        addText("✨ المناجاة الخمس عشرة", 26, Color.rgb(242,211,145));
+        addText("هذه مجموعة مناجاة واردة في مفاتيح الجنان، وليست مناجاة منفصلة لكل يوم من أيام الأسبوع.", 14, Color.WHITE);
+        String[] names = {
+            "مناجاة التائبين","مناجاة الشاكين","مناجاة الخائفين","مناجاة الراجين","مناجاة الراغبين",
+            "مناجاة الشاكرين","مناجاة المطيعين لله","مناجاة المريدين","مناجاة المحبين","مناجاة المتوسلين",
+            "مناجاة المفتقرين","مناجاة العارفين","مناجاة الذاكرين","مناجاة المعتصمين","مناجاة الزاهدين"
+        };
+        int[] pages = {208,209,210,212,213,214,215,216,217,219,219,221,222,223,224};
+        for (int i = 0; i < names.length; i++) {
+            final int page = pages[i];
+            final String name = names[i];
+            addAdultCard("🌿 " + names[i], "مفاتيح الجنان • الصفحة " + page, () -> openMafatihPage(page, name));
+        }
         addButton("رجوع", this::showWeeklyDuasVisits);
     }
 
