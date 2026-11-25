@@ -391,22 +391,28 @@ public class MainActivity extends Activity {
 
     void showTodayDevotions() {
         String day = todayArabicName();
+        int dayIndex = Calendar.getInstance().get(Calendar.DAY_OF_WEEK) - 1;
+        int[] duaPages = {72,73,74,75,76,77,78};
+        int[] visitPages = {106,108,109,110,111,112,105};
+        String[] munajatNames = {"مناجاة التائبين","مناجاة الشاكين","مناجاة الخائفين","مناجاة الراجين","مناجاة الراغبين","مناجاة الشاكرين","مناجاة المطيعين لله"};
+        int[] munajatPages = {178,179,180,181,182,183,184};
         setup();
         addText("🌿 ورد يوم " + day, 28, Color.rgb(242,211,145));
-        addText("محتوى اليوم في مكان واحد", 16, Color.WHITE);
-        addAdultCard("🤲 دعاء يوم " + day, "قسم دعاء اليوم", () -> showDailyTextNotice("دعاء", day));
-        addAdultCard("🕌 زيارة يوم " + day, "قسم زيارة اليوم", () -> showDailyTextNotice("زيارة", day));
-        addAdultCard("✨ مناجاة يوم " + day, "قسم مناجاة اليوم", () -> showDailyTextNotice("مناجاة", day));
-        addText("ستظهر النصوص الكاملة بعد اعتماد مصدرها الموثوق، حتى لا ننسب نصاً غير صحيح إلى أهل البيت عليهم السلام.", 13, Color.rgb(238,204,125));
+        addText("وردك اليومي من مفاتيح الجنان", 16, Color.WHITE);
+        addText("خصص بضع دقائق للقراءة والدعاء والزيارة.", 14, Color.rgb(238,204,125));
+        addAdultCard("🤲 دعاء يوم " + day, "دعاء اليوم • مفاتيح الجنان", () -> openMafatihPage(duaPages[dayIndex], "دعاء يوم " + day));
+        addAdultCard("🕌 زيارة يوم " + day, "زيارة اليوم • مفاتيح الجنان", () -> openMafatihPage(visitPages[dayIndex], "زيارة يوم " + day));
+        final String munajatName = munajatNames[dayIndex];
+        addAdultCard("✨ " + munajatName, "مناجاة مختارة لهذا اليوم", () -> openMafatihPage(munajatPages[dayIndex], munajatName));
+        addAdultCard("📚 جميع أدعية الأسبوع", "تصفح أدعية الأيام السبعة", this::showWeeklyDuas);
+        addAdultCard("🌹 جميع الزيارات", "تصفح زيارات أيام الأسبوع", this::showWeeklyVisits);
+        addAdultCard("✨ المناجاة الخمس عشرة", "تصفح مجموعة المناجاة كاملة", this::showWeeklyMunasajat);
+        addText("المناجاة المختارة هنا ترتيب يومي مقترح للتصفح، وليست نسبة لتخصيص شرعي لكل يوم.", 12, Color.rgb(238,204,125));
         addButton("العودة للرئيسية", this::home);
     }
 
     void showDailyTextNotice(String type, String day) {
-        setup();
-        addText(type + " يوم " + day, 25, Color.rgb(242,211,145));
-        addText("هذا الموضع مخصص للنص الكامل الموثق لهذا اليوم.", 17, Color.WHITE);
-        addText("لم أضع نصاً منسوباً دون مصدر معتمد تجنباً للخطأ في النصوص الدينية.", 14, Color.rgb(238,204,125));
-        addButton("رجوع إلى ورد اليوم", this::showTodayDevotions);
+        showTodayDevotions();
     }
 
     void addText(String value, int size, int color) {
