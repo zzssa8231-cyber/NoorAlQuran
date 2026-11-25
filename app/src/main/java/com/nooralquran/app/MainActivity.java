@@ -14,6 +14,12 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import android.os.Handler;
+import org.json.JSONObject;
 
 public class MainActivity extends Activity {
 
@@ -33,6 +39,26 @@ public class MainActivity extends Activity {
     String[] reciterFolders = {
         "Alafasy_128kbps", "Husary_128kbps", "MaherAlMuaiqly128kbps",
         "Abdul_Basit_Murattal_64kbps", "Minshawy_Murattal_128kbps"
+    };
+
+    final Handler clockHandler = new Handler();
+    Runnable clockRunnable;
+    TextView homeClock;
+    TextView homeDate;
+    TextView prayerStatus;
+    TextView hijriDateView;
+    String selectedGovernorate = "بابل";
+    String[] governorateNames = {
+        "بابل","بغداد","البصرة","النجف","كربلاء","واسط","القادسية",
+        "المثنى","ذي قار","ميسان","ديالى","كركوك","صلاح الدين",
+        "نينوى","الأنبار","أربيل","السليمانية","دهوك","حلبجة"
+    };
+    double[][] governorateCoordinates = {
+        {32.47,44.42},{33.315,44.366},{30.508,47.78},{32.00,44.33},
+        {32.616,44.024},{32.50,45.82},{31.99,44.92},{31.31,45.28},
+        {31.05,46.26},{31.84,47.14},{33.75,44.64},{35.47,44.39},
+        {34.61,43.68},{36.34,43.13},{33.42,43.30},{36.19,44.01},
+        {35.56,45.44},{36.86,42.99},{35.18,45.98}
     };
 
     String[] surahs = {
@@ -204,18 +230,301 @@ public class MainActivity extends Activity {
         button.setOnClickListener(v -> action.run());
     }
 
+    int dp(float value) {
+        return (int)(value * getResources().getDisplayMetrics().density + 0.5f);
+    }
+
+    GradientDrawable premiumBackground(int fill, int stroke, int radius) {
+        GradientDrawable bg = new GradientDrawable();
+        bg.setColor(fill);
+        bg.setCornerRadius(dp(radius));
+        bg.setStroke(dp(2), stroke);
+        return bg;
+    }
+
+    void addHomeTile(android.widget.GridLayout grid, String icon, String title,
+                     String subtitle, Runnable action, int tint) {
+        LinearLayout tile = new LinearLayout(this);
+        tile.setOrientation(LinearLayout.VERTICAL);
+        tile.setGravity(Gravity.CENTER);
+        tile.setPadding(dp(8), dp(12), dp(8), dp(12));
+        tile.setBackground(premiumBackground(tint, Color.rgb(205,170,94), 20));
+        if (android.os.Build.VERSION.SDK_INT >= 21) tile.setElevation(dp(4));
+
+        TextView symbol = new TextView(this);
+        symbol.setText(icon);
+        symbol.setTextSize(29);
+        symbol.setGravity(Gravity.CENTER);
+        tile.addView(symbol);
+
+        TextView heading = new TextView(this);
+        heading.setText(title);
+        heading.setTextColor(Color.rgb(255,224,157));
+        heading.setTextSize(16);
+        heading.setTypeface(null, android.graphics.Typeface.BOLD);
+        heading.setGravity(Gravity.CENTER);
+        heading.setPadding(2, dp(6), 2, 2);
+        tile.addView(heading);
+
+        TextView detail = new TextView(this);
+        detail.setText(subtitle);
+        detail.setTextColor(Color.rgb(241,235,216));
+        detail.setTextSize(11);
+        detail.setGravity(Gravity.CENTER);
+        detail.setPadding(2, dp(4), 2, 0);
+        tile.addView(detail);
+
+        android.widget.GridLayout.LayoutParams p = new android.widget.GridLayout.LayoutParams();
+        p.width = 0;
+        p.height = dp(142);
+        p.columnSpec = android.widget.GridLayout.spec(android.widget.GridLayout.UNDEFINED, 1f);
+        p.setMargins(dp(5), dp(5), dp(5), dp(5));
+        grid.addView(tile, p);
+        tile.setOnClickListener(v -> action.run());
+    }
+
+    void startHomeClock() {
+        if (clockRunnable != null) clockHandler.removeCallbacks(clockRunnable);
+        clockRunnable = new Runnable() {
+            @Override public void run() {
+                String now = new SimpleDateFormat("hh:mm:ss a", new Locale("ar")).format(new Date());
+                if (homeClock != null) homeClock.setText("الوقت الآن  " + now);
+                if (homeDate != null) {
+                    String date = new SimpleDateFormat("EEEE، dd MMMM yyyy", new Locale("ar")).format(new Date());
+                    homeDate.setText("التاريخ الميلادي: " + date);
+                }
+                clockHandler.postDelayed(this, 1000);
+            }
+        };
+        clockHandler.post(clockRunnable);
+    }
+
     void home() {
         setup();
-        addText("نور القرآن", 34, Color.WHITE);
-        addText("نورٌ يضيء حياتك", 18, Color.YELLOW);
+        addText("۞ نُورُ القُرآن ۞", 32, Color.rgb(242,211,145));
+        addText("رفيقك اليومي للقرآن والذكر والطمأنينة", 15, Color.WHITE);
 
-        addButton("📖 القرآن الكريم", this::showSurahs);
-        addButton("🎧 الاستماع إلى القرآن", this::audioScreen);
-        addButton("👨‍👩‍👧 قسم الكبار", this::showAdultSection);
-        addButton("🧒 عالم الأطفال", this::showKidsSection);
-        addButton("📿 المسبحة الإلكترونية", this::tasbeeh);
-        addButton("💰 حاسبة الزكاة", this::zakat);
-        addButton("❓ المسابقات والأسئلة", () -> message("المسابقات قيد التجهيز"));
+        LinearLayout datePanel = new LinearLayout(this);
+        datePanel.setOrientation(LinearLayout.VERTICAL);
+        datePanel.setGravity(Gravity.CENTER);
+        datePanel.setPadding(dp(12), dp(12), dp(12), dp(12));
+        datePanel.setBackground(premiumBackground(Color.rgb(20,63,56), Color.rgb(205,170,94), 18));
+        homeClock = new TextView(this);
+        homeClock.setTextColor(Color.rgb(255,224,157));
+        homeClock.setTextSize(23);
+        homeClock.setGravity(Gravity.CENTER);
+        datePanel.addView(homeClock);
+        homeDate = new TextView(this);
+        homeDate.setTextColor(Color.WHITE);
+        homeDate.setTextSize(14);
+        homeDate.setGravity(Gravity.CENTER);
+        homeDate.setPadding(4, dp(6), 4, dp(4));
+        datePanel.addView(homeDate);
+        hijriDateView = new TextView(this);
+        hijriDateView.setText("التاريخ الهجري: جارٍ التحميل...");
+        hijriDateView.setTextColor(Color.rgb(242,211,145));
+        hijriDateView.setTextSize(15);
+        hijriDateView.setGravity(Gravity.CENTER);
+        datePanel.addView(hijriDateView);
+        layout.addView(datePanel, new LinearLayout.LayoutParams(-1, -2));
+        startHomeClock();
+
+        addText("اختر وجهتك", 20, Color.rgb(242,211,145));
+        android.widget.GridLayout grid = new android.widget.GridLayout(this);
+        grid.setColumnCount(2);
+        grid.setPadding(0, dp(4), 0, dp(4));
+        layout.addView(grid, new LinearLayout.LayoutParams(-1, -2));
+        addHomeTile(grid, "📖", "القرآن الكريم", "قراءة السور", this::showSurahs, Color.rgb(24,76,64));
+        addHomeTile(grid, "🎧", "التلاوة والاستماع", "خمسة قراء", this::audioScreen, Color.rgb(27,72,78));
+        addHomeTile(grid, "🕌", "مواقيت الصلاة", "كل محافظات العراق", this::showPrayerTimes, Color.rgb(31,70,58));
+        addHomeTile(grid, "🤲", "الأدعية والزيارات", "أيام الأسبوع وأهل البيت", this::showWeeklyDuasVisits, Color.rgb(56,62,78));
+        addHomeTile(grid, "👨‍👩‍👧", "قسم الكبار", "مزايا العبادة اليومية", this::showAdultSection, Color.rgb(53,67,59));
+        addHomeTile(grid, "🧒", "عالم الأطفال", "تعلم ومرح", this::showKidsSection, Color.rgb(58,69,75));
+        addHomeTile(grid, "📿", "المسبحة", "تسبيح واستغفار", this::tasbeeh, Color.rgb(53,62,76));
+        addHomeTile(grid, "💰", "حاسبة الزكاة", "احسب زكاتك", this::zakat, Color.rgb(62,65,52));
+        addHomeTile(grid, "✨", "أسماء الله الحسنى", "تأمل وتدبر", this::showNamesOfAllah, Color.rgb(46,70,68));
+        addHomeTile(grid, "🏆", "المسابقات", "أسئلة قرآنية", () -> message("المسابقات قيد التجهيز"), Color.rgb(63,60,76));
+
+        LinearLayout prayerPreview = new LinearLayout(this);
+        prayerPreview.setOrientation(LinearLayout.VERTICAL);
+        prayerPreview.setPadding(dp(12), dp(10), dp(12), dp(10));
+        prayerPreview.setBackground(premiumBackground(Color.rgb(20,63,56), Color.rgb(205,170,94), 18));
+        TextView place = new TextView(this);
+        place.setText("مواقيت الصلاة - " + selectedGovernorate);
+        place.setTextColor(Color.rgb(255,224,157));
+        place.setTextSize(17);
+        place.setGravity(Gravity.CENTER);
+        prayerPreview.addView(place);
+        prayerStatus = new TextView(this);
+        prayerStatus.setText("اضغط على مواقيت الصلاة لعرض الجدول اليومي");
+        prayerStatus.setTextColor(Color.WHITE);
+        prayerStatus.setGravity(Gravity.CENTER);
+        prayerStatus.setPadding(4, dp(6), 4, dp(4));
+        prayerPreview.addView(prayerStatus);
+        layout.addView(prayerPreview, new LinearLayout.LayoutParams(-1, -2));
+        addButton("عرض جدول مواقيت الصلاة", this::showPrayerTimes);
+        addText("اللهم اجعل القرآن ربيع قلوبنا ونور صدورنا", 15, Color.rgb(242,211,145));
+    }
+
+    void showPrayerTimes() {
+        setup();
+        addText("۞ مواقيت الصلاة في العراق ۞", 25, Color.rgb(242,211,145));
+        addText("اختر المحافظة لعرض مواقيت اليوم", 15, Color.WHITE);
+
+        final TextView cityLabel = new TextView(this);
+        cityLabel.setText("المحافظة الحالية: " + selectedGovernorate);
+        cityLabel.setTextColor(Color.rgb(255,224,157));
+        cityLabel.setTextSize(17);
+        cityLabel.setGravity(Gravity.CENTER);
+        layout.addView(cityLabel);
+
+        Spinner governoratePicker = styledSpinner(governorateNames, Math.max(0, java.util.Arrays.asList(governorateNames).indexOf(selectedGovernorate)));
+        layout.addView(governoratePicker, new LinearLayout.LayoutParams(-1, -2));
+
+        TextView gregorian = new TextView(this);
+        gregorian.setTextColor(Color.WHITE);
+        gregorian.setTextSize(15);
+        gregorian.setGravity(Gravity.CENTER);
+        gregorian.setPadding(4, dp(8), 4, dp(4));
+        gregorian.setText("الميلادي: " + new SimpleDateFormat("dd-MM-yyyy", Locale.US).format(new Date()));
+        layout.addView(gregorian);
+
+        TextView hijri = new TextView(this);
+        hijri.setText("الهجري: جارٍ جلب التاريخ...");
+        hijri.setTextColor(Color.rgb(242,211,145));
+        hijri.setTextSize(15);
+        hijri.setGravity(Gravity.CENTER);
+        layout.addView(hijri);
+
+        TableLayout table = new TableLayout(this);
+        table.setStretchAllColumns(true);
+        table.setPadding(0, dp(12), 0, dp(12));
+        String[] prayerNames = {"الفجر","الشروق","الظهر","العصر","المغرب","العشاء"};
+        TextView[] timeCells = new TextView[6];
+        for (int i = 0; i < prayerNames.length; i++) {
+            TableRow row = new TableRow(this);
+            row.setPadding(dp(4), dp(9), dp(4), dp(9));
+            row.setBackground(premiumBackground(i % 2 == 0 ? Color.rgb(20,63,56) : Color.rgb(27,76,67), Color.rgb(190,158,87), 12));
+            TextView name = new TextView(this);
+            name.setText(prayerNames[i]);
+            name.setTextColor(Color.rgb(242,211,145));
+            name.setTextSize(16);
+            name.setGravity(Gravity.CENTER);
+            TextView time = new TextView(this);
+            time.setText("--:--");
+            time.setTextColor(Color.WHITE);
+            time.setTextSize(17);
+            time.setGravity(Gravity.CENTER);
+            timeCells[i] = time;
+            row.addView(name, new TableRow.LayoutParams(0, -2, 1));
+            row.addView(time, new TableRow.LayoutParams(0, -2, 1));
+            TableLayout.LayoutParams rp = new TableLayout.LayoutParams(-1, -2);
+            rp.setMargins(0, dp(4), 0, dp(4));
+            table.addView(row, rp);
+        }
+        layout.addView(table, new LinearLayout.LayoutParams(-1, -2));
+        TextView note = new TextView(this);
+        note.setText("المواقيت محسوبة آلياً وقد تختلف دقائق عن تقويم الوقف أو المسجد المحلي.");
+        note.setTextColor(Color.LTGRAY);
+        note.setTextSize(12);
+        note.setGravity(Gravity.CENTER);
+        layout.addView(note);
+        addButton("تحديث المواقيت", () -> fetchPrayerTimes(governoratePicker.getSelectedItemPosition(), timeCells, hijri, cityLabel));
+        governoratePicker.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            public void onItemSelected(AdapterView<?> p, View v, int position, long id) {
+                selectedGovernorate = governorateNames[position];
+                cityLabel.setText("المحافظة الحالية: " + selectedGovernorate);
+                fetchPrayerTimes(position, timeCells, hijri, cityLabel);
+            }
+            public void onNothingSelected(AdapterView<?> p) {}
+        });
+        addButton("العودة للرئيسية", this::home);
+    }
+
+    void fetchPrayerTimes(int index, TextView[] cells, TextView hijri, TextView cityLabel) {
+        if (index < 0 || index >= governorateNames.length) index = 0;
+        final int chosen = index;
+        selectedGovernorate = governorateNames[chosen];
+        cityLabel.setText("المحافظة الحالية: " + selectedGovernorate + " - جارٍ تحميل المواقيت...");
+        new android.os.AsyncTask<Void, Void, JSONObject>() {
+            String error = null;
+            protected JSONObject doInBackground(Void... unused) {
+                HttpURLConnection connection = null;
+                try {
+                    String date = new SimpleDateFormat("dd-MM-yyyy", Locale.US).format(new Date());
+                    double lat = governorateCoordinates[chosen][0];
+                    double lon = governorateCoordinates[chosen][1];
+                    URL url = new URL("https://api.aladhan.com/v1/timings/" + date
+                        + "?latitude=" + lat + "&longitude=" + lon + "&method=0");
+                    connection = (HttpURLConnection) url.openConnection();
+                    connection.setRequestMethod("GET");
+                    connection.setConnectTimeout(12000);
+                    connection.setReadTimeout(12000);
+                    connection.connect();
+                    if (connection.getResponseCode() != 200) throw new Exception("HTTP " + connection.getResponseCode());
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream(), "UTF-8"));
+                    StringBuilder body = new StringBuilder();
+                    String line;
+                    while ((line = reader.readLine()) != null) body.append(line);
+                    reader.close();
+                    return new JSONObject(body.toString());
+                } catch (Exception e) {
+                    error = e.getMessage();
+                    return null;
+                } finally {
+                    if (connection != null) connection.disconnect();
+                }
+            }
+            protected void onPostExecute(JSONObject response) {
+                if (response == null) {
+                    cityLabel.setText("تعذر تحميل المواقيت. تحقق من الإنترنت ثم اضغط تحديث.");
+                    return;
+                }
+                try {
+                    JSONObject data = response.getJSONObject("data");
+                    JSONObject timings = data.getJSONObject("timings");
+                    String[] keys = {"Fajr","Sunrise","Dhuhr","Asr","Maghrib","Isha"};
+                    for (int i = 0; i < keys.length; i++) {
+                        String value = timings.getString(keys[i]).split(" ")[0];
+                        cells[i].setText(toArabicDigits(value));
+                    }
+                    JSONObject h = data.getJSONObject("date").getJSONObject("hijri");
+                    String hDate = h.getString("day") + " " + h.getJSONObject("month").getString("ar") + " " + h.getString("year") + " هـ";
+                    hijri.setText("التاريخ الهجري: " + toArabicDigits(hDate));
+                    cityLabel.setText("المحافظة الحالية: " + selectedGovernorate);
+                    if (hijriDateView != null) hijriDateView.setText("التاريخ الهجري: " + toArabicDigits(hDate));
+                    if (prayerStatus != null) prayerStatus.setText("تم تحديث جدول الصلاة للمحافظة: " + selectedGovernorate);
+                } catch (Exception e) {
+                    cityLabel.setText("وصلت بيانات غير مكتملة للمواقيت.");
+                }
+            }
+        }.executeOnExecutor(android.os.AsyncTask.THREAD_POOL_EXECUTOR);
+    }
+
+    void showWeeklyDuasVisits() {
+        setup();
+        addText("الأدعية والزيارات", 27, Color.rgb(242,211,145));
+        addAdultCard("🤲 أدعية أيام الأسبوع", "أدعية منسوبة لأيام الأسبوع", this::showWeeklyDuas);
+        addAdultCard("🕌 زيارات أيام الأسبوع", "زيارة مخصصة لكل يوم", this::showWeeklyVisits);
+        addAdultCard("🌹 أدعية أهل البيت عليهم السلام", "مجموعة أدعية مأثورة", () -> message("سيتم إدراج النصوص الموثقة في قسم الأدعية"));
+        addAdultCard("✨ زيارات أهل البيت عليهم السلام", "الزيارات المأثورة", () -> message("سيتم إدراج نصوص الزيارات الموثقة"));
+        addButton("العودة للرئيسية", this::home);
+    }
+
+    void showWeeklyDuas() {
+        setup();
+        addText("أدعية أيام الأسبوع", 26, Color.rgb(242,211,145));
+        String[] days = {"السبت","الأحد","الإثنين","الثلاثاء","الأربعاء","الخميس","الجمعة"};
+        for (String day : days) addAdultCard("دعاء يوم " + day, "يفتح نص الدعاء الموثق لهذا اليوم", () -> message("نص دعاء يوم " + day + " يحتاج إدراج مصدره المعتمد"));
+        addButton("رجوع", this::showWeeklyDuasVisits);
+    }
+
+    void showWeeklyVisits() {
+        setup();
+        addText("زيارات أيام الأسبوع", 26, Color.rgb(242,211,145));
+        String[] days = {"السبت","الأحد","الإثنين","الثلاثاء","الأربعاء","الخميس","الجمعة"};
+        for (String day : days) addAdultCard("زيارة يوم " + day, "زيارة اليوم من الزيارات المأثورة", () -> message("نص زيارة يوم " + day + " يحتاج إدراج مصدره المعتمد"));
+        addButton("رجوع", this::showWeeklyDuasVisits);
     }
 
     void addAdultCardHorizontal(LinearLayout row, String title, String description, Runnable action) {
