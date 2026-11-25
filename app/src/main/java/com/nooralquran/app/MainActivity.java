@@ -21,8 +21,19 @@ import java.util.Date;
 import java.util.Calendar;
 import android.os.Handler;
 import org.json.JSONObject;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 public class MainActivity extends Activity {
+    static final String FIREBASE_DATABASE_URL = "https://nooralquran-3b05a-default-rtdb.asia-southeast1.firebasedatabase.app/";
 
     LinearLayout layout;
     List<String[]> verses = new ArrayList<>();
@@ -1954,6 +1965,7 @@ public class MainActivity extends Activity {
         layout.addView(scoreCard, scoreParams);
 
         addAdultCard("📖 المسابقة القرآنية والإسلامية", "١٠ أسئلة اختيار من متعدد • ١٠ نقاط لكل إجابة صحيحة", () -> startQuiz());
+        addAdultCard("🏆 لوحة المتصدرين", "شاهد أفضل المشاركين ونقاطهم عبر الإنترنت", this::showLeaderboard);
         addAdultCard("🎁 كيف تربح؟", "اجمع النقاط بالإجابة الصحيحة، ثم تابع رصيدك داخل التطبيق.", () ->
             message("كل إجابة صحيحة تمنحك ١٠ نقاط. النقاط رمزية داخل التطبيق وليست أموالاً نقدية."));
         addText("مستوياتك: مبتدئ ٠–٤٩ • مجتهد ٥٠–١٤٩ • متميز ١٥٠–٢٩٩ • نابغة ٣٠٠ نقطة فأكثر", 13, Color.rgb(242, 211, 145));
@@ -2041,6 +2053,7 @@ public class MainActivity extends Activity {
         int totalPoints = prefs.getInt("points", 0) + quizScore;
         int played = prefs.getInt("played", 0) + 1;
         prefs.edit().putInt("points", totalPoints).putInt("played", played).apply();
+        submitLeaderboardScore(totalPoints);
         setup();
         layout.setPadding(dp(14), dp(16), dp(14), dp(22));
         addText("🎉 أحسنت! انتهت المسابقة", 25, Color.rgb(242, 211, 145));
@@ -2048,9 +2061,106 @@ public class MainActivity extends Activity {
         addText("رصيدك الكلي: " + toArabicDigits(String.valueOf(totalPoints)) + " نقطة", 20, Color.rgb(255, 224, 157));
         String level = totalPoints >= 300 ? "نابغة" : totalPoints >= 150 ? "متميز" : totalPoints >= 50 ? "مجتهد" : "مبتدئ";
         addAdultCard("🏅 مستواك: " + level, "واصل التعلم واجمع المزيد من النقاط", () -> showCompetitions());
+        addButton("🏆 عرض لوحة المتصدرين", this::showLeaderboard);
         addButton("إعادة المسابقة", this::startQuiz);
         addButton("العودة للمسابقات", this::showCompetitions);
         addButton("العودة للرئيسية", this::home);
+    }
+
+    void ensureFirebaseLogin(Runnable onReady) {
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        if (auth.getCurrentUser() != null) {
+            onReady.run();
+            return;
+        }
+        auth.signInAnonymously().addOnCompleteListener(this, task -> {
+            if (task.isSuccessful() && auth.getCurrentUser() != null) {
+                onReady.run();
+            } else {
+                message("تعذر تسجيل الدخول إلى لوحة المتصدرين. تحقق من الإنترنت وإعدادات Firebase.");
+            }
+        });
+    }
+
+    void submitLeaderboardScore(int localTotalPoints) {
+        ensureFirebaseLogin(() -> {
+            String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+            DatabaseReference playerRef = FirebaseDatabase.getInstance(FIREBASE_DATABASE_URL)
+                .getReference("leaderboard").child(uid);
+            playerRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override public void onDataChange(DataSnapshot snapshot) {
+                    long oldScore = 0;
+                    if (snapshot.child("score").getValue() != null) {
+                        try { oldScore = snapshot.child("score").getValue(Long.class); }
+                        catch (Exception ignored) {}
+                    }
+                    long bestScore = Math.max(oldScore, (long) localTotalPoints);
+                    Map<String, Object> record = new HashMap<>();
+                    record.put("score", bestScore);
+                    record.put("displayName", "مشارك-" + uid.substring(0, Math.min(5, uid.length())));
+                    record.put("updatedAt", System.currentTimeMillis());
+                    playerRef.setValue(record).addOnCompleteListener(task -> {
+                        if (!task.isSuccessful()) {
+                            message("تعذر حفظ نقاطك في لوحة المتصدرين. حاول لاحقاً.");
+                        }
+                    });
+                }
+                @Override public void onCancelled(DatabaseError error) {
+                    message("تعذر قراءة نقاطك الحالية: " + error.getMessage());
+                }
+            });
+        });
+    }
+
+    void showLeaderboard() {
+        setup();
+        layout.setPadding(dp(14), dp(14), dp(14), dp(22));
+        addText("🏆 لوحة متصدري نور القرآن", 25, Color.rgb(242, 211, 145));
+        addText("أفضل ٢٠ مشاركاً حسب النقاط المسجلة", 14, Color.WHITE);
+        TextView status = new TextView(this);
+        status.setText("جارٍ تحميل لوحة المتصدرين...");
+        status.setTextColor(Color.WHITE);
+        status.setTextSize(15);
+        status.setGravity(Gravity.CENTER);
+        status.setPadding(dp(8), dp(18), dp(8), dp(18));
+        layout.addView(status);
+        final LinearLayout targetLayout = layout;
+
+        ensureFirebaseLogin(() -> {
+            Query query = FirebaseDatabase.getInstance(FIREBASE_DATABASE_URL)
+                .getReference("leaderboard").orderByChild("score").limitToLast(20);
+            query.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override public void onDataChange(DataSnapshot snapshot) {
+                    if (layout != targetLayout) return;
+                    status.setText("");
+                    ArrayList<DataSnapshot> players = new ArrayList<>();
+                    for (DataSnapshot child : snapshot.getChildren()) players.add(child);
+                    Collections.reverse(players);
+                    if (players.isEmpty()) {
+                        status.setText("لا توجد نتائج بعد. أكمل مسابقة لتظهر هنا.");
+                    } else {
+                        int rank = 1;
+                        for (DataSnapshot player : players) {
+                            String name = player.child("displayName").getValue(String.class);
+                            Long score = player.child("score").getValue(Long.class);
+                            if (name == null || name.trim().isEmpty()) name = "مشارك";
+                            if (score == null) score = 0L;
+                            addAdultCard("⭐ " + rank + " ـ " + name,
+                                toArabicDigits(String.valueOf(score)) + " نقطة", () -> {});
+                            rank++;
+                        }
+                    }
+                    addButton("🔄 تحديث القائمة", MainActivity.this::showLeaderboard);
+                    addButton("العودة للمسابقات", MainActivity.this::showCompetitions);
+                }
+                @Override public void onCancelled(DatabaseError error) {
+                    if (layout != targetLayout) return;
+                    status.setText("تعذر تحميل القائمة: " + error.getMessage());
+                    addButton("إعادة المحاولة", MainActivity.this::showLeaderboard);
+                    addButton("العودة للمسابقات", MainActivity.this::showCompetitions);
+                }
+            });
+        });
     }
 
     void zakat() {
