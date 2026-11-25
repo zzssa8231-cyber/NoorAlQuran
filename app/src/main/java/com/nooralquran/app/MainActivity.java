@@ -27,6 +27,7 @@ public class MainActivity extends Activity {
     LinearLayout layout;
     List<String[]> verses = new ArrayList<>();
     MediaPlayer audioPlayer;
+    MediaPlayer adhanPlayer;
     int audioSurah = 1;
     int audioAyah = 1;
     int audioAyahCount = 0;
@@ -280,6 +281,11 @@ public class MainActivity extends Activity {
         addAdultCard("🛡️ البيانات", "التفضيلات تحفظ على هذا الجهاز فقط", () -> message("لا تتم مزامنة هذه التفضيلات مع خادم."));
         addAdultCard("ℹ حول التطبيق", "نور القرآن • للقراءة والتلاوة والذكر", () -> message("نسأل الله أن يجعل هذا العمل نافعاً ومباركاً."));
 
+        CheckBox adhanEnabled = makeSettingCheck("تفعيل الأذان (التشغيل التلقائي قيد التجهيز)", "adhan_enabled", false, prefs);
+        addAdultCard("🕌 صوت الأذان المجاني", "تسجيل Beautiful adhan — ترخيص CC0، يحتاج إنترنت عند التشغيل", this::playLegalAdhan);
+        addButton("▶ تجربة صوت الأذان", this::playLegalAdhan);
+        addButton("⏹ إيقاف صوت الأذان", this::stopLegalAdhan);
+
         addButton("💾 حفظ جميع الإعدادات", () -> {
             prayerCalculationMethod = methodPicker.getSelectedItemPosition();
             prefs.edit().putString("governorate", selectedGovernorate)
@@ -290,7 +296,8 @@ public class MainActivity extends Activity {
                 .putBoolean("tasbeeh_vibration", vibration.isChecked())
                 .putBoolean("show_weather", weather.isChecked())
                 .putBoolean("show_hijri", hijri.isChecked())
-                .putBoolean("show_prayer_preview", prayerPreview.isChecked()).apply();
+                .putBoolean("show_prayer_preview", prayerPreview.isChecked())
+                .putBoolean("adhan_enabled", adhanEnabled.isChecked()).apply();
             message("تم حفظ الإعدادات على جهازك");
         });
         addButton("🌤️ فتح الطقس", this::showWeather);
@@ -308,6 +315,36 @@ public class MainActivity extends Activity {
         check.setChecked(prefs.getBoolean(key, defaultValue));
         layout.addView(check);
         return check;
+    }
+
+    void playLegalAdhan() {
+        stopLegalAdhan();
+        message("جارٍ تحميل تسجيل الأذان المرخّص...");
+        try {
+            adhanPlayer = new MediaPlayer();
+            adhanPlayer.setAudioStreamType(android.media.AudioManager.STREAM_ALARM);
+            adhanPlayer.setDataSource("https://upload.wikimedia.org/wikipedia/commons/transcoded/b/b0/Beautiful_adhan.ogg/Beautiful_adhan.ogg.mp3");
+            adhanPlayer.setOnPreparedListener(player -> player.start());
+            adhanPlayer.setOnErrorListener((player, what, extra) -> {
+                message("تعذر تشغيل الأذان. تحقق من الإنترنت وحاول مجدداً.");
+                stopLegalAdhan();
+                return true;
+            });
+            adhanPlayer.prepareAsync();
+        } catch (Exception e) {
+            message("تعذر تشغيل تسجيل الأذان حالياً.");
+            stopLegalAdhan();
+        }
+    }
+
+    void stopLegalAdhan() {
+        if (adhanPlayer != null) {
+            try { adhanPlayer.setOnPreparedListener(null); } catch (Exception ignored) {}
+            try { adhanPlayer.setOnErrorListener(null); } catch (Exception ignored) {}
+            try { adhanPlayer.stop(); } catch (Exception ignored) {}
+            try { adhanPlayer.release(); } catch (Exception ignored) {}
+            adhanPlayer = null;
+        }
     }
 
     void showTravelDuas() {
@@ -1653,6 +1690,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onDestroy() {
         releaseAudio();
+        stopLegalAdhan();
         super.onDestroy();
     }
 
