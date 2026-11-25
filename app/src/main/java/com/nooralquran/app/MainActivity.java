@@ -1858,23 +1858,198 @@ public class MainActivity extends Activity {
 
     void zakat() {
         setup();
-        addText("حاسبة الزكاة", 27, Color.WHITE);
-        EditText amount = new EditText(this);
-        amount.setHint("أدخل المبلغ");
-        amount.setInputType(8194);
-        amount.setTextColor(Color.WHITE);
-        layout.addView(amount);
+        layout.setPadding(dp(14), dp(12), dp(14), dp(22));
 
-        addButton("احسب 2.5%", () -> {
+        LinearLayout hero = new LinearLayout(this);
+        hero.setOrientation(LinearLayout.VERTICAL);
+        hero.setGravity(Gravity.CENTER);
+        hero.setPadding(dp(18), dp(20), dp(18), dp(20));
+        hero.setBackground(premiumBackground(Color.rgb(13, 55, 47), Color.rgb(218, 184, 111), 24));
+        TextView symbol = new TextView(this);
+        symbol.setText("۞");
+        symbol.setTextColor(Color.rgb(242, 211, 145));
+        symbol.setTextSize(34);
+        symbol.setGravity(Gravity.CENTER);
+        hero.addView(symbol);
+        TextView heading = new TextView(this);
+        heading.setText("حاسبة الزكاة");
+        heading.setTextColor(Color.rgb(255, 229, 170));
+        heading.setTextSize(27);
+        heading.setTypeface(android.graphics.Typeface.SERIF, android.graphics.Typeface.BOLD);
+        heading.setGravity(Gravity.CENTER);
+        hero.addView(heading);
+        TextView subtitle = new TextView(this);
+        subtitle.setText("طهّر مالك واجعل للخير نصيباً");
+        subtitle.setTextColor(Color.WHITE);
+        subtitle.setTextSize(14);
+        subtitle.setGravity(Gravity.CENTER);
+        subtitle.setPadding(0, dp(7), 0, 0);
+        hero.addView(subtitle);
+        layout.addView(hero, new LinearLayout.LayoutParams(-1, -2));
+
+        TextView currencyNote = new TextView(this);
+        currencyNote.setText("جميع المبالغ بالدينار العراقي (د.ع)");
+        currencyNote.setTextColor(Color.rgb(242, 211, 145));
+        currencyNote.setTextSize(13);
+        currencyNote.setGravity(Gravity.CENTER);
+        currencyNote.setPadding(0, dp(14), 0, dp(8));
+        layout.addView(currencyNote);
+
+        android.content.SharedPreferences prefs = getSharedPreferences("noor_zakat", MODE_PRIVATE);
+        EditText cash = zakatMoneyField("النقد في البيت والمحفظة", prefs.getString("cash", ""));
+        EditText bank = zakatMoneyField("الأموال في الحسابات المصرفية", prefs.getString("bank", ""));
+        EditText gold = zakatMoneyField("قيمة الذهب والفضة الزكوية", prefs.getString("gold", ""));
+        EditText trade = zakatMoneyField("قيمة البضائع المعدّة للبيع", prefs.getString("trade", ""));
+        EditText receivables = zakatMoneyField("الديون المرجو تحصيلها", prefs.getString("receivables", ""));
+        EditText debts = zakatMoneyField("الديون والالتزامات واجبة السداد الآن", prefs.getString("debts", ""));
+        EditText nisab = zakatMoneyField("قيمة النصاب الحالية بالدينار العراقي", prefs.getString("nisab", ""));
+
+        addZakatSection("١. الأموال والأصول الزكوية");
+        addZakatField("النقد المتوفر", cash);
+        addZakatField("الأرصدة البنكية والادخار", bank);
+        addZakatField("قيمة الذهب والفضة", gold);
+        addZakatField("البضائع التجارية", trade);
+        addZakatField("الديون التي يُرجى تحصيلها", receivables);
+
+        addZakatSection("٢. الالتزامات والنصاب");
+        addZakatField("الديون المستحقة حالياً", debts);
+        addZakatField("النصاب بالدينار العراقي", nisab);
+
+        TextView nisabHelp = new TextView(this);
+        nisabHelp.setText("النصاب يُقدّر عادةً بقيمة ٨٥ غراماً من الذهب الخالص (عيار ٢٤). أدخل قيمته الحالية من مصدر موثوق. لا تضع سعر الغرام وحده.");
+        nisabHelp.setTextColor(Color.LTGRAY);
+        nisabHelp.setTextSize(12);
+        nisabHelp.setPadding(dp(8), dp(4), dp(8), dp(10));
+        layout.addView(nisabHelp);
+
+        LinearLayout resultCard = new LinearLayout(this);
+        resultCard.setOrientation(LinearLayout.VERTICAL);
+        resultCard.setGravity(Gravity.CENTER);
+        resultCard.setPadding(dp(16), dp(18), dp(16), dp(18));
+        resultCard.setBackground(premiumBackground(Color.rgb(10, 47, 41), Color.rgb(218, 184, 111), 22));
+        TextView resultTitle = new TextView(this);
+        resultTitle.setText("نتيجة حساب الزكاة");
+        resultTitle.setTextColor(Color.rgb(242, 211, 145));
+        resultTitle.setTextSize(19);
+        resultTitle.setGravity(Gravity.CENTER);
+        resultCard.addView(resultTitle);
+        TextView assetsView = new TextView(this);
+        assetsView.setText("إجمالي الأموال: —");
+        assetsView.setTextColor(Color.WHITE);
+        assetsView.setTextSize(15);
+        assetsView.setGravity(Gravity.CENTER);
+        assetsView.setPadding(0, dp(10), 0, dp(4));
+        resultCard.addView(assetsView);
+        TextView netView = new TextView(this);
+        netView.setText("صافي المال الزكوي: —");
+        netView.setTextColor(Color.WHITE);
+        netView.setTextSize(15);
+        netView.setGravity(Gravity.CENTER);
+        resultCard.addView(netView);
+        TextView dueView = new TextView(this);
+        dueView.setText("الزكاة الواجبة: —");
+        dueView.setTextColor(Color.rgb(255, 224, 157));
+        dueView.setTextSize(25);
+        dueView.setTypeface(null, android.graphics.Typeface.BOLD);
+        dueView.setGravity(Gravity.CENTER);
+        dueView.setPadding(0, dp(12), 0, dp(6));
+        resultCard.addView(dueView);
+        TextView statusView = new TextView(this);
+        statusView.setText("أدخل المبالغ وقيمة النصاب ثم اضغط احسب");
+        statusView.setTextColor(Color.LTGRAY);
+        statusView.setTextSize(13);
+        statusView.setGravity(Gravity.CENTER);
+        statusView.setPadding(0, dp(4), 0, 0);
+        resultCard.addView(statusView);
+        LinearLayout.LayoutParams resultParams = new LinearLayout.LayoutParams(-1, -2);
+        resultParams.setMargins(0, dp(14), 0, dp(10));
+        layout.addView(resultCard, resultParams);
+
+        addButton("احسب الزكاة الآن", () -> {
             try {
-                double value = Double.parseDouble(
-                    amount.getText().toString());
-                addText("الناتج: " + (value * 0.025), 22, Color.YELLOW);
+                double a = readZakatMoney(cash) + readZakatMoney(bank) + readZakatMoney(gold)
+                    + readZakatMoney(trade) + readZakatMoney(receivables);
+                double d = readZakatMoney(debts);
+                double n = readZakatMoney(nisab);
+                if (n <= 0) {
+                    message("أدخل قيمة النصاب الحالية بالدينار العراقي أولاً");
+                    return;
+                }
+                double net = Math.max(0, a - d);
+                double due = net >= n ? net * 0.025 : 0;
+                java.text.NumberFormat fmt = java.text.NumberFormat.getIntegerInstance(Locale.US);
+                assetsView.setText("إجمالي الأموال: " + fmt.format(a) + " د.ع");
+                netView.setText("صافي المال بعد الالتزامات: " + fmt.format(net) + " د.ع");
+                dueView.setText(due > 0 ? "الزكاة الواجبة: " + fmt.format(Math.round(due)) + " د.ع"
+                    : "الزكاة الواجبة: ٠ د.ع");
+                if (net < n) {
+                    statusView.setText("المبلغ أقل من النصاب المُدخل؛ لا تجب زكاة المال بهذه الحسبة.");
+                } else {
+                    statusView.setText("بلغ المال النصاب. الحسبة على أساس ٢٫٥٪، مع افتراض اكتمال الحول.");
+                }
+                prefs.edit().putString("cash",cash.getText().toString()).putString("bank",bank.getText().toString())
+                    .putString("gold",gold.getText().toString()).putString("trade",trade.getText().toString())
+                    .putString("receivables",receivables.getText().toString()).putString("debts",debts.getText().toString())
+                    .putString("nisab",nisab.getText().toString()).apply();
             } catch (Exception e) {
-                message("أدخل مبلغاً صحيحاً");
+                message("تأكد من إدخال أرقام صحيحة في جميع الحقول");
             }
         });
-        addButton("رجوع", this::home);
+        addButton("مسح جميع المبالغ", () -> new android.app.AlertDialog.Builder(this)
+            .setTitle("مسح الحاسبة").setMessage("هل تريد مسح المبالغ المحفوظة؟")
+            .setNegativeButton("إلغاء", (dialog, which) -> dialog.dismiss())
+            .setPositiveButton("مسح", (dialog, which) -> {
+                prefs.edit().clear().apply();
+                zakat();
+            }).show());
+        addText("تنبيه: هذه حاسبة إرشادية لزكاة المال وليست فتوى. تختلف أحكام بعض الأموال والذهب والديون باختلاف الحالة والمذهب، ويُرجى سؤال جهة شرعية موثوقة.", 12, Color.LTGRAY);
+        addButton("العودة للرئيسية", this::home);
+    }
+
+    EditText zakatMoneyField(String hint, String saved) {
+        EditText field = new EditText(this);
+        field.setSingleLine(true);
+        field.setHint(hint);
+        field.setText(saved);
+        field.setTextColor(Color.WHITE);
+        field.setHintTextColor(Color.rgb(190, 199, 187));
+        field.setTextSize(16);
+        field.setPadding(dp(14), dp(11), dp(14), dp(11));
+        field.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL);
+        field.setBackground(premiumBackground(Color.rgb(22, 61, 54), Color.rgb(151, 128, 76), 13));
+        return field;
+    }
+
+    void addZakatSection(String title) {
+        TextView label = new TextView(this);
+        label.setText(title);
+        label.setTextColor(Color.rgb(242, 211, 145));
+        label.setTextSize(18);
+        label.setTypeface(null, android.graphics.Typeface.BOLD);
+        label.setPadding(dp(4), dp(16), dp(4), dp(8));
+        layout.addView(label);
+    }
+
+    void addZakatField(String label, EditText field) {
+        TextView title = new TextView(this);
+        title.setText(label);
+        title.setTextColor(Color.WHITE);
+        title.setTextSize(14);
+        title.setPadding(dp(4), dp(5), dp(4), dp(5));
+        layout.addView(title);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, -2);
+        params.setMargins(0, 0, 0, dp(7));
+        layout.addView(field, params);
+    }
+
+    double readZakatMoney(EditText field) {
+        String value = field.getText().toString().trim()
+            .replace(",", "").replace("٬", "").replace("٫", ".");
+        value = value.replace('٠','0').replace('١','1').replace('٢','2').replace('٣','3')
+            .replace('٤','4').replace('٥','5').replace('٦','6').replace('٧','7')
+            .replace('٨','8').replace('٩','9');
+        if (value.length() == 0) return 0;
+        return Double.parseDouble(value);
     }
 
     void message(String value) {
