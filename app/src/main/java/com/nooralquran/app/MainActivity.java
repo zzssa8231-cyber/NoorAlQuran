@@ -244,10 +244,6 @@ public class MainActivity extends Activity {
             if (number != 9) {
                 addBasmala(number);
             }
-            if (number == 1) {
-                // The first Fatiha verse is the basmala; keep its correct verse number above.
-                addBasmala(number);
-            }
             if (surahText.length() > 0) {
                 addQuranText(surahText.toString());
             }
