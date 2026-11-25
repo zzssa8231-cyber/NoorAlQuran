@@ -1560,6 +1560,40 @@ public class MainActivity extends Activity {
 
 
 
+    class TasbeehArtView extends View {
+        final android.graphics.Paint paint = new android.graphics.Paint(3);
+        TasbeehArtView(android.content.Context context) { super(context); }
+        @Override protected void onDraw(android.graphics.Canvas canvas) {
+            super.onDraw(canvas);
+            float cx = getWidth() / 2f, cy = getHeight() / 2f;
+            float radius = Math.min(getWidth() * 0.30f, getHeight() * 0.34f);
+            paint.setStyle(android.graphics.Paint.Style.STROKE);
+            paint.setStrokeWidth(dp(3));
+            paint.setColor(Color.rgb(218,184,111));
+            canvas.drawCircle(cx, cy, radius, paint);
+            paint.setStyle(android.graphics.Paint.Style.FILL);
+            for (int n = 0; n < 33; n++) {
+                double a = (Math.PI * 2 * n / 33.0) - Math.PI / 2;
+                float x = cx + (float)Math.cos(a) * radius;
+                float y = cy + (float)Math.sin(a) * radius;
+                paint.setColor(n % 3 == 0 ? Color.rgb(255,226,157) : Color.rgb(180,139,65));
+                canvas.drawCircle(x, y, dp(6), paint);
+                paint.setColor(Color.argb(90,255,255,255));
+                canvas.drawCircle(x - dp(2), y - dp(2), dp(2), paint);
+            }
+            paint.setColor(Color.rgb(218,184,111));
+            canvas.drawCircle(cx, cy, dp(37), paint);
+            paint.setColor(Color.rgb(13,48,43));
+            canvas.drawCircle(cx, cy, dp(32), paint);
+            paint.setColor(Color.rgb(255,224,157));
+            paint.setTextAlign(android.graphics.Paint.Align.CENTER);
+            paint.setTextSize(dp(24));
+            canvas.drawText("۞", cx, cy + dp(8), paint);
+            paint.setTextSize(dp(10));
+            canvas.drawText("سُبْحَانَ الله", cx, cy + radius + dp(27), paint);
+        }
+    }
+
     int count = 0;
 
     void tasbeeh() {
@@ -1574,13 +1608,8 @@ public class MainActivity extends Activity {
         art.setGravity(Gravity.CENTER);
         art.setPadding(dp(14), dp(20), dp(14), dp(20));
         art.setBackground(premiumBackground(Color.rgb(13,48,43), Color.rgb(205,170,94), 24));
-        TextView beads = new TextView(this);
-        beads.setText("●  ◉  ●  ◉  ●  ◉  ●\n   ◉       📿       ◉\n●  ◉  ●  ◉  ●  ◉  ●");
-        beads.setTextColor(Color.rgb(237,202,128));
-        beads.setTextSize(23);
-        beads.setGravity(Gravity.CENTER);
-        beads.setLineSpacing(dp(9), 1f);
-        art.addView(beads);
+        TasbeehArtView beads = new TasbeehArtView(this);
+        art.addView(beads, new LinearLayout.LayoutParams(-1, dp(220)));
         TextView tasbeehCaption = new TextView(this);
         tasbeehCaption.setText("مسبحة نور القرآن");
         tasbeehCaption.setTextColor(Color.rgb(255,224,157));
