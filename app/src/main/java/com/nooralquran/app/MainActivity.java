@@ -1878,7 +1878,22 @@ public class MainActivity extends Activity {
         "ما السورة التي لا تبدأ بالبسملة؟",
         "من النبي الذي ابتلعه الحوت؟",
         "ما قبلة المسلمين في الصلاة؟",
-        "ما أقصر سورة في القرآن الكريم؟"
+        "ما أقصر سورة في القرآن الكريم؟",
+        "كم عدد الصلوات المفروضة في اليوم والليلة؟",
+        "ما أول سورة في ترتيب المصحف؟",
+        "ما السورة التي تعدل ثلث القرآن؟",
+        "من هو خاتم الأنبياء والمرسلين؟",
+        "ما اسم الكتاب الذي أُنزل على النبي محمد ﷺ؟",
+        "في أي مدينة وُلد النبي محمد ﷺ؟",
+        "ما اسم الغار الذي نزل فيه الوحي أول مرة؟",
+        "كم عدد أركان الإيمان؟",
+        "ما الشهر الذي يأتي بعد رمضان؟",
+        "إلى أي مسجد أُسري بالنبي ﷺ؟",
+        "من النبي الذي كلمه الله؟",
+        "ما السورة التي وردت فيها آية الكرسي؟",
+        "ما اسم والدة النبي عيسى عليه السلام؟",
+        "كم عدد سور القرآن الكريم؟",
+        "ما الصلاة التي لا ركوع فيها ولا سجود؟"
     };
     String[][] quizOptions = {
         {"الفاتحة","البقرة","الإخلاص","الناس"},
@@ -1890,9 +1905,24 @@ public class MainActivity extends Activity {
         {"التوبة","يونس","الأنفال","هود"},
         {"موسى عليه السلام","يونس عليه السلام","إبراهيم عليه السلام","يوسف عليه السلام"},
         {"المسجد الأقصى","الكعبة المشرفة","المسجد النبوي","جبل عرفات"},
-        {"الكوثر","العصر","الإخلاص","الفلق"}
+        {"الكوثر","العصر","الإخلاص","الفلق"},
+        {"ثلاث صلوات","أربع صلوات","خمس صلوات","ست صلوات"},
+        {"الفاتحة","البقرة","العلق","الناس"},
+        {"الإخلاص","الفلق","الناس","الكوثر"},
+        {"موسى عليه السلام","عيسى عليه السلام","محمد ﷺ","إبراهيم عليه السلام"},
+        {"التوراة","الإنجيل","الزبور","القرآن الكريم"},
+        {"المدينة المنورة","مكة المكرمة","الطائف","القدس"},
+        {"غار حراء","غار ثور","جبل أحد","جبل النور"},
+        {"خمسة","ستة","سبعة","ثمانية"},
+        {"شوال","ذو القعدة","محرم","رجب"},
+        {"المسجد النبوي","المسجد الأقصى","المسجد الحرام","مسجد قباء"},
+        {"إبراهيم عليه السلام","موسى عليه السلام","يوسف عليه السلام","نوح عليه السلام"},
+        {"البقرة","آل عمران","النساء","المائدة"},
+        {"آسية","مريم عليها السلام","هاجر","سارة"},
+        {"١١٤ سورة","١٠٠ سورة","١١٠ سور","١٢٠ سورة"},
+        {"صلاة الجنازة","صلاة الفجر","صلاة المغرب","صلاة العيد"}
     };
-    int[] quizCorrect = {0,2,1,1,0,2,0,1,1,0};
+    int[] quizCorrect = {0,2,1,1,0,2,0,1,1,0,2,0,0,2,3,1,0,1,0,1,1,0,1,0,0};
     String[] quizExplanations = {
         "سورة الفاتحة تُسمّى أمّ الكتاب وأمّ القرآن.",
         "أركان الإسلام خمسة.",
@@ -1903,10 +1933,26 @@ public class MainActivity extends Activity {
         "سورة التوبة لا تبدأ بالبسملة.",
         "النبي يونس عليه السلام.",
         "قبلة المسلمين هي الكعبة المشرفة.",
-        "سورة الكوثر هي أقصر سور القرآن."
+        "سورة الكوثر هي أقصر سور القرآن.",
+        "الصلوات المفروضة خمس.",
+        "سورة الفاتحة هي أول سور المصحف.",
+        "ورد في الحديث الصحيح أن سورة الإخلاص تعدل ثلث القرآن.",
+        "محمد ﷺ خاتم الأنبياء والمرسلين.",
+        "القرآن الكريم أُنزل على النبي محمد ﷺ.",
+        "وُلد النبي محمد ﷺ في مكة المكرمة.",
+        "بدأ نزول الوحي في غار حراء.",
+        "أركان الإيمان ستة.",
+        "يأتي شهر شوال بعد شهر رمضان.",
+        "كان الإسراء إلى المسجد الأقصى.",
+        "كلم الله موسى عليه السلام تكليماً.",
+        "آية الكرسي في سورة البقرة.",
+        "مريم عليها السلام هي والدة عيسى عليه السلام.",
+        "عدد سور القرآن الكريم ١١٤ سورة.",
+        "صلاة الجنازة ليس فيها ركوع ولا سجود."
     };
     int quizIndex = 0;
     int quizScore = 0;
+    List<Integer> quizRoundIndices = new ArrayList<>();
     boolean quizAnswered = false;
     TextView quizFeedback;
 
@@ -1964,7 +2010,7 @@ public class MainActivity extends Activity {
         scoreParams.setMargins(0, dp(12), 0, dp(10));
         layout.addView(scoreCard, scoreParams);
 
-        addAdultCard("📖 المسابقة القرآنية والإسلامية", "١٠ أسئلة اختيار من متعدد • ١٠ نقاط لكل إجابة صحيحة", () -> startQuiz());
+        addAdultCard("📖 المسابقة القرآنية والإسلامية", "٢٥ سؤالاً متنوعاً • تظهر ١٠ أسئلة عشوائية في كل جولة • ١٠ نقاط لكل إجابة صحيحة", () -> startQuiz());
         addAdultCard("🏆 لوحة المتصدرين", "شاهد أفضل المشاركين ونقاطهم عبر الإنترنت", this::showLeaderboard);
         addAdultCard("🎁 كيف تربح؟", "اجمع النقاط بالإجابة الصحيحة، ثم تابع رصيدك داخل التطبيق.", () ->
             message("كل إجابة صحيحة تمنحك ١٠ نقاط. النقاط رمزية داخل التطبيق وليست أموالاً نقدية."));
@@ -1976,10 +2022,15 @@ public class MainActivity extends Activity {
     void startQuiz() {
         quizIndex = 0;
         quizScore = 0;
+        quizRoundIndices.clear();
+        for (int i = 0; i < quizQuestions.length; i++) quizRoundIndices.add(i);
+        Collections.shuffle(quizRoundIndices);
+        quizRoundIndices = new ArrayList<>(quizRoundIndices.subList(0, 10));
         showQuizQuestion();
     }
 
     void showQuizQuestion() {
+        final int questionId = quizRoundIndices.get(quizIndex);
         setup();
         layout.setPadding(dp(14), dp(12), dp(14), dp(22));
         addText("🏆 المسابقة القرآنية", 25, Color.rgb(242, 211, 145));
@@ -1992,7 +2043,7 @@ public class MainActivity extends Activity {
         layout.addView(progress, new LinearLayout.LayoutParams(-1, dp(7)));
 
         TextView question = new TextView(this);
-        question.setText(quizQuestions[quizIndex]);
+        question.setText(quizQuestions[questionId]);
         question.setTextColor(Color.rgb(255, 229, 170));
         question.setTextSize(21);
         question.setTypeface(null, android.graphics.Typeface.BOLD);
@@ -2015,7 +2066,7 @@ public class MainActivity extends Activity {
         for (int i = 0; i < 4; i++) {
             final int choice = i;
             Button option = new Button(this);
-            option.setText(quizOptions[quizIndex][i]);
+            option.setText(quizOptions[questionId][i]);
             option.setTextSize(16);
             option.setTextColor(Color.WHITE);
             option.setAllCaps(false);
@@ -2030,17 +2081,17 @@ public class MainActivity extends Activity {
                     View child = layout.getChildAt(j);
                     if (child instanceof Button) child.setEnabled(false);
                 }
-                if (choice == quizCorrect[quizIndex]) {
+                if (choice == quizCorrect[questionId]) {
                     quizScore += 10;
                     option.setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.rgb(35, 135, 83)));
-                    quizFeedback.setText("إجابة صحيحة! +١٠ نقاط\n" + quizExplanations[quizIndex]);
+                    quizFeedback.setText("إجابة صحيحة! +١٠ نقاط\n" + quizExplanations[questionId]);
                 } else {
                     option.setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.rgb(145, 65, 55)));
-                    quizFeedback.setText("ليست الإجابة الصحيحة. الإجابة: " + quizOptions[quizIndex][quizCorrect[quizIndex]]
+                    quizFeedback.setText("ليست الإجابة الصحيحة. الإجابة: " + quizOptions[questionId][quizCorrect[questionId]]
                         + "\n" + quizExplanations[quizIndex]);
                 }
-                addButton(quizIndex == 9 ? "عرض النتيجة 🏆" : "السؤال التالي ←", () -> {
-                    if (quizIndex == 9) finishQuiz();
+                addButton(quizIndex == quizRoundIndices.size() - 1 ? "عرض النتيجة 🏆" : "السؤال التالي ←", () -> {
+                    if (quizIndex == quizRoundIndices.size() - 1) finishQuiz();
                     else { quizIndex++; showQuizQuestion(); }
                 });
             });
