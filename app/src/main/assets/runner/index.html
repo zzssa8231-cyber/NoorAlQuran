@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>سباق نور القرآن 3D</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;font-family:Tahoma,Arial;background:#8bd8f5;touch-action:none}
+#game{display:block;width:100%;height:100%;touch-action:none}
+#hud{position:absolute;top:10px;left:10px;right:10px;display:flex;justify-content:space-between;gap:8px;pointer-events:none}
+.pill{background:#073d36dc;color:#fff;border:2px solid #f4d17d;border-radius:16px;padding:8px 12px;font-weight:bold;font-size:14px}
+#message{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#052e2bbb;padding:20px}
+.panel{width:min(92%,380px);background:linear-gradient(145deg,#fff4d2,#d9f5e7);border:4px solid #e4b95f;border-radius:26px;padding:22px;text-align:center;color:#17483e;box-shadow:0 12px 35px #073d3666}
+h1{font-size:25px;margin:0 0 8px}.sub{font-size:14px;line-height:1.7}
+button{border:0;border-radius:16px;padding:13px 20px;background:#16845d;color:white;font-size:17px;font-weight:bold;margin:7px;box-shadow:0 4px 0 #07543d}
+#controls{position:absolute;bottom:14px;left:0;right:0;display:flex;justify-content:center;gap:10px;pointer-events:none}
+.ctrl{pointer-events:auto;opacity:.88;min-width:74px;background:#073d36dd;border:2px solid #f4d17d}
+.small{font-size:12px;color:#477267}
+</style></head>
+<body>
+<canvas id="game"></canvas>
+<div id="hud"><div class="pill" id="score">⭐ 0</div><div class="pill" id="best">أفضل نتيجة: 0</div><div class="pill" id="level">المرحلة 1</div></div>
+<div id="controls"><button class="ctrl" id="left">◀</button><button class="ctrl" id="jump">⬆ قفز</button><button class="ctrl" id="slide">⬇ انزلاق</button><button class="ctrl" id="right">▶</button></div>
+<div id="message"><div class="panel"><div style="font-size:48px">🌈🏃⭐</div><h1>سباق نور القرآن 3D</h1><div class="sub">اركض في عالم كرتوني ملون، اجمع النجوم وتجنب الحواجز. اسحب يميناً ويساراً لتغيير المسار، للأعلى للقفز وللأسفل للانزلاق.</div><button id="start">ابدأ السباق</button><div class="small">لعبة ترفيهية تعليمية • النقاط داخل اللعبة فقط</div></div></div>
+<script>
+(()=> {
+const c=document.getElementById('game'),ctx=c.getContext('2d'),overlay=document.getElementById('message');
+let W=0,H=0,dpr=1,running=false,score=0,best=Number(localStorage.getItem('noorRunnerBest')||0),lane=0,jump=0,slide=0,speed=.34,spawn=0,items=[],last=0,world=0;
+document.getElementById('best').textContent='أفضل نتيجة: '+best;
+function resize(){dpr=Math.min(devicePixelRatio||1,2);W=c.clientWidth;H=c.clientHeight;c.width=W*dpr;c.height=H*dpr;ctx.setTransform(dpr,0,0,dpr,0,0)}addEventListener('resize',resize);resize();
+function poly(points,fill){ctx.fillStyle=fill;ctx.beginPath();points.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.closePath();ctx.fill()}
+function rounded(x,y,w,h,r,color){ctx.fillStyle=color;ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.fill()}
+function draw(){
+let sky=ctx.createLinearGradient(0,0,0,H);sky.addColorStop(0,'#66c9f3');sky.addColorStop(.58,'#d7f5cf');sky.addColorStop(1,'#75c77c');ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
+ctx.fillStyle='#fff4c4';ctx.beginPath();ctx.arc(W*.82,H*.15,Math.min(W,H)*.07,0,Math.PI*2);ctx.fill();
+for(let i=0;i<6;i++){let x=((i*173+world*.12)%(W+100))-40;ctx.fillStyle=i%2?'#48a96f':'#399b69';ctx.beginPath();ctx.arc(x,H*.48,30+(i%3)*9,0,Math.PI*2);ctx.fill();rounded(x-8,H*.48,16,H*.16,5,'#9b7044')}
+let horizon=H*.39,base=H*.94;
+poly([[W*.43,horizon],[W*.57,horizon],[W*.94,base],[W*.06,base]],'#b9a17a');
+poly([[W*.46,horizon],[W*.54,horizon],[W*.87,base],[W*.13,base]],'#e7d5a8');
+for(let k=-1;k<=1;k++){let x1=W/2+k*W*.045,x2=W/2+k*W*.25;ctx.strokeStyle='#fff5cf';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x1,horizon);ctx.lineTo(x2,base);ctx.stroke()}
+ctx.strokeStyle='#fff1bd';ctx.lineWidth=3;ctx.setLineDash([18,16]);ctx.beginPath();ctx.moveTo(W/2,horizon);ctx.lineTo(W/2,base);ctx.stroke();ctx.setLineDash([]);
+}
+function pos(l,z){let t=z;return {x:W/2+l*(W*(.045+t*.205)),y:H*.39+t*H*.55,scale:.25+t*.95}}
+function drawItem(o){let p=pos(o.lane,o.z),s=p.scale;if(o.type==='star'){ctx.save();ctx.translate(p.x,p.y-22*s);ctx.scale(s,s);ctx.fillStyle='#ffd83d';ctx.strokeStyle='#fff3a0';ctx.lineWidth=3;ctx.beginPath();for(let i=0;i<10;i++){let a=-Math.PI/2+i*Math.PI/5,r=i%2?10:22;ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r)}ctx.closePath();ctx.fill();ctx.stroke();ctx.restore()}else{rounded(p.x-19*s,p.y-35*s,38*s,40*s,7*s,o.type==='low'?'#e66b57':'#7b69c7');rounded(p.x-14*s,p.y-29*s,28*s,7*s,3*s,'#ffd58a');}}
+function drawPlayer(){let p=pos(lane,.93),x=p.x,y=p.y-jump*H*.16,s=p.scale;ctx.fillStyle='#234b3e55';ctx.beginPath();ctx.ellipse(x,y+3,23*s,8*s,0,0,Math.PI*2);ctx.fill();if(slide>0){rounded(x-20*s,y-23*s,40*s,20*s,10*s,'#e6a34b');rounded(x-16*s,y-35*s,30*s,18*s,8*s,'#f1c99a')}else{rounded(x-18*s,y-57*s,36*s,38*s,12*s,'#168b72');ctx.fillStyle='#f1c99a';ctx.beginPath();ctx.arc(x,y-70*s,15*s,0,Math.PI*2);ctx.fill();ctx.fillStyle='#263d35';ctx.beginPath();ctx.arc(x-5*s,y-72*s,2*s,0,Math.PI*2);ctx.arc(x+5*s,y-72*s,2*s,0,Math.PI*2);ctx.fill();rounded(x-17*s,y-23*s,13*s,22*s,6*s,'#315b9a');rounded(x+4*s,y-23*s,13*s,22*s,6*s,'#315b9a')}}
+function spawnItem(){let l=Math.floor(Math.random()*3)-1;let type=Math.random()<.57?'star':(Math.random()<.5?'block':'low');items.push({lane:l,z:.02,type})}
+function update(dt){if(!running)return;world+=dt*speed*150;spawn-=dt;if(spawn<=0){spawnItem();spawn=.75+Math.random()*.45}speed=Math.min(.68,speed+dt*.002);for(let o of items)o.z+=dt*speed;items=items.filter(o=>o.z<1.12);jump=Math.max(0,jump-dt*2.3);slide=Math.max(0,slide-dt*1.7);
+for(let i=items.length-1;i>=0;i--){let o=items[i];if(o.z>.86&&o.z<1.03&&o.lane===lane){if(o.type==='star'){score+=10;items.splice(i,1);document.getElementById('score').textContent='⭐ '+score}else if((o.type==='block'&&jump<.35)||(o.type==='low'&&slide<.25)){endGame();break}}}
+document.getElementById('level').textContent='المرحلة '+(1+Math.floor(score/100))}
+function frame(t){let dt=Math.min((t-last)/1000||0,.04);last=t;draw();if(running){update(dt);items.sort((a,b)=>a.z-b.z);items.forEach(drawItem);drawPlayer()}requestAnimationFrame(frame)}
+function start(){score=0;lane=0;jump=0;slide=0;speed=.34;spawn=0;items=[];running=true;overlay.style.display='none';document.getElementById('score').textContent='⭐ 0'}
+function endGame(){running=false;if(score>best){best=score;localStorage.setItem('noorRunnerBest',best);document.getElementById('best').textContent='أفضل نتيجة: '+best}overlay.innerHTML='<div class="panel"><div style="font-size:45px">🏁⭐</div><h1>انتهى السباق!</h1><div class="sub">نتيجتك: '+score+' نقطة<br>أفضل نتيجة: '+best+'</div><button id="again">العب مرة أخرى</button><div class="small">النقاط للترفيه والتعلم داخل اللعبة فقط</div></div>';overlay.style.display='flex';document.getElementById('again').onclick=start}
+function move(d){if(!running)return;lane=Math.max(-1,Math.min(1,lane+d))}
+function doJump(){if(running&&jump===0&&slide===0)jump=1}
+function doSlide(){if(running&&jump===0)slide=1}
+document.getElementById('start').onclick=start;[['left',()=>move(-1)],['right',()=>move(1)],['jump',doJump],['slide',doSlide]].forEach(([id,fn])=>document.getElementById(id).addEventListener('pointerdown',e=>{e.preventDefault();fn()}));
+let sx=0,sy=0;c.addEventListener('pointerdown',e=>{sx=e.clientX;sy=e.clientY});c.addEventListener('pointerup',e=>{let dx=e.clientX-sx,dy=e.clientY-sy;if(Math.abs(dx)>Math.abs(dy))move(dx>0?1:-1);else if(dy< -20)doJump();else if(dy>20)doSlide()});
+requestAnimationFrame(frame);
+})();
+</script></body></html>
