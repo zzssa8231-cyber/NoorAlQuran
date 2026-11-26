@@ -1648,6 +1648,8 @@ public class MainActivity extends Activity {
             Color.rgb(220, 245, 230), this::showKidsLearning);
         addKidsCard("🧠 لعبة ذاكرة الأبطال", "اقلب البطاقات وطابق الصور واجمع الأزواج الستة", "🎮",
             Color.rgb(224, 232, 255), this::showKidsMemoryGame);
+        addKidsCard("🏃 سباق نور القرآن 3D", "اركض واجمع النجوم وتجاوز العقبات في عالم كرتوني ممتع", "⭐",
+            Color.rgb(255, 226, 185), this::showNoorRunnerGame);
         addKidsCard("🎓 أكاديمية نور للأطفال", "دروس حروف وتلاوة وألعاب تعليمية مع مسارات نور بلس", "⭐",
             Color.rgb(255, 226, 185), this::showKidsAcademy);
         addKidsCard("⭐ تحدي اليوم", "قريباً: أسئلة قرآنية ونقاط تشجيعية", "🏆",
