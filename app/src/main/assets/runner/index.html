@@ -9,8 +9,7 @@
 #hud{position:absolute;top:10px;left:10px;right:10px;display:flex;justify-content:space-between;gap:6px;pointer-events:none}
 .pill{background:#073d36e8;color:white;border:2px solid #f4d17d;border-radius:16px;padding:8px 11px;font-weight:bold;font-size:14px;text-shadow:0 1px 2px #123}
 #world{position:absolute;top:62px;left:50%;transform:translateX(-50%);color:#fff;background:#123c36aa;border-radius:20px;padding:5px 13px;font-size:12px;pointer-events:none}
-#controls{position:absolute;bottom:max(18px,env(safe-area-inset-bottom));left:0;right:0;display:flex;justify-content:space-around;gap:5px;padding:0 8px}
-.ctrl{min-width:65px;min-height:58px;border:2px solid #f4d17d;border-radius:17px;background:#073d36dc;color:#fff;font-size:19px;font-weight:bold;box-shadow:0 4px 0 #052a25;touch-action:none}
+#touchHint{position:absolute;bottom:max(18px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);background:#073d36c9;color:#fff;border:1px solid #f4d17d;border-radius:18px;padding:9px 14px;font-size:13px;white-space:nowrap;pointer-events:none}
 #message{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#052e2b99;padding:18px}
 .panel{width:min(92%,390px);background:linear-gradient(145deg,#fff5d7,#d8f5e8);border:4px solid #e4b95f;border-radius:25px;padding:20px;text-align:center;color:#17483e;box-shadow:0 12px 35px #073d3666}
 h1{font-size:24px;margin:5px 0 9px}.sub{font-size:14px;line-height:1.8}
@@ -21,9 +20,9 @@ button.start{border:0;border-radius:15px;padding:13px 24px;background:#16845d;co
 <canvas id="gl"></canvas>
 <div id="hud"><div class="pill" id="level">المرحلة 1</div><div class="pill" id="score">⭐ 0</div><div class="pill" id="best">أفضل: 0</div></div>
 <div id="world">🌳 الغابة الخضراء</div>
-<div id="controls"><button class="ctrl" id="left">◀</button><button class="ctrl" id="slide">⬇ انزلاق</button><button class="ctrl" id="jump">⬆ قفز</button><button class="ctrl" id="right">▶</button></div>
+<div id="touchHint">المس اللاعب للقفز • اسحب يميناً أو يساراً لتغيير الاتجاه</div>
 <div id="toast"></div>
-<div id="message"><div class="panel"><div style="font-size:48px">🌈🏃⭐</div><h1>سباق نور القرآن 3D</h1><div class="sub">عالم ثلاثي الأبعاد حقيقي بتقنية WebGL. تحرك بين المسارات، اقفز فوق الحواجز، انزلق تحت العوائق واجمع النجوم!</div><button class="start" id="start">ابدأ السباق</button><div class="sub">اللعبة تعمل دون إنترنت • النقاط للترفيه داخل اللعبة فقط</div></div></div>
+<div id="message"><div class="panel"><div style="font-size:48px">🌈🏃⭐</div><h1>سباق نور القرآن 3D</h1><div class="sub">المس الشخصية للقفز، واسحب يميناً أو يساراً لتغيير المسار. اجمع النجوم وتجنب المطبات والحواجز!</div><button class="start" id="start">ابدأ السباق</button><div class="sub">اللعبة تعمل دون إنترنت • النقاط للترفيه داخل اللعبة فقط</div></div></div>
 <script>
 (()=> {
 const canvas=document.getElementById('gl'), gl=canvas.getContext('webgl',{antialias:true,alpha:false});
@@ -69,11 +68,19 @@ for(let z=-40;z<3;z+=5){for(let side of [-1,1]){let x=side*(5.2+Math.sin(z*.2)*.
 if(world===1){for(let z=-32;z<0;z+=9)for(let side of [-1,1]){let x=side*7;box(x,.65,z,.3,1.3,.3,[.43,.3,.16]);ball(x,1.5,z,.8,.7,.8,[.63,.48,.21])}}
 if(world===2){for(let z=-35;z<0;z+=7)for(let side of [-1,1]){let x=side*7;box(x,1.6,z,1.7,3.2,1.5,[.22,.31,.48]);for(let yy=.5;yy<3;yy+=.7)for(let xx=-.4;xx<=.4;xx+=.8)box(x+xx,yy,z+.77,.24,.3,.05,[.95,.77,.38])}}
 }
-function playerDraw(t){let x=lane*1.55,y=.95+jump*1.5, stride=run?Math.sin(t*13)*.55:0, arm=run?Math.sin(t*13+Math.PI)*.5:0;if(slide>0)y=.42;
-ball(x,y+.65,0,.34,.39,.3,[.88,.62,.42]);ball(x-.12,y+.72,.27,.045,.06,.035,[.08,.12,.12]);ball(x+.12,y+.72,.27,.045,.06,.035,[.08,.12,.12]);
-box(x,y+.12,0,.58,.78,.36,[.04,.53,.42]);
-box(x-.36,y+.18,0,.18,.58,.18,[.88,.62,.42],arm);box(x+.36,y+.18,0,.18,.58,.18,[.88,.62,.42],-arm);
-box(x-.18,y-.42+Math.max(0,stride)*.2,.03,.2,.58,.22,[.12,.28,.65],stride*.65);box(x+.18,y-.42-Math.max(0,stride)*.2,.03,.2,.58,.22,[.12,.28,.65],-stride*.65);
+function playerDraw(t){let x=lane*1.55,y=.98+jump*1.65,stride=run?Math.sin(t*13)*.48:0,arm=run?Math.sin(t*13+Math.PI)*.48:0;if(slide>0)y=.48;
+// رأس ووجه وشعر
+ball(x,y+.72,0,.34,.39,.31,[.72,.43,.27]);ball(x,y+.79,.265,.22,.20,.075,[.95,.72,.53]);
+ball(x-.105,y+.82,.33,.035,.045,.025,[.08,.12,.15]);ball(x+.105,y+.82,.33,.035,.045,.025,[.08,.12,.15]);
+ball(x,y+1.02,-.015,.34,.16,.31,[.12,.075,.045]);ball(x-.2,y+.94,0,.13,.13,.22,[.12,.075,.045]);ball(x+.2,y+.94,0,.13,.13,.22,[.12,.075,.045]);
+// سترة رياضية وياقة
+box(x,y+.12,0,.58,.72,.36,[.035,.48,.37]);box(x,y+.48,.205,.22,.12,.045,[.98,.78,.28]);
+// الذراعان المتعاكستان مع الجري
+box(x-.37,y+.18,0,.17,.52,.18,[.72,.43,.27],arm);box(x+.37,y+.18,0,.17,.52,.18,[.72,.43,.27],-arm);
+ball(x-.37,y-.09,.015,.105,.11,.11,[.95,.72,.53]);ball(x+.37,y-.09,.015,.105,.11,.11,[.95,.72,.53]);
+// الساقان والحذاءان
+box(x-.17,y-.39+stride*.18,.02,.19,.52,.2,[.12,.25,.62],stride*.62);box(x+.17,y-.39-stride*.18,.02,.19,.52,.2,[.12,.25,.62],-stride*.62);
+box(x-.17,y-.67+stride*.18,.16,.25,.13,.38,[.96,.36,.12],stride*.3);box(x+.17,y-.67-stride*.18,.16,.25,.13,.38,[.96,.36,.12],-stride*.3);
 }
 function itemDraw(o){let x=o.l*1.55,z=o.z;if(o.type==='star'){ball(x,1.15,z,.32,.32,.12,[1,.78,.08]);box(x,1.15,z,.52,.08,.08,[1,.91,.3]);box(x,1.15,z,.08,.52,.08,[1,.91,.3])}else if(o.type==='low'){box(x,.55,z,.95,.22,.45,[.83,.31,.18]);box(x,.95,z,.14,.6,.14,[.98,.72,.22])}else{box(x,.8,z,.85,1.6,.7,[.56,.3,.72]);box(x,.3,z+.37,.45,.2,.05,[1,.83,.43])}}
 function spawnItem(){let l=Math.floor(Math.random()*3)-1;items.push({l,z:-34,type:Math.random()<.62?'star':(Math.random()<.5?'block':'low')})}
@@ -82,12 +89,12 @@ function update(dt,t){if(!run)return;elapsed+=dt;speed=Math.min(17,8+elapsed*.12
 for(let i=items.length-1;i>=0;i--){let o=items[i];o.z+=speed*dt;if(o.z>-.9&&o.z<1.1&&o.l===lane){if(o.type==='star'){score+=10;items.splice(i,1);$('score').textContent='⭐ '+score}else if((o.type==='block'&&jump<.4)||(o.type==='low'&&slide<.3)){end();return}}}
 items=items.filter(o=>o.z<3);let stage=1+Math.floor(score/100),nw=Math.floor(elapsed/24)%3;if(nw!==world){world=nw;$('world').textContent=worlds[world].name;toast('وصلت إلى '+worlds[world].name)}$('level').textContent='المرحلة '+stage;
 }
-function frame(ts){let dt=Math.min((ts-last)/1000||0,.04);last=ts;worldDraw(ts/1000);if(run){update(dt,ts/1000);for(let o of items)itemDraw(o);playerDraw(ts/1000)}else playerDraw(ts/1000);requestAnimationFrame(frame)}
+function frame(ts){let dt=Math.min((ts-last)/1000||0,.04);last=ts;gl.uniformMatrix4fv(loc.vp,false,new Float32Array(vp));worldDraw(ts/1000);if(run){update(dt,ts/1000);for(let o of items)itemDraw(o);playerDraw(ts/1000)}else playerDraw(ts/1000);requestAnimationFrame(frame)}
 function start(){score=0;lane=0;jump=0;slide=0;speed=8;elapsed=0;spawn=0;items=[];world=0;run=true;$('world').textContent=worlds[0].name;$('score').textContent='⭐ 0';overlay.style.display='none'}
 function end(){run=false;if(score>best){best=score;localStorage.setItem('noorRunner3DBest',best);$('best').textContent='أفضل: '+best}overlay.innerHTML='<div class="panel"><div style="font-size:45px">🏁⭐</div><h1>انتهى السباق!</h1><div class="sub">نتيجتك: '+score+' نقطة<br>أفضل نتيجة: '+best+'</div><button class="start" id="again">العب مرة أخرى</button></div>';overlay.style.display='flex';$('again').onclick=start}
 function move(d){if(run)lane=Math.max(-1,Math.min(1,lane+d))}function doJump(){if(run&&jump===0&&slide===0)jump=1}function doSlide(){if(run&&jump===0)slide=1}
-$('start').onclick=start;[['left',()=>move(-1)],['right',()=>move(1)],['jump',doJump],['slide',doSlide]].forEach(([id,fn])=>$(id).addEventListener('pointerdown',e=>{e.preventDefault();fn()}));
-let sx=0,sy=0;canvas.addEventListener('pointerdown',e=>{sx=e.clientX;sy=e.clientY});canvas.addEventListener('pointerup',e=>{let dx=e.clientX-sx,dy=e.clientY-sy;if(Math.abs(dx)>Math.abs(dy))move(dx>0?1:-1);else if(dy< -20)doJump();else if(dy>20)doSlide()});
+$('start').onclick=start;
+let sx=0,sy=0,moved=false;canvas.addEventListener('pointerdown',e=>{sx=e.clientX;sy=e.clientY;moved=false;try{canvas.setPointerCapture(e.pointerId)}catch(_){}});canvas.addEventListener('pointermove',e=>{if(Math.abs(e.clientX-sx)>18||Math.abs(e.clientY-sy)>18)moved=true});canvas.addEventListener('pointerup',e=>{let dx=e.clientX-sx,dy=e.clientY-sy;if(Math.abs(dx)>Math.abs(dy)&&Math.abs(dx)>24)move(dx>0?1:-1);else if(dy>24)doSlide();else if(!moved)doJump();else if(dy< -24)doJump()});
 gl.enable(gl.DEPTH_TEST);gl.disable(gl.CULL_FACE);gl.depthFunc(gl.LEQUAL);gl.clearDepth(1.0);requestAnimationFrame(frame);
 })();
 </script></body></html>
