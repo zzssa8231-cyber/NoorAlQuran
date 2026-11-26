@@ -2593,7 +2593,9 @@ public class MainActivity extends Activity {
         addText("مستوياتك: مبتدئ ٠–٤٩ • مجتهد ٥٠–١٤٩ • متميز ١٥٠–٢٩٩ • نابغة ٣٠٠ نقطة فأكثر", 13, Color.rgb(242, 211, 145));
         addText("المسابقات تعليمية وترفيهية، ولا توجد جوائز مالية أو سحب نقدي حالياً.", 12, Color.LTGRAY);
         addButton("العودة للرئيسية", this::home);
-        addAdultCard("📢 أعلن معنا / اطلب رعاية","قدّم طلب إعلانك في المسابقات وتحدي اليوم",this::showAdvertiserHub);\n        showApprovedCompetitionSponsors();\n        addText("إعلان", 11, Color.LTGRAY);
+        addAdultCard("📢 أعلن معنا / اطلب رعاية","قدّم طلب إعلانك في المسابقات وتحدي اليوم",this::showAdvertiserHub);
+        showApprovedCompetitionSponsors();
+        addText("إعلان", 11, Color.LTGRAY);
         AdView banner = new AdView(this);
         banner.setAdSize(AdSize.BANNER);
         banner.setAdUnitId(ADMOB_TEST_BANNER_ID);
