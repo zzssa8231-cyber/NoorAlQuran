@@ -4,56 +4,90 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>سباق نور القرآن 3D</title>
 <style>
-*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;font-family:Tahoma,Arial;background:#8bd8f5;touch-action:none}
-#game{display:block;width:100%;height:100%;touch-action:none}
-#hud{position:absolute;top:10px;left:10px;right:10px;display:flex;justify-content:space-between;gap:8px;pointer-events:none}
-.pill{background:#073d36dc;color:#fff;border:2px solid #f4d17d;border-radius:16px;padding:8px 12px;font-weight:bold;font-size:14px}
-#message{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#052e2bbb;padding:20px}
-.panel{width:min(92%,380px);background:linear-gradient(145deg,#fff4d2,#d9f5e7);border:4px solid #e4b95f;border-radius:26px;padding:22px;text-align:center;color:#17483e;box-shadow:0 12px 35px #073d3666}
-h1{font-size:25px;margin:0 0 8px}.sub{font-size:14px;line-height:1.7}
-button{border:0;border-radius:16px;padding:13px 20px;background:#16845d;color:white;font-size:17px;font-weight:bold;margin:7px;box-shadow:0 4px 0 #07543d}
-#controls{position:absolute;bottom:14px;left:0;right:0;display:flex;justify-content:center;gap:10px;pointer-events:none}
-.ctrl{pointer-events:auto;opacity:.88;min-width:74px;background:#073d36dd;border:2px solid #f4d17d}
-.small{font-size:12px;color:#477267}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#78c9ed;font-family:Tahoma,Arial;touch-action:none}
+#gl{position:absolute;inset:0;width:100%;height:100%;display:block}
+#hud{position:absolute;top:10px;left:10px;right:10px;display:flex;justify-content:space-between;gap:6px;pointer-events:none}
+.pill{background:#073d36e8;color:white;border:2px solid #f4d17d;border-radius:16px;padding:8px 11px;font-weight:bold;font-size:14px;text-shadow:0 1px 2px #123}
+#world{position:absolute;top:62px;left:50%;transform:translateX(-50%);color:#fff;background:#123c36aa;border-radius:20px;padding:5px 13px;font-size:12px;pointer-events:none}
+#controls{position:absolute;bottom:max(18px,env(safe-area-inset-bottom));left:0;right:0;display:flex;justify-content:space-around;gap:5px;padding:0 8px}
+.ctrl{min-width:65px;min-height:58px;border:2px solid #f4d17d;border-radius:17px;background:#073d36dc;color:#fff;font-size:19px;font-weight:bold;box-shadow:0 4px 0 #052a25;touch-action:none}
+#message{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#052e2b99;padding:18px}
+.panel{width:min(92%,390px);background:linear-gradient(145deg,#fff5d7,#d8f5e8);border:4px solid #e4b95f;border-radius:25px;padding:20px;text-align:center;color:#17483e;box-shadow:0 12px 35px #073d3666}
+h1{font-size:24px;margin:5px 0 9px}.sub{font-size:14px;line-height:1.8}
+button.start{border:0;border-radius:15px;padding:13px 24px;background:#16845d;color:white;font-size:18px;font-weight:bold;margin:8px;box-shadow:0 4px 0 #07543d}
+#toast{position:absolute;bottom:92px;left:50%;transform:translateX(-50%);background:#073d36dd;color:white;padding:8px 15px;border-radius:18px;display:none}
 </style></head>
 <body>
-<canvas id="game"></canvas>
-<div id="hud"><div class="pill" id="score">⭐ 0</div><div class="pill" id="best">أفضل نتيجة: 0</div><div class="pill" id="level">المرحلة 1</div></div>
-<div id="controls"><button class="ctrl" id="left">◀</button><button class="ctrl" id="jump">⬆ قفز</button><button class="ctrl" id="slide">⬇ انزلاق</button><button class="ctrl" id="right">▶</button></div>
-<div id="message"><div class="panel"><div style="font-size:48px">🌈🏃⭐</div><h1>سباق نور القرآن 3D</h1><div class="sub">اركض في عالم كرتوني ملون، اجمع النجوم وتجنب الحواجز. اسحب يميناً ويساراً لتغيير المسار، للأعلى للقفز وللأسفل للانزلاق.</div><button id="start">ابدأ السباق</button><div class="small">لعبة ترفيهية تعليمية • النقاط داخل اللعبة فقط</div></div></div>
+<canvas id="gl"></canvas>
+<div id="hud"><div class="pill" id="level">المرحلة 1</div><div class="pill" id="score">⭐ 0</div><div class="pill" id="best">أفضل: 0</div></div>
+<div id="world">🌳 الغابة الخضراء</div>
+<div id="controls"><button class="ctrl" id="left">◀</button><button class="ctrl" id="slide">⬇ انزلاق</button><button class="ctrl" id="jump">⬆ قفز</button><button class="ctrl" id="right">▶</button></div>
+<div id="toast"></div>
+<div id="message"><div class="panel"><div style="font-size:48px">🌈🏃⭐</div><h1>سباق نور القرآن 3D</h1><div class="sub">عالم ثلاثي الأبعاد حقيقي بتقنية WebGL. تحرك بين المسارات، اقفز فوق الحواجز، انزلق تحت العوائق واجمع النجوم!</div><button class="start" id="start">ابدأ السباق</button><div class="sub">اللعبة تعمل دون إنترنت • النقاط للترفيه داخل اللعبة فقط</div></div></div>
 <script>
 (()=> {
-const c=document.getElementById('game'),ctx=c.getContext('2d'),overlay=document.getElementById('message');
-let W=0,H=0,dpr=1,running=false,score=0,best=Number(localStorage.getItem('noorRunnerBest')||0),lane=0,jump=0,slide=0,speed=.34,spawn=0,items=[],last=0,world=0;
-document.getElementById('best').textContent='أفضل نتيجة: '+best;
-function resize(){dpr=Math.min(devicePixelRatio||1,2);W=c.clientWidth;H=c.clientHeight;c.width=W*dpr;c.height=H*dpr;ctx.setTransform(dpr,0,0,dpr,0,0)}addEventListener('resize',resize);resize();
-function poly(points,fill){ctx.fillStyle=fill;ctx.beginPath();points.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.closePath();ctx.fill()}
-function rounded(x,y,w,h,r,color){ctx.fillStyle=color;ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.fill()}
-function draw(){
-let sky=ctx.createLinearGradient(0,0,0,H);sky.addColorStop(0,'#66c9f3');sky.addColorStop(.58,'#d7f5cf');sky.addColorStop(1,'#75c77c');ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
-ctx.fillStyle='#fff4c4';ctx.beginPath();ctx.arc(W*.82,H*.15,Math.min(W,H)*.07,0,Math.PI*2);ctx.fill();
-for(let i=0;i<6;i++){let x=((i*173+world*.12)%(W+100))-40;ctx.fillStyle=i%2?'#48a96f':'#399b69';ctx.beginPath();ctx.arc(x,H*.48,30+(i%3)*9,0,Math.PI*2);ctx.fill();rounded(x-8,H*.48,16,H*.16,5,'#9b7044')}
-let horizon=H*.39,base=H*.94;
-poly([[W*.43,horizon],[W*.57,horizon],[W*.94,base],[W*.06,base]],'#b9a17a');
-poly([[W*.46,horizon],[W*.54,horizon],[W*.87,base],[W*.13,base]],'#e7d5a8');
-for(let k=-1;k<=1;k++){let x1=W/2+k*W*.045,x2=W/2+k*W*.25;ctx.strokeStyle='#fff5cf';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x1,horizon);ctx.lineTo(x2,base);ctx.stroke()}
-ctx.strokeStyle='#fff1bd';ctx.lineWidth=3;ctx.setLineDash([18,16]);ctx.beginPath();ctx.moveTo(W/2,horizon);ctx.lineTo(W/2,base);ctx.stroke();ctx.setLineDash([]);
+const canvas=document.getElementById('gl'), gl=canvas.getContext('webgl',{antialias:true,alpha:false});
+const overlay=document.getElementById('message'), $=id=>document.getElementById(id);
+if(!gl){$('message').innerHTML='<div class="panel"><h1>تعذر تشغيل الرسومات ثلاثية الأبعاد</h1><p>يبدو أن WebGL غير مدعوم على هذا الجهاز أو في نسخة WebView الحالية.</p><button class="start" onclick="location.reload()">إعادة المحاولة</button></div>';return;}
+const vs=`attribute vec3 p;attribute vec3 n;uniform mat4 vp;uniform mat4 model;varying float light;void main(){vec3 nn=normalize(mat3(model)*n);light=.42+.58*max(dot(nn,normalize(vec3(-.35,.85,.4))),0.0);gl_Position=vp*model*vec4(p,1.0);}`;
+const fs=`precision mediump float;uniform vec3 color;varying float light;void main(){gl_FragColor=vec4(color*light,1.0);}`;
+function shader(type,src){let s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw gl.getShaderInfoLog(s);return s}
+const prog=gl.createProgram();gl.attachShader(prog,shader(gl.VERTEX_SHADER,vs));gl.attachShader(prog,shader(gl.FRAGMENT_SHADER,fs));gl.linkProgram(prog);if(!gl.getProgramParameter(prog,gl.LINK_STATUS))throw gl.getProgramInfoLog(prog);gl.useProgram(prog);
+const loc={p:gl.getAttribLocation(prog,'p'),n:gl.getAttribLocation(prog,'n'),vp:gl.getUniformLocation(prog,'vp'),model:gl.getUniformLocation(prog,'model'),color:gl.getUniformLocation(prog,'color')};
+function mesh(data){let b=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(data),gl.STATIC_DRAW);return {b,count:data.length/6}}
+function cube(){let d=[],faces=[[[0,0,1],[[-.5,-.5,.5],[.5,-.5,.5],[.5,.5,.5],[-.5,.5,.5]]],[[0,0,-1],[[.5,-.5,-.5],[-.5,-.5,-.5],[-.5,.5,-.5],[.5,.5,-.5]]],[[1,0,0],[[.5,-.5,.5],[.5,-.5,-.5],[.5,.5,-.5],[.5,.5,.5]]],[[-1,0,0],[[-.5,-.5,-.5],[-.5,-.5,.5],[-.5,.5,.5],[-.5,.5,-.5]]],[[0,1,0],[[-.5,.5,.5],[.5,.5,.5],[.5,.5,-.5],[-.5,.5,-.5]]],[[0,-1,0],[[-.5,-.5,-.5],[.5,-.5,-.5],[.5,-.5,.5],[-.5,-.5,.5]]]];for(let [n,v] of faces){for(let i of [0,1,2,0,2,3])d.push(...v[i],...n)}return mesh(d)}
+function sphere(){let d=[],lat=12,lon=16;for(let y=0;y<lat;y++){let a=y*Math.PI/lat,b=(y+1)*Math.PI/lat;for(let x=0;x<lon;x++){let c=x*2*Math.PI/lon,e=(x+1)*2*Math.PI/lon;let pt=(u,v)=>[Math.sin(u)*Math.cos(v),Math.cos(u),Math.sin(u)*Math.sin(v)];let q=[pt(a,c),pt(b,c),pt(b,e),pt(a,e)];for(let i of [0,1,2,0,2,3])d.push(...q[i],...q[i])}}return mesh(d)}
+const C=cube(),S=sphere();
+function ident(){return [1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]}
+function mul(a,b){let o=new Array(16);for(let r=0;r<4;r++)for(let c=0;c<4;c++)o[c*4+r]=a[r]*b[c*4]+a[4+r]*b[c*4+1]+a[8+r]*b[c*4+2]+a[12+r]*b[c*4+3];return o}
+function trans(x,y,z){let m=ident();m[12]=x;m[13]=y;m[14]=z;return m}
+function scale(x,y,z){let m=ident();m[0]=x;m[5]=y;m[10]=z;return m}
+function rx(a){let m=ident(),c=Math.cos(a),s=Math.sin(a);m[5]=c;m[6]=s;m[9]=-s;m[10]=c;return m}
+function rz(a){let m=ident(),c=Math.cos(a),s=Math.sin(a);m[0]=c;m[1]=s;m[4]=-s;m[5]=c;return m}
+function persp(f,asp,n,far){let t=1/Math.tan(f/2),m=new Array(16).fill(0);m[0]=t/asp;m[5]=t;m[10]=(far+n)/(n-far);m[11]=-1;m[14]=2*far*n/(n-far);return m}
+function look(eye,center){let norm=v=>{let l=Math.hypot(...v)||1;return v.map(x=>x/l)},cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]],sub=(a,b)=>a.map((x,i)=>x-b[i]);let z=norm(sub(eye,center)),x=norm(cross([0,1,0],z)),y=cross(z,x);return [x[0],y[0],z[0],0,x[1],y[1],z[1],0,x[2],y[2],z[2],0,-x.reduce((s,v,i)=>s+v*eye[i],0),-y.reduce((s,v,i)=>s+v*eye[i],0),-z.reduce((s,v,i)=>s+v*eye[i],0),1]}
+let vp,objects=[],W=0,H=0;
+function resize(){let d=Math.min(devicePixelRatio||1,1.7);W=innerWidth;H=innerHeight;canvas.width=Math.floor(W*d);canvas.height=Math.floor(H*d);gl.viewport(0,0,canvas.width,canvas.height);vp=mul(persp( Math.PI/3,canvas.width/canvas.height,.1,100),look([0,5.3,9.5],[0,1,-8]));}
+addEventListener('resize',resize);resize();
+const worlds=[
+{name:'🌳 الغابة الخضراء',sky:[.35,.72,.88],ground:[.25,.55,.32],road:[.19,.22,.24],side:[.22,.48,.29],tree:[.1,.48,.25],leaf:[.12,.58,.3]},
+{name:'🏜️ الصحراء الذهبية',sky:[.92,.67,.38],ground:[.82,.63,.35],road:[.48,.37,.25],side:[.72,.53,.29],tree:[.35,.28,.13],leaf:[.56,.43,.18]},
+{name:'🌆 مدينة المستقبل',sky:[.3,.39,.63],ground:[.22,.27,.39],road:[.12,.14,.2],side:[.28,.3,.42],tree:[.12,.36,.34],leaf:[.16,.55,.48]}
+];
+let score=0,best=+(localStorage.getItem('noorRunner3DBest')||0),lane=0,jump=0,slide=0,run=false,world=0,elapsed=0,spawn=0,items=[],speed=8,last=0,toastTimer=0;
+$('best').textContent='أفضل: '+best;
+function draw(meshObj,m,col){gl.bindBuffer(gl.ARRAY_BUFFER,meshObj.b);gl.enableVertexAttribArray(loc.p);gl.vertexAttribPointer(loc.p,3,gl.FLOAT,false,24,0);gl.enableVertexAttribArray(loc.n);gl.vertexAttribPointer(loc.n,3,gl.FLOAT,false,24,12);gl.uniformMatrix4fv(loc.model,false,new Float32Array(m));gl.uniform3fv(loc.color,col);gl.drawArrays(gl.TRIANGLES,0,meshObj.count)}
+function box(x,y,z,sx,sy,sz,col,rot=0){let m=mul(trans(x,y,z),mul(rz(rot),scale(sx,sy,sz)));draw(C,m,col)}
+function ball(x,y,z,sx,sy,sz,col){draw(S,mul(trans(x,y,z),scale(sx,sy,sz)),col)}
+function worldDraw(t){
+let w=worlds[world];gl.clearColor(...w.sky,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+box(0,-.22,-18,34,.35,48,w.ground);
+box(0,-.04,-17,7,.25,46,w.road);
+for(let x of [-2.33,2.33])box(x,.02,-17,.12,.08,46,[.94,.84,.55]);
+for(let x of [-.78,.78])for(let z=-38;z<3;z+=4)box(x,.02,z,.045,.025,1.6,[.95,.88,.67]);
+for(let z=-40;z<3;z+=5){for(let side of [-1,1]){let x=side*(5.2+Math.sin(z*.2)*.5);box(x,1.05,z,.38,2.1,.42,w.tree);ball(x,2.5,z,.95,1.15,.9,w.leaf);ball(x-.48,2.1,z+.15,.65,.75,.7,w.leaf)}}
+if(world===1){for(let z=-32;z<0;z+=9)for(let side of [-1,1]){let x=side*7;box(x,.65,z,.3,1.3,.3,[.43,.3,.16]);ball(x,1.5,z,.8,.7,.8,[.63,.48,.21])}}
+if(world===2){for(let z=-35;z<0;z+=7)for(let side of [-1,1]){let x=side*7;box(x,1.6,z,1.7,3.2,1.5,[.22,.31,.48]);for(let yy=.5;yy<3;yy+=.7)for(let xx=-.4;xx<=.4;xx+=.8)box(x+xx,yy,z+.77,.24,.3,.05,[.95,.77,.38])}}
 }
-function pos(l,z){let t=z;return {x:W/2+l*(W*(.045+t*.205)),y:H*.39+t*H*.55,scale:.25+t*.95}}
-function drawItem(o){let p=pos(o.lane,o.z),s=p.scale;if(o.type==='star'){ctx.save();ctx.translate(p.x,p.y-22*s);ctx.scale(s,s);ctx.fillStyle='#ffd83d';ctx.strokeStyle='#fff3a0';ctx.lineWidth=3;ctx.beginPath();for(let i=0;i<10;i++){let a=-Math.PI/2+i*Math.PI/5,r=i%2?10:22;ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r)}ctx.closePath();ctx.fill();ctx.stroke();ctx.restore()}else{rounded(p.x-19*s,p.y-35*s,38*s,40*s,7*s,o.type==='low'?'#e66b57':'#7b69c7');rounded(p.x-14*s,p.y-29*s,28*s,7*s,3*s,'#ffd58a');}}
-function drawPlayer(){let p=pos(lane,.93),x=p.x,y=p.y-jump*H*.16,s=p.scale;ctx.fillStyle='#234b3e55';ctx.beginPath();ctx.ellipse(x,y+3,23*s,8*s,0,0,Math.PI*2);ctx.fill();if(slide>0){rounded(x-20*s,y-23*s,40*s,20*s,10*s,'#e6a34b');rounded(x-16*s,y-35*s,30*s,18*s,8*s,'#f1c99a')}else{rounded(x-18*s,y-57*s,36*s,38*s,12*s,'#168b72');ctx.fillStyle='#f1c99a';ctx.beginPath();ctx.arc(x,y-70*s,15*s,0,Math.PI*2);ctx.fill();ctx.fillStyle='#263d35';ctx.beginPath();ctx.arc(x-5*s,y-72*s,2*s,0,Math.PI*2);ctx.arc(x+5*s,y-72*s,2*s,0,Math.PI*2);ctx.fill();rounded(x-17*s,y-23*s,13*s,22*s,6*s,'#315b9a');rounded(x+4*s,y-23*s,13*s,22*s,6*s,'#315b9a')}}
-function spawnItem(){let l=Math.floor(Math.random()*3)-1;let type=Math.random()<.57?'star':(Math.random()<.5?'block':'low');items.push({lane:l,z:.02,type})}
-function update(dt){if(!running)return;world+=dt*speed*150;spawn-=dt;if(spawn<=0){spawnItem();spawn=.75+Math.random()*.45}speed=Math.min(.68,speed+dt*.002);for(let o of items)o.z+=dt*speed;items=items.filter(o=>o.z<1.12);jump=Math.max(0,jump-dt*2.3);slide=Math.max(0,slide-dt*1.7);
-for(let i=items.length-1;i>=0;i--){let o=items[i];if(o.z>.86&&o.z<1.03&&o.lane===lane){if(o.type==='star'){score+=10;items.splice(i,1);document.getElementById('score').textContent='⭐ '+score}else if((o.type==='block'&&jump<.35)||(o.type==='low'&&slide<.25)){endGame();break}}}
-document.getElementById('level').textContent='المرحلة '+(1+Math.floor(score/100))}
-function frame(t){let dt=Math.min((t-last)/1000||0,.04);last=t;draw();if(running){update(dt);items.sort((a,b)=>a.z-b.z);items.forEach(drawItem);drawPlayer()}requestAnimationFrame(frame)}
-function start(){score=0;lane=0;jump=0;slide=0;speed=.34;spawn=0;items=[];running=true;overlay.style.display='none';document.getElementById('score').textContent='⭐ 0'}
-function endGame(){running=false;if(score>best){best=score;localStorage.setItem('noorRunnerBest',best);document.getElementById('best').textContent='أفضل نتيجة: '+best}overlay.innerHTML='<div class="panel"><div style="font-size:45px">🏁⭐</div><h1>انتهى السباق!</h1><div class="sub">نتيجتك: '+score+' نقطة<br>أفضل نتيجة: '+best+'</div><button id="again">العب مرة أخرى</button><div class="small">النقاط للترفيه والتعلم داخل اللعبة فقط</div></div>';overlay.style.display='flex';document.getElementById('again').onclick=start}
-function move(d){if(!running)return;lane=Math.max(-1,Math.min(1,lane+d))}
-function doJump(){if(running&&jump===0&&slide===0)jump=1}
-function doSlide(){if(running&&jump===0)slide=1}
-document.getElementById('start').onclick=start;[['left',()=>move(-1)],['right',()=>move(1)],['jump',doJump],['slide',doSlide]].forEach(([id,fn])=>document.getElementById(id).addEventListener('pointerdown',e=>{e.preventDefault();fn()}));
-let sx=0,sy=0;c.addEventListener('pointerdown',e=>{sx=e.clientX;sy=e.clientY});c.addEventListener('pointerup',e=>{let dx=e.clientX-sx,dy=e.clientY-sy;if(Math.abs(dx)>Math.abs(dy))move(dx>0?1:-1);else if(dy< -20)doJump();else if(dy>20)doSlide()});
-requestAnimationFrame(frame);
+function playerDraw(t){let x=lane*1.55,y=.95+jump*1.5, stride=run?Math.sin(t*13)*.55:0, arm=run?Math.sin(t*13+Math.PI)*.5:0;if(slide>0)y=.42;
+ball(x,y+.65,0,.34,.39,.3,[.88,.62,.42]);ball(x-.12,y+.72,.27,.045,.06,.035,[.08,.12,.12]);ball(x+.12,y+.72,.27,.045,.06,.035,[.08,.12,.12]);
+box(x,y+.12,0,.58,.78,.36,[.04,.53,.42]);
+box(x-.36,y+.18,0,.18,.58,.18,[.88,.62,.42],arm);box(x+.36,y+.18,0,.18,.58,.18,[.88,.62,.42],-arm);
+box(x-.18,y-.42+Math.max(0,stride)*.2,.03,.2,.58,.22,[.12,.28,.65],stride*.65);box(x+.18,y-.42-Math.max(0,stride)*.2,.03,.2,.58,.22,[.12,.28,.65],-stride*.65);
+}
+function itemDraw(o){let x=o.l*1.55,z=o.z;if(o.type==='star'){ball(x,1.15,z,.32,.32,.12,[1,.78,.08]);box(x,1.15,z,.52,.08,.08,[1,.91,.3]);box(x,1.15,z,.08,.52,.08,[1,.91,.3])}else if(o.type==='low'){box(x,.55,z,.95,.22,.45,[.83,.31,.18]);box(x,.95,z,.14,.6,.14,[.98,.72,.22])}else{box(x,.8,z,.85,1.6,.7,[.56,.3,.72]);box(x,.3,z+.37,.45,.2,.05,[1,.83,.43])}}
+function spawnItem(){let l=Math.floor(Math.random()*3)-1;items.push({l,z:-34,type:Math.random()<.62?'star':(Math.random()<.5?'block':'low')})}
+function toast(s){$('toast').textContent=s;$('toast').style.display='block';clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').style.display='none',1000)}
+function update(dt,t){if(!run)return;elapsed+=dt;speed=Math.min(17,8+elapsed*.12);spawn-=dt;if(spawn<=0){spawnItem();spawn=.85+Math.random()*.35}jump=Math.max(0,jump-dt*2.6);slide=Math.max(0,slide-dt*1.8);
+for(let i=items.length-1;i>=0;i--){let o=items[i];o.z+=speed*dt;if(o.z>-.9&&o.z<1.1&&o.l===lane){if(o.type==='star'){score+=10;items.splice(i,1);$('score').textContent='⭐ '+score}else if((o.type==='block'&&jump<.4)||(o.type==='low'&&slide<.3)){end();return}}}
+items=items.filter(o=>o.z<3);let stage=1+Math.floor(score/100),nw=Math.floor(elapsed/24)%3;if(nw!==world){world=nw;$('world').textContent=worlds[world].name;toast('وصلت إلى '+worlds[world].name)}$('level').textContent='المرحلة '+stage;
+}
+function frame(ts){let dt=Math.min((ts-last)/1000||0,.04);last=ts;worldDraw(ts/1000);if(run){update(dt,ts/1000);for(let o of items)itemDraw(o);playerDraw(ts/1000)}else playerDraw(ts/1000);requestAnimationFrame(frame)}
+function start(){score=0;lane=0;jump=0;slide=0;speed=8;elapsed=0;spawn=0;items=[];world=0;run=true;$('world').textContent=worlds[0].name;$('score').textContent='⭐ 0';overlay.style.display='none'}
+function end(){run=false;if(score>best){best=score;localStorage.setItem('noorRunner3DBest',best);$('best').textContent='أفضل: '+best}overlay.innerHTML='<div class="panel"><div style="font-size:45px">🏁⭐</div><h1>انتهى السباق!</h1><div class="sub">نتيجتك: '+score+' نقطة<br>أفضل نتيجة: '+best+'</div><button class="start" id="again">العب مرة أخرى</button></div>';overlay.style.display='flex';$('again').onclick=start}
+function move(d){if(run)lane=Math.max(-1,Math.min(1,lane+d))}function doJump(){if(run&&jump===0&&slide===0)jump=1}function doSlide(){if(run&&jump===0)slide=1}
+$('start').onclick=start;[['left',()=>move(-1)],['right',()=>move(1)],['jump',doJump],['slide',doSlide]].forEach(([id,fn])=>$(id).addEventListener('pointerdown',e=>{e.preventDefault();fn()}));
+let sx=0,sy=0;canvas.addEventListener('pointerdown',e=>{sx=e.clientX;sy=e.clientY});canvas.addEventListener('pointerup',e=>{let dx=e.clientX-sx,dy=e.clientY-sy;if(Math.abs(dx)>Math.abs(dy))move(dx>0?1:-1);else if(dy< -20)doJump();else if(dy>20)doSlide()});
+gl.enable(gl.DEPTH_TEST);gl.enable(gl.CULL_FACE);gl.cullFace(gl.BACK);requestAnimationFrame(frame);
 })();
 </script></body></html>
