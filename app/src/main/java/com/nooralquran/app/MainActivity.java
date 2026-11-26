@@ -8,6 +8,9 @@ import android.graphics.drawable.GradientDrawable;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.*;
+import android.webkit.WebView;
+import android.webkit.WebSettings;
+import android.webkit.WebViewClient;
 import android.media.MediaPlayer;
 import java.util.Locale;
 import java.io.BufferedReader;
@@ -270,6 +273,39 @@ public class MainActivity extends Activity {
         popup.getMenu().add("🌙 الإمساكية").setOnMenuItemClickListener(item -> { showImsakiyah(); return true; });
         popup.getMenu().add("🕌 مواقيت الصلاة").setOnMenuItemClickListener(item -> { showPrayerTimes(); return true; });
         popup.show();
+    }
+
+
+    void showNoorRunnerGame() {
+        LinearLayout screen = new LinearLayout(this);
+        screen.setOrientation(LinearLayout.VERTICAL);
+        screen.setBackgroundColor(Color.rgb(9, 42, 39));
+        LinearLayout bar = new LinearLayout(this);
+        bar.setGravity(Gravity.CENTER_VERTICAL);
+        bar.setPadding(dp(8), dp(6), dp(8), dp(6));
+        Button back = new Button(this);
+        back.setText("رجوع");
+        back.setAllCaps(false);
+        back.setOnClickListener(v -> { home(); });
+        TextView heading = new TextView(this);
+        heading.setText("🏃 سباق نور القرآن 3D");
+        heading.setTextColor(Color.rgb(255, 224, 157));
+        heading.setTextSize(18);
+        heading.setGravity(Gravity.CENTER);
+        bar.addView(back, new LinearLayout.LayoutParams(dp(76), dp(46)));
+        bar.addView(heading, new LinearLayout.LayoutParams(0, -2, 1f));
+        screen.addView(bar);
+        WebView game = new WebView(this);
+        game.setBackgroundColor(Color.rgb(135, 206, 235));
+        WebSettings settings = game.getSettings();
+        settings.setJavaScriptEnabled(true);
+        settings.setDomStorageEnabled(true);
+        settings.setAllowFileAccess(true);
+        settings.setMediaPlaybackRequiresUserGesture(true);
+        game.setWebViewClient(new WebViewClient());
+        screen.addView(game, new LinearLayout.LayoutParams(-1, 0, 1f));
+        setContentView(screen);
+        game.loadUrl("file:///android_asset/runner/index.html");
     }
 
     void showSettings() {
@@ -1629,6 +1665,7 @@ public class MainActivity extends Activity {
         addAdultCard("🎧 الاستماع إلى القرآن", "اختر القارئ والسورة واستمتع بالتلاوة", this::audioScreen);
         addAdultCard("🌅 أذكار الصباح والمساء", "أذكار مختارة مع عدّاد للتكرار", this::showAdhkar);
         addAdultCard("📿 المسبحة الإلكترونية", "تسبيح واستغفار مع عدّاد", this::tasbeeh);
+        addAdultCard("🏃 سباق نور القرآن 3D", "تحديات ركض ثلاثية الأبعاد وجمع النجوم", this::showNoorRunnerGame);
         addAdultCard("💰 حاسبة الزكاة", "حساب ٢٫٥٪ من المبلغ المُدخل", this::zakat);
         addAdultCard("🌿 وردي اليومي", "اختر سورة لتجعلها وردك اليوم", this::showDailyWird);
         addAdultCard("🔖 متابعة القراءة", "العودة إلى آخر سورة فتحتها", this::continueReading);
@@ -2548,6 +2585,7 @@ public class MainActivity extends Activity {
         layout.addView(scoreCard, scoreParams);
 
         addAdultCard("🌟 تحدي اليوم", "٥ أسئلة يومية • نقاط إضافية • محاولة واحدة كل يوم", this::startDailyChallenge);
+        addAdultCard("🏃 سباق نور القرآن 3D", "العب واجمع النجوم وتجاوز العقبات", this::showNoorRunnerGame);
         addAdultCard("📖 المسابقة القرآنية والإسلامية", "٢٥ سؤالاً متنوعاً • تظهر ١٠ أسئلة عشوائية في كل جولة • ١٠ نقاط لكل إجابة صحيحة", () -> startQuiz());
         addAdultCard("🏆 لوحة المتصدرين", "شاهد أفضل المشاركين ونقاطهم عبر الإنترنت", this::showLeaderboard);
         addAdultCard("🎁 كيف تربح؟", "اجمع النقاط بالإجابة الصحيحة، ثم تابع رصيدك داخل التطبيق.", () ->
