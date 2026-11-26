@@ -3087,7 +3087,7 @@ public class MainActivity extends Activity {
     }
 
     class BubbleShooterView extends View {
-        final int[] palette={Color.rgb(0,235,245),Color.rgb(255,55,82),Color.rgb(205,55,245),Color.rgb(55,140,255),Color.rgb(45,225,95),Color.rgb(255,185,35)};
+        final int[] palette={Color.rgb(0,220,235),Color.rgb(255,70,112),Color.rgb(190,92,255),Color.rgb(65,145,255),Color.rgb(55,220,145),Color.rgb(255,190,65)};
         final int rows=10,cols=10;
         final int[][] board=new int[rows][cols];
         final android.graphics.Paint p=new android.graphics.Paint(3);
@@ -3132,7 +3132,7 @@ public class MainActivity extends Activity {
         }};
         BubbleShooterView(){super(MainActivity.this);setLayerType(View.LAYER_TYPE_HARDWARE,null);
             for(int r=0;r<rows;r++)for(int c=0;c<cols;c++)board[r][c]=-1;
-            for(int r=0;r<7;r++)for(int c=0;c<cols;c++){if(r>4&&random.nextFloat()<.10f)continue;board[r][c]=random.nextInt(5);}
+            for(int r=0;r<7;r++)for(int c=0;c<cols;c++){if(r>4&&random.nextFloat()<.10f)continue;board[r][c]=random.nextInt(palette.length);}
             current=random.nextInt(palette.length);next=random.nextInt(palette.length);setFocusable(true);
         }
         float dp(float v){return v*getResources().getDisplayMetrics().density;}
@@ -3140,7 +3140,7 @@ public class MainActivity extends Activity {
         float bubbleX(int r,int c){return startX()+c*cellX+(r%2==1?radius:0);}
         float bubbleY(int r){return top+r*cellY;}
         @Override protected void onSizeChanged(int w,int h,int oldw,int oldh){
-            radius=Math.min(w/(cols*2.38f),dp(16));cellX=radius*2.02f;cellY=radius*1.76f;
+            radius=Math.min(w/(cols*2.30f),dp(17));cellX=radius*2.02f;cellY=radius*1.78f;
             top=dp(76);shooterY=h-dp(132);aimX=w/2f;aimY=top+dp(100);
         }
         @Override protected void onDraw(android.graphics.Canvas c){
@@ -3214,13 +3214,17 @@ public class MainActivity extends Activity {
         void drawBubble(android.graphics.Canvas c,float x,float y,float r,int color){
             p.setStyle(android.graphics.Paint.Style.FILL);p.setShader(null);
             p.setColor(0x6603132B);c.drawCircle(x+r*.13f,y+r*.24f,r*1.10f,p);
-            // Colored halo gives each bubble a soft neon edge without hiding its color.
-            p.setColor((0x35<<24)|(color&0x00FFFFFF));c.drawCircle(x,y,r*1.19f,p);
+            // Layered neon rim, glossy body and tiny reflected highlights.
+            p.setColor(0x223BEAFF);c.drawCircle(x,y,r*1.28f,p);
+            p.setColor((0x45<<24)|(color&0x00FFFFFF));c.drawCircle(x,y,r*1.15f,p);
             p.setShader(new android.graphics.RadialGradient(x-r*.34f,y-r*.39f,r*1.58f,new int[]{0xFFFFFFFF,lighten(color),color,darken(color)},new float[]{0f,.19f,.62f,1f},android.graphics.Shader.TileMode.CLAMP));
             c.drawCircle(x,y,r,p);p.setShader(null);
-            p.setColor(0xCCFFFFFF);c.drawOval(x-r*.58f,y-r*.70f,x-r*.05f,y-r*.31f,p);
-            p.setColor(0x66FFFFFF);c.drawOval(x-r*.38f,y-r*.49f,x-r*.19f,y-r*.40f,p);
-            p.setColor(0x44FFFFFF);p.setStyle(android.graphics.Paint.Style.STROKE);p.setStrokeWidth(Math.max(dp(1),r*.07f));c.drawCircle(x,y,r*.94f,p);p.setStyle(android.graphics.Paint.Style.FILL);
+            p.setShader(new android.graphics.LinearGradient(x-r*.35f,y-r*.05f,x+r*.28f,y+r*.88f,new int[]{0x00FFFFFF,0x22FFFFFF,0x66000000},null,android.graphics.Shader.TileMode.CLAMP));
+            c.drawOval(x-r*.78f,y-r*.05f,x+r*.78f,y+r*.88f,p);p.setShader(null);
+            p.setColor(0xEEFFFFFF);c.drawOval(x-r*.59f,y-r*.72f,x-r*.08f,y-r*.34f,p);
+            p.setColor(0x88FFFFFF);c.drawOval(x-r*.39f,y-r*.52f,x-r*.20f,y-r*.43f,p);
+            p.setColor(0x99FFFFFF);c.drawCircle(x+r*.52f,y-r*.42f,r*.075f,p);
+            p.setColor(0x66FFFFFF);p.setStyle(android.graphics.Paint.Style.STROKE);p.setStrokeWidth(Math.max(dp(1),r*.075f));c.drawCircle(x,y,r*.95f,p);p.setStyle(android.graphics.Paint.Style.FILL);
         }
         int lighten(int color){return Color.rgb(Math.min(255,Color.red(color)+65),Math.min(255,Color.green(color)+65),Math.min(255,Color.blue(color)+65));}
         int darken(int color){return Color.rgb((int)(Color.red(color)*.55f),(int)(Color.green(color)*.55f),(int)(Color.blue(color)*.62f));}
@@ -3288,7 +3292,7 @@ public class MainActivity extends Activity {
             }
             if(group.size()>=3){
                 for(int[] a:group){float x=bubbleX(a[0],a[1]),y=bubbleY(a[0]);
-                    for(int k=0;k<15;k++)particles.add(new Particle(x,y,palette[flyingColor],1.25f));
+                    for(int k=0;k<24;k++)particles.add(new Particle(x,y,palette[flyingColor],1.45f));
                     board[a[0]][a[1]]=-1;
                 }
                 score+=group.size()*10;screenPulse=1f;
@@ -3297,10 +3301,10 @@ public class MainActivity extends Activity {
                 for(int col=0;col<cols;col++)if(board[0][col]>=0){connected[0][col]=true;topQueue.add(new int[]{0,col});}
                 while(!topQueue.isEmpty()){int[] a=topQueue.remove();for(int k=0;k<6;k++){int[] nb=neighbors(a[0],a[1],k);int rr=nb[0],cc=nb[1];if(valid(rr,cc)&&!connected[rr][cc]&&board[rr][cc]>=0){connected[rr][cc]=true;topQueue.add(nb);}}}
                 for(int r=0;r<rows;r++)for(int col=0;col<cols;col++)if(board[r][col]>=0&&!connected[r][col]){
-                    float x=bubbleX(r,col),y=bubbleY(r);for(int k=0;k<5;k++)particles.add(new Particle(x,y,palette[board[r][col]],1.5f));board[r][col]=-1;score+=20;
+                    float x=bubbleX(r,col),y=bubbleY(r);for(int k=0;k<9;k++)particles.add(new Particle(x,y,palette[board[r][col]],1.65f));board[r][col]=-1;score+=20;
                 }
             }else{
-                float x=bubbleX(bestR,bestC),y=bubbleY(bestR);for(int k=0;k<8;k++)particles.add(new Particle(x,y,palette[flyingColor],.55f));screenPulse=.22f;
+                float x=bubbleX(bestR,bestC),y=bubbleY(bestR);for(int k=0;k<14;k++)particles.add(new Particle(x,y,palette[flyingColor],.85f));screenPulse=.22f;
             }
             shots--;current=next;next=random.nextInt(palette.length);
             if(shots<=0)finished=true;
