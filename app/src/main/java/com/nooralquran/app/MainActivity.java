@@ -3099,6 +3099,7 @@ public class MainActivity extends Activity {
         BubbleShooterView() {
             super(MainActivity.this);
             setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+            for (int r=0;r<rows;r++) for (int col=0;col<cols;col++) board[r][col]=-1;
             for (int r=0;r<7;r++) for (int col=0;col<cols;col++) {
                 if (r>3 && random.nextFloat()<.13f) continue;
                 board[r][col]=random.nextInt(5);
@@ -3113,7 +3114,7 @@ public class MainActivity extends Activity {
                 new int[]{Color.rgb(30,91,160),Color.rgb(82,180,245),Color.rgb(92,190,245)},null,android.graphics.Shader.TileMode.CLAMP);
             p.setShader(bg); c.drawRect(0,0,w,h,p); p.setShader(null);
             // soft glow behind the playfield
-            p.setColor(0x223FFFFFF); c.drawCircle(w*.5f,h*.34f,w*.52f,p);
+            p.setColor(0x223FFFFF); c.drawCircle(w*.5f,h*.34f,w*.52f,p);
             radius=Math.min(w/(cols*2.12f),dp(19));
             cellX=radius*2.02f; top=dp(64); shooterY=h-dp(120); aimX=w*.5f;
             // top score and progress bar
