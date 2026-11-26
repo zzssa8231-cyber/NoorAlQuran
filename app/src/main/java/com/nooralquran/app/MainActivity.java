@@ -3201,7 +3201,7 @@ public class MainActivity extends Activity {
             c.drawCircle(x,y,r,p);p.setShader(null);
             p.setColor(0xCCFFFFFF);c.drawOval(x-r*.58f,y-r*.70f,x-r*.05f,y-r*.31f,p);
             p.setColor(0x66FFFFFF);c.drawOval(x-r*.38f,y-r*.49f,x-r*.19f,y-r*.40f,p);
-            p.setColor(0x448FFFFFF);p.setStyle(android.graphics.Paint.Style.STROKE);p.setStrokeWidth(Math.max(dp(1),r*.07f));c.drawCircle(x,y,r*.94f,p);p.setStyle(android.graphics.Paint.Style.FILL);
+            p.setColor(0x44FFFFFF);p.setStyle(android.graphics.Paint.Style.STROKE);p.setStrokeWidth(Math.max(dp(1),r*.07f));c.drawCircle(x,y,r*.94f,p);p.setStyle(android.graphics.Paint.Style.FILL);
         }
         int lighten(int color){return Color.rgb(Math.min(255,Color.red(color)+65),Math.min(255,Color.green(color)+65),Math.min(255,Color.blue(color)+65));}
         int darken(int color){return Color.rgb((int)(Color.red(color)*.55f),(int)(Color.green(color)*.55f),(int)(Color.blue(color)*.62f));}
