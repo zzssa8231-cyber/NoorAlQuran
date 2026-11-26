@@ -1,71 +1,35 @@
-<!doctype html>
-<html lang="ar" dir="rtl">
-<head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>سباق نور القرآن 3D</title>
-<style>
-*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#78c9ed;font-family:Tahoma,Arial;touch-action:none}
-#gl{position:absolute;inset:0;width:100%;height:100%;display:block}
-#hud{position:absolute;top:10px;left:10px;right:10px;display:flex;justify-content:space-between;gap:6px;pointer-events:none}
-.pill{background:#073d36e8;color:white;border:2px solid #f4d17d;border-radius:16px;padding:8px 11px;font-weight:bold;font-size:14px;text-shadow:0 1px 2px #123}
-#world{position:absolute;top:62px;left:50%;transform:translateX(-50%);color:#fff;background:#123c36aa;border-radius:20px;padding:5px 13px;font-size:12px;pointer-events:none}
-#touchHint{position:absolute;bottom:max(18px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);background:#073d36c9;color:#fff;border:1px solid #f4d17d;border-radius:18px;padding:9px 14px;font-size:13px;white-space:nowrap;pointer-events:none}
-#message{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#052e2b99;padding:18px}
-.panel{width:min(92%,390px);background:linear-gradient(145deg,#fff5d7,#d8f5e8);border:4px solid #e4b95f;border-radius:25px;padding:20px;text-align:center;color:#17483e;box-shadow:0 12px 35px #073d3666}
-h1{font-size:24px;margin:5px 0 9px}.sub{font-size:14px;line-height:1.8}
-button.start{border:0;border-radius:15px;padding:13px 24px;background:#16845d;color:white;font-size:18px;font-weight:bold;margin:8px;box-shadow:0 4px 0 #07543d}
-#toast{position:absolute;bottom:92px;left:50%;transform:translateX(-50%);background:#073d36dd;color:white;padding:8px 15px;border-radius:18px;display:none}
-</style><script src="three.min.js"></script><script src="GLTFLoader.js"></script></head>
-<body>
-<canvas id="gl"></canvas>
-<div id="hud"><div class="pill" id="level">المرحلة 1</div><div class="pill" id="score">⭐ 0</div><div class="pill" id="best">أفضل: 0</div></div>
-<div id="world">🌳 الغابة الخضراء</div>
-<div id="touchHint">المس اللاعب للقفز • اسحب يميناً أو يساراً لتغيير الاتجاه</div>
-<div id="toast"></div>
-<div id="message"><div class="panel"><div style="font-size:48px">🌈🏃⭐</div><h1>سباق نور القرآن 3D</h1><div class="sub">المس الشخصية للقفز، واسحب يميناً أو يساراً لتغيير المسار. اجمع النجوم وتجنب المطبات والحواجز!</div><button class="start" id="start">ابدأ السباق</button><div class="sub">اللعبة تعمل دون إنترنت • النقاط للترفيه داخل اللعبة فقط</div></div></div>
-<script>
-(()=> {
-const $=id=>document.getElementById(id), overlay=$('message'), canvas=$('gl');
-if(!window.THREE||!THREE.GLTFLoader){$('message').innerHTML='<div class="panel"><h1>تعذر تحميل محرك 3D</h1><p>ملفات المحرك المحلية غير موجودة.</p></div>';return;}
-let scene=new THREE.Scene(); scene.background=new THREE.Color(0x82cbe8); scene.fog=new THREE.Fog(0x82cbe8,24,78);
-const camera=new THREE.PerspectiveCamera(58,innerWidth/innerHeight,.1,120);camera.position.set(0,4.6,8.8);camera.lookAt(0,1,-5);
-const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:false});renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.5));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputEncoding=THREE.sRGBEncoding;
-scene.add(new THREE.HemisphereLight(0xd9efff,0x40533b,1.15));
-const sun=new THREE.DirectionalLight(0xffe4bd,1.35);sun.position.set(-5,10,6);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);scene.add(sun);
-const worlds=[
-{name:'🌳 الغابة الخضراء',sky:0x82cbe8,ground:0x557d4b,road:0x30343a,leaf:0x276b39,bark:0x59402c},
-{name:'🏜️ الصحراء الذهبية',sky:0xe6b978,ground:0xc69b5e,road:0x62503d,leaf:0x786039,bark:0x765536},
-{name:'🌆 مدينة المستقبل',sky:0x596b91,ground:0x424c5d,road:0x242a35,leaf:0x347d78,bark:0x4b5260}
-];
-let world=0,score=0,best=+(localStorage.getItem('noorRunner3DBest')||0),lane=0,jump=0,slide=0,run=false,elapsed=0,spawn=0,speed=8,last=0,items=[];
-$('best').textContent='أفضل: '+best;
-let ground,road,trees=[],decor=[],player=null,mixer=null,runAction=null,modelReady=false;
-function mat(color,roughness=.88){return new THREE.MeshStandardMaterial({color,roughness})}
-function addBox(parent,x,y,z,sx,sy,sz,material){let m=new THREE.Mesh(new THREE.BoxGeometry(sx,sy,sz),material);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m}
-function makeTree(x,z){let g=new THREE.Group();let bark=addBox(g,0,.9,0,.34,1.8,.34,mat(worlds[world].bark));for(let k=0;k<3;k++){let crown=new THREE.Mesh(new THREE.SphereGeometry(.8-k*.1,16,12),mat(worlds[world].leaf));crown.position.set((k-1)*.38,2.05+(k%2)*.35,0);crown.scale.set(1,1.15,1);crown.castShadow=true;g.add(crown)}g.position.set(x,0,z);scene.add(g);trees.push(g)}
-function buildWorld(){scene.background.setHex(worlds[world].sky);scene.fog.color.setHex(worlds[world].sky);
-if(ground)scene.remove(ground);if(road)scene.remove(road);trees.forEach(t=>scene.remove(t));trees=[];
-ground=new THREE.Mesh(new THREE.PlaneGeometry(42,100),mat(worlds[world].ground));ground.rotation.x=-Math.PI/2;ground.position.set(0,-.12,-28);ground.receiveShadow=true;scene.add(ground);
-road=new THREE.Mesh(new THREE.PlaneGeometry(7.4,100),mat(worlds[world].road));road.rotation.x=-Math.PI/2;road.position.set(0,-.045,-28);road.receiveShadow=true;scene.add(road);
-for(let z=-68;z<8;z+=4){for(let side of [-1,1]){let x=side*5.1;makeTree(x,z);}}
-for(let x of [-1.22,1.22]){let line=addBox(scene,x,-.025,-28,.035,.02,100,mat(0xd6c59b));line.castShadow=false}
-}
-buildWorld();
-function setWorld(n){world=n;buildWorld();$('world').textContent=worlds[world].name;toast('وصلت إلى '+worlds[world].name)}
-const loader=new THREE.GLTFLoader();
-loader.load('run-maya-3d-person-animated.glb',g=>{
-player=g.scene;player.scale.setScalar(1.45);player.position.set(0,0,0);player.rotation.y=Math.PI;player.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;if(o.material){o.material.roughness=.72;o.material.metalness=.02}}});scene.add(player);
-mixer=new THREE.AnimationMixer(player);let clip=THREE.AnimationClip.findByName(g.animations,'Run')||g.animations[0];if(clip){runAction=mixer.clipAction(clip);runAction.play()}modelReady=true;$('start').disabled=false;$('start').textContent='ابدأ السباق';
-},undefined,e=>{console.error(e);$('message').innerHTML='<div class="panel"><h1>تعذر تحميل الشخصية</h1><p>تأكد من وجود ملف GLB داخل مجلد runner ثم أعد البناء.</p></div>'});
-$('start').disabled=true;$('start').textContent='جارٍ تحميل الشخصية...';
 function obstacle(o){let m;if(o.type==='star'){m=new THREE.Mesh(new THREE.TorusGeometry(.25,.09,10,20),new THREE.MeshStandardMaterial({color:0xffcf35,metalness:.55,roughness:.25,emissive:0x5a3300}));m.position.set(o.l*1.55,1.25,o.z);m.rotation.x=Math.PI/2}else{m=new THREE.Mesh(o.type==='low'?new THREE.BoxGeometry(1.15,.42,.48):new THREE.DodecahedronGeometry(.58,1),mat(o.type==='low'?0x785b3d:0x68645d));m.position.set(o.l*1.55,o.type==='low'?.22:.62,o.z);m.castShadow=true;m.receiveShadow=true}scene.add(m);o.mesh=m}
+function obstacle(o){
+ let g=new THREE.Group();
+ if(o.type==='star'){
+  let gold=new THREE.MeshStandardMaterial({color:0xffc629,metalness:.88,roughness:.18,emissive:0x5a3000,emissiveIntensity:.55});
+  let coin=new THREE.Mesh(new THREE.CylinderGeometry(.28,.28,.075,32),gold);coin.rotation.x=Math.PI/2;g.add(coin);
+  let rim=new THREE.Mesh(new THREE.TorusGeometry(.255,.035,10,32),new THREE.MeshStandardMaterial({color:0xffed86,metalness:.9,roughness:.15,emissive:0x8a5700}));g.add(rim);
+  let halo=new THREE.Mesh(new THREE.TorusGeometry(.42,.012,6,36),new THREE.MeshBasicMaterial({color:0xffd84d,transparent:true,opacity:.65}));g.add(halo);halo.userData.halo=true;
+  let light=new THREE.PointLight(0xffbd28,.8,3);g.add(light);g.userData.gold=true;
+  g.position.set(o.l*1.55,1.35,o.z);
+ }else if(o.type==='low'){
+  let wood=mat(0x6c4930),metal=mat(0x3d4548);
+  let beam=addBox(g,0,.52,0,1.28,.22,.22,wood);
+  for(let x of [-.52,.52]){let leg=addBox(g,x,.25,0,.12,.5,.16,metal)}
+  for(let x of [-.34,.34]){let band=addBox(g,x,.53,.116,.16,.23,.025,mat(0xe5b735))}
+  g.position.set(o.l*1.55,0,o.z);
+ }else{
+  let base=addBox(g,0,.47,0,1.25,.72,.22,mat(0x9a9b96));
+  for(let x of [-.48,.48]){let foot=addBox(g,x,.08,0,.16,.16,.34,mat(0x4b5051))}
+  let stripe=addBox(g,0,.49,.118,1.12,.18,.025,mat(0xe8ad32));
+  for(let x of [-.42,-.12,.18,.48]){let slash=addBox(g,x,.49,.137,.13,.2,.018,mat(0x252a2d));slash.rotation.z=-.55}
+  g.position.set(o.l*1.55,0,o.z);
+ }
+ scene.add(g);o.mesh=g;
+}
 function spawnItem(){let o={l:Math.floor(Math.random()*3)-1,z:-36,type:Math.random()<.62?'star':(Math.random()<.5?'block':'low')};obstacle(o);items.push(o)}
 function toast(s){$('toast').textContent=s;$('toast').style.display='block';setTimeout(()=>$('toast').style.display='none',1100)}
 function start(){if(!modelReady)return;score=0;lane=0;jump=0;slide=0;speed=8;elapsed=0;spawn=0;items.forEach(o=>scene.remove(o.mesh));items=[];world=0;buildWorld();$('world').textContent=worlds[0].name;run=true;overlay.style.display='none';$('score').textContent='⭐ 0';}
 function end(){run=false;if(score>best){best=score;localStorage.setItem('noorRunner3DBest',best);$('best').textContent='أفضل: '+best}overlay.innerHTML='<div class="panel"><div style="font-size:45px">🏁⭐</div><h1>انتهى السباق!</h1><div class="sub">نتيجتك: '+score+' نقطة<br>أفضل نتيجة: '+best+'</div><button class="start" id="again">العب مرة أخرى</button></div>';overlay.style.display='flex';$('again').onclick=start}
 function move(d){if(run)lane=Math.max(-1,Math.min(1,lane+d))}function doJump(){if(run&&jump===0&&slide===0)jump=1}function doSlide(){if(run&&jump===0)slide=1}
 function update(dt){if(!run)return;elapsed+=dt;speed=Math.min(17,8+elapsed*.12);spawn-=dt;if(spawn<=0){spawnItem();spawn=.85+Math.random()*.35}jump=Math.max(0,jump-dt*2.6);slide=Math.max(0,slide-dt*1.8);
-for(let i=items.length-1;i>=0;i--){let o=items[i];o.z+=speed*dt;o.mesh.position.z=o.z;if(o.type==='star')o.mesh.rotation.z+=dt*2;if(o.z>-.8&&o.z<1&&o.l===lane){if(o.type==='star'){score+=10;scene.remove(o.mesh);items.splice(i,1);$('score').textContent='⭐ '+score}else if((o.type==='block'&&jump<.4)||(o.type==='low'&&slide<.3)){end();return}}}
+for(let i=items.length-1;i>=0;i--){let o=items[i];o.z+=speed*dt;o.mesh.position.z=o.z;if(o.type==='star'){o.mesh.rotation.y+=dt*2.7;o.mesh.position.y=1.35+Math.sin(elapsed*5+o.z)*.09;o.mesh.children[2].rotation.z+=dt*1.4;}if(o.z>-.8&&o.z<1&&o.l===lane){if(o.type==='star'){score+=10;scene.remove(o.mesh);items.splice(i,1);$('score').textContent='⭐ '+score}else if((o.type==='block'&&jump<.4)||(o.type==='low'&&slide<.3)){end();return}}}
 items=items.filter(o=>{if(o.z>4){scene.remove(o.mesh);return false}return true});let nw=Math.floor(elapsed/24)%3;if(nw!==world)setWorld(nw);$('level').textContent='المرحلة '+(1+Math.floor(score/100));
 }
 function animate(ts){requestAnimationFrame(animate);let dt=Math.min((ts-last)/1000||0,.04);last=ts;update(dt);if(player){player.position.x+=(lane*1.55-player.position.x)*Math.min(1,dt*9);player.position.y=jump*1.25-(slide>0?.48:0);player.rotation.z+=(0-player.rotation.z)*Math.min(1,dt*8);if(mixer)mixer.update(dt)}camera.position.x+=(lane*.22-camera.position.x)*Math.min(1,dt*2);camera.lookAt(0,1.05,-5);renderer.render(scene,camera)}
