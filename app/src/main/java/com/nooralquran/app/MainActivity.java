@@ -3096,6 +3096,7 @@ public class MainActivity extends Activity {
         final java.util.ArrayList<Particle> particles=new java.util.ArrayList<>();
         final java.util.ArrayList<float[]> shotPath=new java.util.ArrayList<>();
         int current,next,score=0,shots=44;
+        int aimHitRow=-1,aimHitCol=-1;
         boolean finished=false,flying=false;
         float radius,cellX,cellY,top,shooterY,aimX,aimY,flyX,flyY,flyProgress,screenPulse=0;
         int flyingColor;
@@ -3177,6 +3178,11 @@ public class MainActivity extends Activity {
                     c.drawCircle(dot[0],dot[1],dp(1.7f),p);
                 }
                 if(!shotPath.isEmpty()){
+                    if(aimHitRow>=0&&aimHitCol>=0){
+                        float tx=bubbleX(aimHitRow,aimHitCol),ty=bubbleY(aimHitRow);
+                        p.setColor(0x554DFFF0);c.drawCircle(tx,ty,radius*1.48f,p);
+                        p.setColor(0xFFB9FFF4);p.setStyle(android.graphics.Paint.Style.STROKE);p.setStrokeWidth(dp(2));c.drawCircle(tx,ty,radius*1.12f,p);p.setStyle(android.graphics.Paint.Style.FILL);
+                    }
                     float[] end=shotPath.get(shotPath.size()-1);
                     p.setColor(0x443CEBFF);c.drawCircle(end[0],end[1],radius*1.28f,p);
                     p.setColor(0xFFFFE18A);p.setStyle(android.graphics.Paint.Style.STROKE);
@@ -3239,7 +3245,7 @@ public class MainActivity extends Activity {
         }
         boolean valid(int r,int col){return r>=0&&r<rows&&col>=0&&col<cols;}
         void updateAimPath(){
-            shotPath.clear();float sx=getWidth()/2f,sy=shooterY;
+            shotPath.clear();aimHitRow=-1;aimHitCol=-1;float sx=getWidth()/2f,sy=shooterY;
             float dx=aimX-sx,dy=aimY-sy;
             if(dy> -dp(24))dy=-dp(24);
             float len=(float)Math.hypot(dx,dy);if(len<1)len=1;dx/=len;dy/=len;
@@ -3250,9 +3256,11 @@ public class MainActivity extends Activity {
                 if(x>getWidth()-radius){x=(getWidth()-radius)-(x-(getWidth()-radius));dx=-Math.abs(dx);}
                 if(y<=top+radius*.15f){y=top+radius*.15f;shotPath.add(new float[]{x,y});break;}
                 boolean hit=false;
+                float hitDistance=(radius*1.92f)*(radius*1.92f);
                 for(int r=0;r<rows&&!hit;r++)for(int col=0;col<cols;col++)if(board[r][col]>=0){
                     float bx=bubbleX(r,col),by=bubbleY(r);
-                    if((x-bx)*(x-bx)+(y-by)*(y-by)<(radius*1.88f)*(radius*1.88f)){hit=true;break;}
+                    float d=(x-bx)*(x-bx)+(y-by)*(y-by);
+                    if(d<hitDistance){hit=true;hitDistance=d;aimHitRow=r;aimHitCol=col;}
                 }
                 if(hit){shotPath.add(new float[]{x,y});break;}
                 if(n%4==0)shotPath.add(new float[]{x,y});
@@ -3267,20 +3275,31 @@ public class MainActivity extends Activity {
         }
         void shoot(){
             if(finished||flying)return;updateAimPath();if(shotPath.size()<2)return;
+            performHapticFeedback(android.view.HapticFeedbackConstants.KEYBOARD_TAP);
             flying=true;flyingColor=current;flyProgress=0;float[] first=shotPath.get(0);flyX=first[0];flyY=first[1];
             lastFrame=0;gameHandler.removeCallbacks(frameTask);gameHandler.post(frameTask);
         }
         void finishShot(){
             float[] impact=shotPath.get(shotPath.size()-1);int bestR=-1,bestC=-1;float best=Float.MAX_VALUE;
-            // Snap to the nearest empty hex cell touching the impact point.
-            for(int r=0;r<rows;r++)for(int col=0;col<cols;col++)if(board[r][col]<0){
-                boolean attached=(r==0);
-                for(int k=0;k<6&&!attached;k++){int[] nb=neighbors(r,col,k);if(valid(nb[0],nb[1])&&board[nb[0]][nb[1]]>=0)attached=true;}
-                if(!attached)continue;
-                float d=(bubbleX(r,col)-impact[0])*(bubbleX(r,col)-impact[0])+(bubbleY(r)-impact[1])*(bubbleY(r)-impact[1]);
-                if(d<best){best=d;bestR=r;bestC=col;}
+            // Attach only beside the exact bubble struck by the aiming ray.
+            if(aimHitRow>=0&&aimHitCol>=0&&board[aimHitRow][aimHitCol]>=0){
+                for(int k=0;k<6;k++){
+                    int[] nb=neighbors(aimHitRow,aimHitCol,k);int rr=nb[0],cc=nb[1];
+                    if(!valid(rr,cc)||board[rr][cc]>=0)continue;
+                    float px=bubbleX(rr,cc),py=bubbleY(rr);
+                    float d=(px-impact[0])*(px-impact[0])+(py-impact[1])*(py-impact[1]);
+                    if(d<best){best=d;bestR=rr;bestC=cc;}
+                }
+            }else{
+                // If the shot reaches the ceiling without touching a bubble, use only the top row.
+                for(int col=0;col<cols;col++)if(board[0][col]<0){
+                    float px=bubbleX(0,col),py=bubbleY(0);
+                    float d=(px-impact[0])*(px-impact[0])+(py-impact[1])*(py-impact[1]);
+                    if(d<best){best=d;bestR=0;bestC=col;}
+                }
             }
             if(bestR<0){finished=true;invalidate();return;}
+            performHapticFeedback(android.view.HapticFeedbackConstants.CONFIRM);
             board[bestR][bestC]=flyingColor;
             java.util.ArrayList<int[]> group=new java.util.ArrayList<>();boolean[][] seen=new boolean[rows][cols];
             java.util.ArrayDeque<int[]> q=new java.util.ArrayDeque<>();q.add(new int[]{bestR,bestC});seen[bestR][bestC]=true;
