@@ -3166,14 +3166,31 @@ public class MainActivity extends Activity {
             p.setColor(0x337FCBFF);p.setStyle(android.graphics.Paint.Style.STROKE);p.setStrokeWidth(dp(1));c.drawRoundRect(dp(9),dp(76),w-dp(9),h-dp(105),dp(24),dp(24),p);p.setStyle(android.graphics.Paint.Style.FILL);
             for(int r=0;r<rows;r++)for(int col=0;col<cols;col++)if(board[r][col]>=0)drawBubble(c,bubbleX(r,col),bubbleY(r),radius,palette[board[r][col]]);
             if(!flying&&!finished){
-                updateAimPath();p.setColor(0xBFFFFFFF);p.setStrokeWidth(dp(1.6f));p.setStyle(android.graphics.Paint.Style.STROKE);
-                p.setPathEffect(new android.graphics.DashPathEffect(new float[]{dp(4),dp(7)},0));
-                android.graphics.Path path=new android.graphics.Path();
-                if(!shotPath.isEmpty()){path.moveTo(shotPath.get(0)[0],shotPath.get(0)[1]);for(int i=1;i<shotPath.size();i++)path.lineTo(shotPath.get(i)[0],shotPath.get(i)[1]);}
-                c.drawPath(path,p);p.setPathEffect(null);p.setStyle(android.graphics.Paint.Style.FILL);
-                if(!shotPath.isEmpty()){float[] end=shotPath.get(shotPath.size()-1);p.setColor(0xFFFFE18A);p.setStyle(android.graphics.Paint.Style.STROKE);p.setStrokeWidth(dp(2));c.drawCircle(end[0],end[1],radius*.58f,p);p.setStyle(android.graphics.Paint.Style.FILL);}
+                updateAimPath();
+                // A luminous dotted trajectory, with a soft glow around every guide point.
+                for(int i=2;i<shotPath.size();i+=3){
+                    float[] dot=shotPath.get(i);
+                    float fade=1f-(float)i/Math.max(1,shotPath.size());
+                    p.setColor(((int)(105*fade+35)<<24)|0x00B9F5FF);
+                    c.drawCircle(dot[0],dot[1],dp(5.2f),p);
+                    p.setColor(((int)(210*fade+35)<<24)|0x00FFFFFF);
+                    c.drawCircle(dot[0],dot[1],dp(1.7f),p);
+                }
+                if(!shotPath.isEmpty()){
+                    float[] end=shotPath.get(shotPath.size()-1);
+                    p.setColor(0x443CEBFF);c.drawCircle(end[0],end[1],radius*1.28f,p);
+                    p.setColor(0xFFFFE18A);p.setStyle(android.graphics.Paint.Style.STROKE);
+                    p.setStrokeWidth(dp(2.2f));c.drawCircle(end[0],end[1],radius*.72f,p);
+                    p.setStrokeWidth(dp(1.1f));c.drawCircle(end[0],end[1],radius*.43f,p);
+                    p.setStyle(android.graphics.Paint.Style.FILL);
+                    p.setColor(0xFFFFF4C4);c.drawCircle(end[0],end[1],dp(2.3f),p);
+                }
             }
-            if(flying)drawBubble(c,flyX,flyY,radius*1.1f,palette[flyingColor]);
+            if(flying){
+                p.setColor(0x5539E8FF);c.drawCircle(flyX,flyY,radius*1.55f,p);
+                p.setColor(0x99FFFFFF);c.drawCircle(flyX,flyY,radius*1.22f,p);
+                drawBubble(c,flyX,flyY,radius*1.1f,palette[flyingColor]);
+            }
             // cannon pedestal and barrel
             p.setShader(new android.graphics.LinearGradient(w*.35f,shooterY,w*.65f,h,new int[]{0xFF8DEBFF,0xFF2465B8,0xFF102B60},null,android.graphics.Shader.TileMode.CLAMP));
             c.drawRoundRect(w/2f-dp(27),shooterY+dp(13),w/2f+dp(27),shooterY+dp(47),dp(13),dp(13),p);p.setShader(null);
@@ -3197,6 +3214,8 @@ public class MainActivity extends Activity {
         void drawBubble(android.graphics.Canvas c,float x,float y,float r,int color){
             p.setStyle(android.graphics.Paint.Style.FILL);p.setShader(null);
             p.setColor(0x6603132B);c.drawCircle(x+r*.13f,y+r*.24f,r*1.10f,p);
+            // Colored halo gives each bubble a soft neon edge without hiding its color.
+            p.setColor((0x35<<24)|(color&0x00FFFFFF));c.drawCircle(x,y,r*1.19f,p);
             p.setShader(new android.graphics.RadialGradient(x-r*.34f,y-r*.39f,r*1.58f,new int[]{0xFFFFFFFF,lighten(color),color,darken(color)},new float[]{0f,.19f,.62f,1f},android.graphics.Shader.TileMode.CLAMP));
             c.drawCircle(x,y,r,p);p.setShader(null);
             p.setColor(0xCCFFFFFF);c.drawOval(x-r*.58f,y-r*.70f,x-r*.05f,y-r*.31f,p);
