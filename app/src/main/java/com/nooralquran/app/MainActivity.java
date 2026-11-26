@@ -3087,7 +3087,7 @@ public class MainActivity extends Activity {
     }
 
     class BubbleShooterView extends View {
-        final int[] palette={Color.rgb(0,225,235),Color.rgb(244,48,75),Color.rgb(178,35,220),Color.rgb(45,119,245),Color.rgb(30,205,65),Color.rgb(255,174,35)};
+        final int[] palette={Color.rgb(0,235,245),Color.rgb(255,55,82),Color.rgb(205,55,245),Color.rgb(55,140,255),Color.rgb(45,225,95),Color.rgb(255,185,35)};
         final int rows=10,cols=10;
         final int[][] board=new int[rows][cols];
         final android.graphics.Paint p=new android.graphics.Paint(3);
@@ -3115,7 +3115,8 @@ public class MainActivity extends Activity {
             float dt=lastFrame==0?1f:Math.min(2f,(now-lastFrame)/16.67f);lastFrame=now;
             boolean active=false;
             if(flying){
-                flyProgress=Math.min(1f,flyProgress+dt*.105f);
+                if(((int)(flyProgress*100))%2==0)particles.add(new Particle(flyX,flyY,palette[flyingColor],.30f));
+                flyProgress=Math.min(1f,flyProgress+dt*.17f);
                 float distance=pathLength(shotPath)*flyProgress;
                 float[] point=pointAtDistance(shotPath,distance);
                 flyX=point[0];flyY=point[1];active=true;
@@ -3132,14 +3133,14 @@ public class MainActivity extends Activity {
         BubbleShooterView(){super(MainActivity.this);setLayerType(View.LAYER_TYPE_HARDWARE,null);
             for(int r=0;r<rows;r++)for(int c=0;c<cols;c++)board[r][c]=-1;
             for(int r=0;r<7;r++)for(int c=0;c<cols;c++){if(r>4&&random.nextFloat()<.10f)continue;board[r][c]=random.nextInt(5);}
-            current=random.nextInt(5);next=random.nextInt(5);setFocusable(true);
+            current=random.nextInt(palette.length);next=random.nextInt(palette.length);setFocusable(true);
         }
         float dp(float v){return v*getResources().getDisplayMetrics().density;}
-        float startX(){return getWidth()/2f-(cols-1)*cellX/2f;}
+        float startX(){return getWidth()/2f-((cols-1)*cellX+radius)/2f;}
         float bubbleX(int r,int c){return startX()+c*cellX+(r%2==1?radius:0);}
         float bubbleY(int r){return top+r*cellY;}
         @Override protected void onSizeChanged(int w,int h,int oldw,int oldh){
-            radius=Math.min(w/(cols*2.13f),dp(19));cellX=radius*2.02f;cellY=radius*1.76f;
+            radius=Math.min(w/(cols*2.38f),dp(16));cellX=radius*2.02f;cellY=radius*1.76f;
             top=dp(76);shooterY=h-dp(132);aimX=w/2f;aimY=top+dp(100);
         }
         @Override protected void onDraw(android.graphics.Canvas c){
@@ -3163,7 +3164,7 @@ public class MainActivity extends Activity {
                 if(!shotPath.isEmpty()){float[] end=shotPath.get(shotPath.size()-1);p.setColor(0xFFFFD166);p.setStyle(android.graphics.Paint.Style.STROKE);p.setStrokeWidth(dp(3));c.drawCircle(end[0],end[1],radius*.55f,p);p.setStyle(android.graphics.Paint.Style.FILL);}
             }
             if(flying)drawBubble(c,flyX,flyY,radius*1.12f,palette[flyingColor]);
-            else drawBubble(c,w/2f,shooterY,radius*1.16f,palette[current]);
+            else drawBubble(c,w/2f,shooterY,radius*1.08f,palette[current]);
             drawBubble(c,w-dp(63),shooterY+dp(4),radius*.78f,palette[next]);
             p.setColor(Color.WHITE);p.setTextSize(dp(12));c.drawText("التالي",w-dp(82),shooterY+dp(39),p);
             for(Particle a:particles){int alpha=Math.max(0,Math.min(255,(int)(255*a.life)));p.setColor((alpha<<24)|(a.color&0x00FFFFFF));c.drawCircle(a.x,a.y,a.size*a.life,p);}
@@ -3258,7 +3259,7 @@ public class MainActivity extends Activity {
             }else{
                 float x=bubbleX(bestR,bestC),y=bubbleY(bestR);for(int k=0;k<8;k++)particles.add(new Particle(x,y,palette[flyingColor],.55f));screenPulse=.22f;
             }
-            shots--;current=next;next=random.nextInt(5);
+            shots--;current=next;next=random.nextInt(palette.length);
             if(shots<=0)finished=true;
             boolean any=false;for(int r=0;r<rows;r++)for(int col=0;col<cols;col++)if(board[r][col]>=0)any=true;
             if(!any)finished=true;
