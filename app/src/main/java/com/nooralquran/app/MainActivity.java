@@ -211,6 +211,7 @@ public class MainActivity extends Activity {
     }
 
     void setup() {
+        getWindow().getDecorView().setSystemUiVisibility(0);
         ScrollView scroll = new ScrollView(this);
         layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
@@ -277,6 +278,11 @@ public class MainActivity extends Activity {
 
 
     void showNoorRunnerGame() {
+        getWindow().getDecorView().setSystemUiVisibility(
+            View.SYSTEM_UI_FLAG_FULLSCREEN
+            | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+            | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+        );
         LinearLayout screen = new LinearLayout(this);
         screen.setOrientation(LinearLayout.VERTICAL);
         screen.setBackgroundColor(Color.rgb(9, 42, 39));
