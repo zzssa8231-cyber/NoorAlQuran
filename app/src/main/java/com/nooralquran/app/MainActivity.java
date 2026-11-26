@@ -307,6 +307,8 @@ public class MainActivity extends Activity {
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);
         settings.setAllowFileAccess(true);
+        settings.setAllowFileAccessFromFileURLs(true);
+        settings.setAllowUniversalAccessFromFileURLs(false);
         settings.setMediaPlaybackRequiresUserGesture(true);
         game.setWebViewClient(new WebViewClient());
         screen.addView(game, new LinearLayout.LayoutParams(-1, 0, 1f));
