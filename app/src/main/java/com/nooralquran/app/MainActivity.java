@@ -3088,20 +3088,58 @@ public class MainActivity extends Activity {
 
     class BubbleShooterView extends View {
         final int[] palette = {Color.rgb(0,225,235), Color.rgb(244,48,75), Color.rgb(178,35,220),
-            Color.rgb(45,119,245), Color.rgb(30,205,65), Color.rgb(95,100,110)};
-        final int rows = 10, cols = 10;
-        int[][] board = new int[rows][cols];
-        android.graphics.Paint p = new android.graphics.Paint(3);
-        java.util.Random random = new java.util.Random();
-        int current = 0, next = 1, score = 0, shots = 44;
-        boolean finished = false;
-        float radius, cellX, top, shooterY, aimX;
+            Color.rgb(45,119,245), Color.rgb(30,205,65), Color.rgb(255,174,35)};
+        final int rows=10, cols=10;
+        int[][] board=new int[rows][cols];
+        android.graphics.Paint p=new android.graphics.Paint(3);
+        java.util.Random random=new java.util.Random();
+        android.os.Handler gameHandler=new android.os.Handler();
+        int current=0,next=1,score=0,shots=44;
+        boolean finished=false, flying=false;
+        float radius,cellX,top,shooterY,aimX,flyX,flyY,fromX,fromY,toX,toY,flyProgress=0,screenPulse=0;
+        int flyingColor=0;
+        final java.util.ArrayList<Particle> particles=new java.util.ArrayList<>();
+        final class Particle {
+            float x,y,vx,vy,size,life;
+            int color;
+            Particle(float x,float y,int color) {
+                this.x=x; this.y=y; this.color=color;
+                double a=random.nextDouble()*Math.PI*2;
+                float speed=dp(1.4f+random.nextFloat()*3.2f);
+                vx=(float)Math.cos(a)*speed; vy=(float)Math.sin(a)*speed;
+                size=dp(2+random.nextFloat()*4); life=1f;
+            }
+        }
+        final Runnable frameTask=new Runnable() {
+            @Override public void run() {
+                boolean active=false;
+                if(flying) {
+                    flyProgress=Math.min(1f,flyProgress+.075f);
+                    float t=1f-(1f-flyProgress)*(1f-flyProgress);
+                    flyX=fromX+(toX-fromX)*t;
+                    flyY=fromY+(toY-fromY)*t;
+                    active=true;
+                    if(flyProgress>=1f) {
+                        flying=false;
+                        finishShot();
+                    }
+                }
+                for(int i=particles.size()-1;i>=0;i--) {
+                    Particle a=particles.get(i);
+                    a.x+=a.vx; a.y+=a.vy; a.vy+=dp(.045f); a.life-=.045f;
+                    if(a.life<=0) particles.remove(i); else active=true;
+                }
+                if(screenPulse>0) { screenPulse=Math.max(0,screenPulse-.075f); active=true; }
+                invalidate();
+                if(active) gameHandler.postDelayed(this,16);
+            }
+        };
         BubbleShooterView() {
             super(MainActivity.this);
-            setLayerType(View.LAYER_TYPE_SOFTWARE, null);
-            for (int r=0;r<rows;r++) for (int col=0;col<cols;col++) board[r][col]=-1;
-            for (int r=0;r<7;r++) for (int col=0;col<cols;col++) {
-                if (r>3 && random.nextFloat()<.13f) continue;
+            setLayerType(View.LAYER_TYPE_HARDWARE,null);
+            for(int r=0;r<rows;r++) for(int col=0;col<cols;col++) board[r][col]=-1;
+            for(int r=0;r<7;r++) for(int col=0;col<cols;col++) {
+                if(r>3 && random.nextFloat()<.13f) continue;
                 board[r][col]=random.nextInt(5);
             }
             current=random.nextInt(5); next=random.nextInt(5);
@@ -3109,40 +3147,48 @@ public class MainActivity extends Activity {
         }
         @Override protected void onDraw(android.graphics.Canvas c) {
             super.onDraw(c);
-            float w=getWidth(), h=getHeight();
-            android.graphics.LinearGradient bg=new android.graphics.LinearGradient(0,0,0,h,
-                new int[]{Color.rgb(30,91,160),Color.rgb(82,180,245),Color.rgb(92,190,245)},null,android.graphics.Shader.TileMode.CLAMP);
+            float w=getWidth(),h=getHeight();
+            android.graphics.LinearGradient bg=new android.graphics.LinearGradient(0,0,w,h,
+                new int[]{0xFF183F91,0xFF37B9E8,0xFF786BE8,0xFF42C7DC},new float[]{0f,.42f,.76f,1f},android.graphics.Shader.TileMode.CLAMP);
             p.setShader(bg); c.drawRect(0,0,w,h,p); p.setShader(null);
-            // soft glow behind the playfield
-            p.setColor(0x223FFFFF); c.drawCircle(w*.5f,h*.34f,w*.52f,p);
-            radius=Math.min(w/(cols*2.12f),dp(19));
-            cellX=radius*2.02f; top=dp(64); shooterY=h-dp(120); aimX=w*.5f;
-            // top score and progress bar
-            p.setColor(0xFFE9F3FF); c.drawRoundRect(dp(12),dp(10),w-dp(12),dp(53),dp(16),dp(16),p);
-            p.setColor(0xFF514B68); p.setTextSize(dp(15)); p.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
+            p.setColor(0x224BFFFF); c.drawCircle(w*.48f,h*.32f,w*.58f,p);
+            p.setColor(0x18FFFFFF); c.drawCircle(w*.12f,h*.62f,w*.24f,p); c.drawCircle(w*.88f,h*.7f,w*.25f,p);
+            radius=Math.min(w/(cols*2.12f),dp(19)); cellX=radius*2.02f; top=dp(64); shooterY=h-dp(120);
+            p.setShader(new android.graphics.LinearGradient(0,dp(8),0,dp(56),new int[]{0xFFF8FCFF,0xFFBBDCFB},null,android.graphics.Shader.TileMode.CLAMP));
+            c.drawRoundRect(dp(12),dp(10),w-dp(12),dp(55),dp(16),dp(16),p); p.setShader(null);
+            p.setColor(0xFF514B68); p.setTextSize(dp(13)); p.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
             c.drawText("SCORE",dp(25),dp(28),p);
-            p.setColor(0xFF4C56D9); p.setTextSize(dp(21)); c.drawText(String.valueOf(score),dp(25),dp(48),p);
-            p.setTextSize(dp(14)); p.setColor(0xFF4652B8); c.drawText("الكرات: "+shots,w-dp(115),dp(38),p);
-            // board bubbles
-            float start=w/2f-(cols-1)*cellX/2f;
+            p.setColor(0xFF4C56D9); p.setTextSize(dp(21)); c.drawText(String.valueOf(score),dp(25),dp(49),p);
+            p.setTextSize(dp(14)); p.setColor(0xFF4652B8); c.drawText("الكرات: "+shots,w-dp(115),dp(39),p);
+            float boardStart=w/2f-(cols-1)*cellX/2f;
             for(int r=0;r<rows;r++) for(int col=0;col<cols;col++) if(board[r][col]>=0) {
-                float x=start+col*cellX+(r%2==1?radius:0), y=top+r*radius*1.78f;
+                float x=boardStart+col*cellX+(r%2==1?radius:0), y=top+r*radius*1.78f;
                 drawBubble(c,x,y,radius,palette[board[r][col]]);
             }
-            // aiming line
             if(!finished) {
-                float dx=aimX-w/2f, dy=-Math.max(dp(80),h*.30f);
-                float len=(float)Math.hypot(dx,dy); dx/=len; dy/=len;
-                p.setColor(0xCCFFB347); p.setStrokeWidth(dp(4)); p.setStyle(android.graphics.Paint.Style.STROKE);
-                c.drawLine(w/2f,shooterY,w/2f+dx*dp(95),shooterY+dy*dp(95),p);
-                p.setStyle(android.graphics.Paint.Style.FILL);
+                float dx=aimX-w/2f,dy=-Math.max(dp(80),h*.30f),len=(float)Math.hypot(dx,dy);
+                dx/=len; dy/=len;
+                p.setColor(0xAAFFFFFF); p.setStrokeWidth(dp(2)); p.setPathEffect(new android.graphics.DashPathEffect(new float[]{dp(5),dp(7)},0));
+                c.drawLine(w/2f,shooterY,w/2f+dx*dp(110),shooterY+dy*dp(110),p); p.setPathEffect(null);
+                p.setColor(0xFFFFD166); p.setStyle(android.graphics.Paint.Style.STROKE); p.setStrokeWidth(dp(3));
+                c.drawCircle(aimX,Math.max(top+dp(12),shooterY+dy*dp(110)),dp(8),p); p.setStyle(android.graphics.Paint.Style.FILL);
             }
-            drawBubble(c,w/2f,shooterY,radius*1.15f,palette[current]);
+            if(flying) drawBubble(c,flyX,flyY,radius*1.08f,palette[flyingColor]);
+            else drawBubble(c,w/2f,shooterY,radius*1.15f,palette[current]);
             drawBubble(c,w-dp(66),shooterY+dp(5),radius*.82f,palette[next]);
             p.setColor(Color.WHITE); p.setTextSize(dp(12)); c.drawText("التالي",w-dp(83),shooterY+dp(40),p);
-            p.setColor(0xAAFFFFFF); c.drawRoundRect(dp(12),h-dp(64),w-dp(12),h-dp(12),dp(18),dp(18),p);
+            for(Particle a:particles) {
+                p.setColor((Math.max(0,Math.min(255,(int)(255*a.life)) )<<24)|(a.color&0x00FFFFFF));
+                c.drawCircle(a.x,a.y,a.size*a.life,p);
+            }
+            p.setShader(new android.graphics.LinearGradient(0,h-dp(64),0,h-dp(12),new int[]{0xDDFBFFFF,0x99D2E9FF},null,android.graphics.Shader.TileMode.CLAMP));
+            c.drawRoundRect(dp(12),h-dp(64),w-dp(12),h-dp(12),dp(18),dp(18),p); p.setShader(null);
             p.setColor(0xFF344C9B); p.setTextSize(dp(13)); p.setTextAlign(android.graphics.Paint.Align.CENTER);
-            c.drawText("المس الشاشة لتصويب الفقاعة",w/2f,h-dp(34),p); p.setTextAlign(android.graphics.Paint.Align.LEFT);
+            c.drawText("المس واسحب لتحديد اتجاه التصويب",w/2f,h-dp(34),p); p.setTextAlign(android.graphics.Paint.Align.LEFT);
+            if(screenPulse>0) {
+                p.setColor((int)(screenPulse*48)<<24 | 0x00FFFFFF);
+                c.drawRect(0,0,w,h,p);
+            }
             if(finished) {
                 p.setColor(0xCC102D58); c.drawRoundRect(dp(24),h*.38f,w-dp(24),h*.60f,dp(22),dp(22),p);
                 p.setColor(Color.WHITE); p.setTextSize(dp(25)); p.setTextAlign(android.graphics.Paint.Align.CENTER);
@@ -3152,11 +3198,11 @@ public class MainActivity extends Activity {
         }
         void drawBubble(android.graphics.Canvas c,float x,float y,float r,int color) {
             p.setShader(null); p.setStyle(android.graphics.Paint.Style.FILL);
-            p.setColor(0x55304466); c.drawCircle(x+r*.10f,y+r*.17f,r*1.04f,p);
+            p.setColor(0x55304466); c.drawCircle(x+r*.10f,y+r*.20f,r*1.08f,p);
             p.setShader(new android.graphics.RadialGradient(x-r*.32f,y-r*.38f,r*1.55f,
-                new int[]{Color.WHITE, color, darken(color)},new float[]{0f,.25f,1f},android.graphics.Shader.TileMode.CLAMP));
+                new int[]{Color.WHITE,color,darken(color)},new float[]{0f,.25f,1f},android.graphics.Shader.TileMode.CLAMP));
             c.drawCircle(x,y,r,p); p.setShader(null);
-            p.setColor(0x99FFFFFF); c.drawOval(x-r*.56f,y-r*.65f,x-r*.08f,y-r*.28f,p);
+            p.setColor(0xAAFFFFFF); c.drawOval(x-r*.56f,y-r*.65f,x-r*.08f,y-r*.28f,p);
             p.setColor(0x55FFFFFF); p.setStyle(android.graphics.Paint.Style.STROKE); p.setStrokeWidth(Math.max(1,r*.08f));
             c.drawCircle(x,y,r*.94f,p); p.setStyle(android.graphics.Paint.Style.FILL);
         }
@@ -3168,19 +3214,25 @@ public class MainActivity extends Activity {
                 aimX=Math.max(dp(20),Math.min(getWidth()-dp(20),e.getX())); invalidate(); return true;
             }
             if(e.getAction()==android.view.MotionEvent.ACTION_UP) {
-                if(finished) return true;
-                shoot(e.getX()); return true;
+                if(!finished&&!flying) shoot(e.getX()); return true;
             }
             return true;
         }
         void shoot(float targetX) {
-            float w=getWidth(), start=w/2f-(cols-1)*cellX/2f;
-            int col=Math.round((targetX-start)/cellX);
-            col=Math.max(0,Math.min(cols-1,col));
-            int row=0;
-            while(row<rows-1 && board[row][col]>=0) row++;
+            float w=getWidth(),h=getHeight(),start=w/2f-(cols-1)*cellX/2f;
+            int col=Math.round((targetX-start)/cellX); col=Math.max(0,Math.min(cols-1,col));
+            int row=0; while(row<rows-1&&board[row][col]>=0) row++;
             if(board[row][col]>=0) { finished=true; invalidate(); return; }
-            board[row][col]=current;
+            aimX=targetX; flying=true; flyProgress=0; flyingColor=current;
+            fromX=w/2f; fromY=shooterY; toX=start+col*cellX+(row%2==1?radius:0); toY=top+row*radius*1.78f;
+            gameHandler.removeCallbacks(frameTask); gameHandler.post(frameTask);
+        }
+        void finishShot() {
+            float start=getWidth()/2f-(cols-1)*cellX/2f;
+            int col=Math.round((toX-start)/cellX); col=Math.max(0,Math.min(cols-1,col));
+            int row=0; while(row<rows-1&&board[row][col]>=0) row++;
+            if(board[row][col]>=0) { finished=true; invalidate(); return; }
+            board[row][col]=flyingColor;
             java.util.ArrayList<int[]> group=new java.util.ArrayList<>();
             boolean[][] seen=new boolean[rows][cols];
             java.util.ArrayDeque<int[]> q=new java.util.ArrayDeque<>();
@@ -3188,21 +3240,29 @@ public class MainActivity extends Activity {
             while(!q.isEmpty()) {
                 int[] a=q.remove(); group.add(a);
                 for(int[] d:new int[][]{{-1,0},{1,0},{0,-1},{0,1},{-1,(a[0]%2==0?-1:1)},{1,(a[0]%2==0?-1:1)}}) {
-                    int rr=a[0]+d[0], cc=a[1]+d[1];
-                    if(rr>=0&&rr<rows&&cc>=0&&cc<cols&&!seen[rr][cc]&&board[rr][cc]==current) {
+                    int rr=a[0]+d[0],cc=a[1]+d[1];
+                    if(rr>=0&&rr<rows&&cc>=0&&cc<cols&&!seen[rr][cc]&&board[rr][cc]==flyingColor) {
                         seen[rr][cc]=true; q.add(new int[]{rr,cc});
                     }
                 }
             }
             if(group.size()>=3) {
-                for(int[] a:group) board[a[0]][a[1]]=-1;
-                score+=group.size()*10;
-            }
+                for(int[] a:group) {
+                    float x=start+ a[1]*cellX+(a[0]%2==1?radius:0), y=top+a[0]*radius*1.78f;
+                    for(int k=0;k<9;k++) particles.add(new Particle(x,y,palette[flyingColor]));
+                    board[a[0]][a[1]]=-1;
+                }
+                score+=group.size()*10; screenPulse=1f;
+            } else screenPulse=.18f;
             shots--; current=next; next=random.nextInt(5);
             if(shots<=0) finished=true;
             invalidate();
+            if(!particles.isEmpty()) gameHandler.post(frameTask);
+        }
+        @Override protected void onDetachedFromWindow() {
+            gameHandler.removeCallbacks(frameTask);
+            super.onDetachedFromWindow();
         }
     }
-
 
 }
