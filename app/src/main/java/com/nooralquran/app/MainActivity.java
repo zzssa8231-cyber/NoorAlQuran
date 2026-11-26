@@ -1617,6 +1617,8 @@ public class MainActivity extends Activity {
             Color.rgb(220, 245, 230), this::showKidsLearning);
         addKidsCard("🧠 لعبة ذاكرة الأبطال", "اقلب البطاقات وطابق الصور واجمع الأزواج الستة", "🎮",
             Color.rgb(224, 232, 255), this::showKidsMemoryGame);
+        addKidsCard("🫧 لعبة فقاعات الألوان", "صوّب الفقاعات واجمع ٣ كرات متشابهة أو أكثر", "🌈",
+            Color.rgb(205, 235, 255), this::showBubbleShooter);
         addKidsCard("🎓 أكاديمية نور للأطفال", "دروس حروف وتلاوة وألعاب تعليمية مع مسارات نور بلس", "⭐",
             Color.rgb(255, 226, 185), this::showKidsAcademy);
         addKidsCard("⭐ تحدي اليوم", "قريباً: أسئلة قرآنية ونقاط تشجيعية", "🏆",
@@ -3073,4 +3075,133 @@ public class MainActivity extends Activity {
     void message(String value) {
         Toast.makeText(this, value, Toast.LENGTH_LONG).show();
     }
+
+    void showBubbleShooter() {
+        setup();
+        addText("🫧 فقاعات الألوان", 28, Color.rgb(255, 215, 120));
+        addText("وجّه الكرة نحو اللون نفسه واجمع ثلاث فقاعات أو أكثر لتفجيرها", 14, Color.WHITE);
+        BubbleShooterView game = new BubbleShooterView();
+        layout.addView(game, new LinearLayout.LayoutParams(-1, dp(610)));
+        addButton("إعادة اللعبة", this::showBubbleShooter);
+        addButton("العودة إلى عالم الأطفال", this::showKidsSection);
+    }
+
+    class BubbleShooterView extends View {
+        final int[] palette = {Color.rgb(0,225,235), Color.rgb(244,48,75), Color.rgb(178,35,220),
+            Color.rgb(45,119,245), Color.rgb(30,205,65), Color.rgb(95,100,110)};
+        final int rows = 10, cols = 10;
+        int[][] board = new int[rows][cols];
+        android.graphics.Paint p = new android.graphics.Paint(3);
+        java.util.Random random = new java.util.Random();
+        int current = 0, next = 1, score = 0, shots = 44;
+        boolean finished = false;
+        float radius, cellX, top, shooterY, aimX;
+        BubbleShooterView() {
+            super(MainActivity.this);
+            setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+            for (int r=0;r<7;r++) for (int col=0;col<cols;col++) {
+                if (r>3 && random.nextFloat()<.13f) continue;
+                board[r][col]=random.nextInt(5);
+            }
+            current=random.nextInt(5); next=random.nextInt(5);
+            setFocusable(true);
+        }
+        @Override protected void onDraw(android.graphics.Canvas c) {
+            super.onDraw(c);
+            float w=getWidth(), h=getHeight();
+            android.graphics.LinearGradient bg=new android.graphics.LinearGradient(0,0,0,h,
+                new int[]{Color.rgb(30,91,160),Color.rgb(82,180,245),Color.rgb(92,190,245)},null,android.graphics.Shader.TileMode.CLAMP);
+            p.setShader(bg); c.drawRect(0,0,w,h,p); p.setShader(null);
+            // soft glow behind the playfield
+            p.setColor(0x223FFFFFF); c.drawCircle(w*.5f,h*.34f,w*.52f,p);
+            radius=Math.min(w/(cols*2.12f),dp(19));
+            cellX=radius*2.02f; top=dp(64); shooterY=h-dp(120); aimX=w*.5f;
+            // top score and progress bar
+            p.setColor(0xFFE9F3FF); c.drawRoundRect(dp(12),dp(10),w-dp(12),dp(53),dp(16),dp(16),p);
+            p.setColor(0xFF514B68); p.setTextSize(dp(15)); p.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
+            c.drawText("SCORE",dp(25),dp(28),p);
+            p.setColor(0xFF4C56D9); p.setTextSize(dp(21)); c.drawText(String.valueOf(score),dp(25),dp(48),p);
+            p.setTextSize(dp(14)); p.setColor(0xFF4652B8); c.drawText("الكرات: "+shots,w-dp(115),dp(38),p);
+            // board bubbles
+            float start=w/2f-(cols-1)*cellX/2f;
+            for(int r=0;r<rows;r++) for(int col=0;col<cols;col++) if(board[r][col]>=0) {
+                float x=start+col*cellX+(r%2==1?radius:0), y=top+r*radius*1.78f;
+                drawBubble(c,x,y,radius,palette[board[r][col]]);
+            }
+            // aiming line
+            if(!finished) {
+                float dx=aimX-w/2f, dy=-Math.max(dp(80),h*.30f);
+                float len=(float)Math.hypot(dx,dy); dx/=len; dy/=len;
+                p.setColor(0xCCFFB347); p.setStrokeWidth(dp(4)); p.setStyle(android.graphics.Paint.Style.STROKE);
+                c.drawLine(w/2f,shooterY,w/2f+dx*dp(95),shooterY+dy*dp(95),p);
+                p.setStyle(android.graphics.Paint.Style.FILL);
+            }
+            drawBubble(c,w/2f,shooterY,radius*1.15f,palette[current]);
+            drawBubble(c,w-dp(66),shooterY+dp(5),radius*.82f,palette[next]);
+            p.setColor(Color.WHITE); p.setTextSize(dp(12)); c.drawText("التالي",w-dp(83),shooterY+dp(40),p);
+            p.setColor(0xAAFFFFFF); c.drawRoundRect(dp(12),h-dp(64),w-dp(12),h-dp(12),dp(18),dp(18),p);
+            p.setColor(0xFF344C9B); p.setTextSize(dp(13)); p.setTextAlign(android.graphics.Paint.Align.CENTER);
+            c.drawText("المس الشاشة لتصويب الفقاعة",w/2f,h-dp(34),p); p.setTextAlign(android.graphics.Paint.Align.LEFT);
+            if(finished) {
+                p.setColor(0xCC102D58); c.drawRoundRect(dp(24),h*.38f,w-dp(24),h*.60f,dp(22),dp(22),p);
+                p.setColor(Color.WHITE); p.setTextSize(dp(25)); p.setTextAlign(android.graphics.Paint.Align.CENTER);
+                c.drawText("انتهت الجولة!",w/2f,h*.46f,p); p.setTextSize(dp(18)); c.drawText("نتيجتك: "+score,w/2f,h*.52f,p);
+                p.setTextAlign(android.graphics.Paint.Align.LEFT);
+            }
+        }
+        void drawBubble(android.graphics.Canvas c,float x,float y,float r,int color) {
+            p.setShader(null); p.setStyle(android.graphics.Paint.Style.FILL);
+            p.setColor(0x55304466); c.drawCircle(x+r*.10f,y+r*.17f,r*1.04f,p);
+            p.setShader(new android.graphics.RadialGradient(x-r*.32f,y-r*.38f,r*1.55f,
+                new int[]{Color.WHITE, color, darken(color)},new float[]{0f,.25f,1f},android.graphics.Shader.TileMode.CLAMP));
+            c.drawCircle(x,y,r,p); p.setShader(null);
+            p.setColor(0x99FFFFFF); c.drawOval(x-r*.56f,y-r*.65f,x-r*.08f,y-r*.28f,p);
+            p.setColor(0x55FFFFFF); p.setStyle(android.graphics.Paint.Style.STROKE); p.setStrokeWidth(Math.max(1,r*.08f));
+            c.drawCircle(x,y,r*.94f,p); p.setStyle(android.graphics.Paint.Style.FILL);
+        }
+        int darken(int color) {
+            return Color.rgb((int)(Color.red(color)*.58f),(int)(Color.green(color)*.58f),(int)(Color.blue(color)*.68f));
+        }
+        @Override public boolean onTouchEvent(android.view.MotionEvent e) {
+            if(e.getAction()==android.view.MotionEvent.ACTION_DOWN || e.getAction()==android.view.MotionEvent.ACTION_MOVE) {
+                aimX=Math.max(dp(20),Math.min(getWidth()-dp(20),e.getX())); invalidate(); return true;
+            }
+            if(e.getAction()==android.view.MotionEvent.ACTION_UP) {
+                if(finished) return true;
+                shoot(e.getX()); return true;
+            }
+            return true;
+        }
+        void shoot(float targetX) {
+            float w=getWidth(), start=w/2f-(cols-1)*cellX/2f;
+            int col=Math.round((targetX-start)/cellX);
+            col=Math.max(0,Math.min(cols-1,col));
+            int row=0;
+            while(row<rows-1 && board[row][col]>=0) row++;
+            if(board[row][col]>=0) { finished=true; invalidate(); return; }
+            board[row][col]=current;
+            java.util.ArrayList<int[]> group=new java.util.ArrayList<>();
+            boolean[][] seen=new boolean[rows][cols];
+            java.util.ArrayDeque<int[]> q=new java.util.ArrayDeque<>();
+            q.add(new int[]{row,col}); seen[row][col]=true;
+            while(!q.isEmpty()) {
+                int[] a=q.remove(); group.add(a);
+                for(int[] d:new int[][]{{-1,0},{1,0},{0,-1},{0,1},{-1,(a[0]%2==0?-1:1)},{1,(a[0]%2==0?-1:1)}}) {
+                    int rr=a[0]+d[0], cc=a[1]+d[1];
+                    if(rr>=0&&rr<rows&&cc>=0&&cc<cols&&!seen[rr][cc]&&board[rr][cc]==current) {
+                        seen[rr][cc]=true; q.add(new int[]{rr,cc});
+                    }
+                }
+            }
+            if(group.size()>=3) {
+                for(int[] a:group) board[a[0]][a[1]]=-1;
+                score+=group.size()*10;
+            }
+            shots--; current=next; next=random.nextInt(5);
+            if(shots<=0) finished=true;
+            invalidate();
+        }
+    }
+
+
 }
