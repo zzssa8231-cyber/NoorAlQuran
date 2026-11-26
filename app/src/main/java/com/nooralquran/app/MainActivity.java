@@ -3144,42 +3144,66 @@ public class MainActivity extends Activity {
             top=dp(76);shooterY=h-dp(132);aimX=w/2f;aimY=top+dp(100);
         }
         @Override protected void onDraw(android.graphics.Canvas c){
-            super.onDraw(c);float w=getWidth(),h=getHeight();
-            p.setShader(new android.graphics.LinearGradient(0,0,w,h,new int[]{0xFF123C83,0xFF26A9E3,0xFF7564E8,0xFF40CDE0},null,android.graphics.Shader.TileMode.CLAMP));
+            super.onDraw(c);
+            float w=getWidth(),h=getHeight();
+            p.setStyle(android.graphics.Paint.Style.FILL);p.setShader(null);p.setColor(Color.BLACK);
+            p.setShader(new android.graphics.LinearGradient(0,0,w,h,new int[]{0xFF071A3D,0xFF123C78,0xFF245D9B,0xFF102B59},null,android.graphics.Shader.TileMode.CLAMP));
             c.drawRect(0,0,w,h,p);p.setShader(null);
-            p.setColor(0x1FFFFFFF);for(int i=0;i<8;i++)c.drawCircle((i*137)%Math.max(1,(int)w),dp(85+i*91),dp(22+i%3*12),p);
-            p.setShader(new android.graphics.LinearGradient(0,dp(8),0,dp(60),new int[]{0xFFF9FDFF,0xFFB8D9FA},null,android.graphics.Shader.TileMode.CLAMP));
-            c.drawRoundRect(dp(12),dp(10),w-dp(12),dp(59),dp(16),dp(16),p);p.setShader(null);
-            p.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);p.setTextSize(dp(13));p.setColor(0xFF514B68);c.drawText("SCORE",dp(25),dp(29),p);
-            p.setTextSize(dp(22));p.setColor(0xFF4C56D9);c.drawText(""+score,dp(25),dp(51),p);
-            p.setTextSize(dp(14));p.setColor(0xFF4652B8);c.drawText("الرميات: "+shots,w-dp(112),dp(39),p);
+            // soft ambient glows and tiny stars
+            p.setColor(0x183ACDFF);c.drawCircle(w*.18f,h*.34f,w*.42f,p);
+            p.setColor(0x182D6BFF);c.drawCircle(w*.88f,h*.57f,w*.36f,p);
+            for(int i=0;i<34;i++){float sx=(i*83+29)%Math.max(1,(int)w),sy=(i*137+61)%(Math.max(1,(int)(h*.72f)));p.setColor(i%3==0?0x66FFFFFF:0x229DEBFF);c.drawCircle(sx,sy,dp(i%4==0?1.7f:1f),p);}
+            // header
+            p.setShader(new android.graphics.LinearGradient(0,dp(8),0,dp(66),new int[]{0xEE193D70,0xDD10284F},null,android.graphics.Shader.TileMode.CLAMP));
+            c.drawRoundRect(dp(14),dp(10),w-dp(14),dp(66),dp(19),dp(19),p);p.setShader(null);
+            p.setColor(0x557FDFFF);p.setStyle(android.graphics.Paint.Style.STROKE);p.setStrokeWidth(dp(1));c.drawRoundRect(dp(14),dp(10),w-dp(14),dp(66),dp(19),dp(19),p);p.setStyle(android.graphics.Paint.Style.FILL);
+            p.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);p.setTextSize(dp(10));p.setColor(0xFF9DDCFF);c.drawText("النقاط",dp(29),dp(29),p);
+            p.setTextSize(dp(23));p.setColor(Color.WHITE);c.drawText(String.valueOf(score),dp(28),dp(53),p);
+            p.setTextSize(dp(13));p.setColor(0xFFFFD978);c.drawText("●",w-dp(112),dp(34),p);p.setColor(Color.WHITE);p.setTextSize(dp(14));c.drawText("الرميات  "+shots,w-dp(96),dp(38),p);
+            // framed play field
+            p.setShader(new android.graphics.LinearGradient(0,dp(77),0,h-dp(112),new int[]{0x443B8ED0,0x22203E76},null,android.graphics.Shader.TileMode.CLAMP));
+            c.drawRoundRect(dp(9),dp(76),w-dp(9),h-dp(105),dp(24),dp(24),p);p.setShader(null);
+            p.setColor(0x337FCBFF);p.setStyle(android.graphics.Paint.Style.STROKE);p.setStrokeWidth(dp(1));c.drawRoundRect(dp(9),dp(76),w-dp(9),h-dp(105),dp(24),dp(24),p);p.setStyle(android.graphics.Paint.Style.FILL);
             for(int r=0;r<rows;r++)for(int col=0;col<cols;col++)if(board[r][col]>=0)drawBubble(c,bubbleX(r,col),bubbleY(r),radius,palette[board[r][col]]);
             if(!flying&&!finished){
-                updateAimPath();
-                p.setColor(0xCCFFFFFF);p.setStrokeWidth(dp(2));p.setStyle(android.graphics.Paint.Style.STROKE);
-                p.setPathEffect(new android.graphics.DashPathEffect(new float[]{dp(5),dp(7)},0));
+                updateAimPath();p.setColor(0xBFFFFFFF);p.setStrokeWidth(dp(1.6f));p.setStyle(android.graphics.Paint.Style.STROKE);
+                p.setPathEffect(new android.graphics.DashPathEffect(new float[]{dp(4),dp(7)},0));
                 android.graphics.Path path=new android.graphics.Path();
                 if(!shotPath.isEmpty()){path.moveTo(shotPath.get(0)[0],shotPath.get(0)[1]);for(int i=1;i<shotPath.size();i++)path.lineTo(shotPath.get(i)[0],shotPath.get(i)[1]);}
                 c.drawPath(path,p);p.setPathEffect(null);p.setStyle(android.graphics.Paint.Style.FILL);
-                if(!shotPath.isEmpty()){float[] end=shotPath.get(shotPath.size()-1);p.setColor(0xFFFFD166);p.setStyle(android.graphics.Paint.Style.STROKE);p.setStrokeWidth(dp(3));c.drawCircle(end[0],end[1],radius*.55f,p);p.setStyle(android.graphics.Paint.Style.FILL);}
+                if(!shotPath.isEmpty()){float[] end=shotPath.get(shotPath.size()-1);p.setColor(0xFFFFE18A);p.setStyle(android.graphics.Paint.Style.STROKE);p.setStrokeWidth(dp(2));c.drawCircle(end[0],end[1],radius*.58f,p);p.setStyle(android.graphics.Paint.Style.FILL);}
             }
-            if(flying)drawBubble(c,flyX,flyY,radius*1.12f,palette[flyingColor]);
-            else drawBubble(c,w/2f,shooterY,radius*1.08f,palette[current]);
-            drawBubble(c,w-dp(63),shooterY+dp(4),radius*.78f,palette[next]);
-            p.setColor(Color.WHITE);p.setTextSize(dp(12));c.drawText("التالي",w-dp(82),shooterY+dp(39),p);
+            if(flying)drawBubble(c,flyX,flyY,radius*1.1f,palette[flyingColor]);
+            // cannon pedestal and barrel
+            p.setShader(new android.graphics.LinearGradient(w*.35f,shooterY,w*.65f,h,new int[]{0xFF8DEBFF,0xFF2465B8,0xFF102B60},null,android.graphics.Shader.TileMode.CLAMP));
+            c.drawRoundRect(w/2f-dp(27),shooterY+dp(13),w/2f+dp(27),shooterY+dp(47),dp(13),dp(13),p);p.setShader(null);
+            p.setShader(new android.graphics.LinearGradient(w/2f-dp(14),shooterY-dp(14),w/2f+dp(14),shooterY+dp(25),new int[]{0xFFEAFBFF,0xFF3D91D8,0xFF174477},null,android.graphics.Shader.TileMode.CLAMP));
+            c.drawRoundRect(w/2f-dp(15),shooterY-dp(23),w/2f+dp(15),shooterY+dp(24),dp(14),dp(14),p);p.setShader(null);
+            p.setColor(0xFFBCEFFF);p.setStyle(android.graphics.Paint.Style.STROKE);p.setStrokeWidth(dp(2));c.drawCircle(w/2f,shooterY-dp(20),dp(14),p);p.setStyle(android.graphics.Paint.Style.FILL);
+            if(!flying)drawBubble(c,w/2f,shooterY-dp(20),radius*.77f,palette[current]);
+            // next bubble panel
+            p.setShader(new android.graphics.LinearGradient(w-dp(92),shooterY-dp(4),w-dp(36),shooterY+dp(55),new int[]{0xDD24558C,0xDD102A52},null,android.graphics.Shader.TileMode.CLAMP));
+            c.drawRoundRect(w-dp(99),shooterY-dp(8),w-dp(22),shooterY+dp(62),dp(17),dp(17),p);p.setShader(null);
+            drawBubble(c,w-dp(60),shooterY+dp(19),radius*.56f,palette[next]);
+            p.setTextSize(dp(10));p.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);p.setColor(0xFFC7E9FF);p.setTextAlign(android.graphics.Paint.Align.CENTER);c.drawText("التالي",w-dp(60),shooterY+dp(51),p);p.setTextAlign(android.graphics.Paint.Align.LEFT);
+            // particles and impact glow
             for(Particle a:particles){int alpha=Math.max(0,Math.min(255,(int)(255*a.life)));p.setColor((alpha<<24)|(a.color&0x00FFFFFF));c.drawCircle(a.x,a.y,a.size*a.life,p);}
-            p.setShader(new android.graphics.LinearGradient(0,h-dp(67),0,h-dp(10),new int[]{0xDDFBFFFF,0x99D2E9FF},null,android.graphics.Shader.TileMode.CLAMP));
-            c.drawRoundRect(dp(12),h-dp(67),w-dp(12),h-dp(10),dp(18),dp(18),p);p.setShader(null);
-            p.setTextAlign(android.graphics.Paint.Align.CENTER);p.setTextSize(dp(13));p.setColor(0xFF344C9B);c.drawText("اسحب للتصويب واترك لإطلاق الكرة",w/2f,h-dp(34),p);p.setTextAlign(android.graphics.Paint.Align.LEFT);
-            if(screenPulse>0){p.setColor(((int)(screenPulse*70)<<24)|0x00FFFFFF);c.drawRect(0,0,w,h,p);}
-            if(finished){p.setColor(0xCC102D58);c.drawRoundRect(dp(24),h*.38f,w-dp(24),h*.60f,dp(22),dp(22),p);p.setTextAlign(android.graphics.Paint.Align.CENTER);p.setColor(Color.WHITE);p.setTextSize(dp(25));c.drawText("انتهت الجولة!",w/2f,h*.46f,p);p.setTextSize(dp(18));c.drawText("نتيجتك: "+score,w/2f,h*.52f,p);p.setTextAlign(android.graphics.Paint.Align.LEFT);}
+            if(screenPulse>0){p.setColor(((int)(screenPulse*55)<<24)|0x00A8F2FF);c.drawRect(0,0,w,h,p);}
+            p.setShader(new android.graphics.LinearGradient(0,h-dp(62),0,h-dp(9),new int[]{0xEE173C70,0xEE0B2048},null,android.graphics.Shader.TileMode.CLAMP));
+            c.drawRoundRect(dp(14),h-dp(62),w-dp(14),h-dp(9),dp(17),dp(17),p);p.setShader(null);
+            p.setColor(0xFFBDEBFF);p.setTextSize(dp(12));p.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);p.setTextAlign(android.graphics.Paint.Align.CENTER);c.drawText("اسحب لتحديد الاتجاه ثم اترك لإطلاق الكرة",w/2f,h-dp(30),p);p.setTextAlign(android.graphics.Paint.Align.LEFT);
+            if(finished){p.setColor(0xDD06152F);c.drawRoundRect(dp(24),h*.38f,w-dp(24),h*.60f,dp(22),dp(22),p);p.setTextAlign(android.graphics.Paint.Align.CENTER);p.setColor(0xFFFFE18A);p.setTextSize(dp(25));c.drawText("انتهت الجولة",w/2f,h*.46f,p);p.setColor(Color.WHITE);p.setTextSize(dp(18));c.drawText("نتيجتك: "+score,w/2f,h*.52f,p);p.setTextAlign(android.graphics.Paint.Align.LEFT);}
         }
         void drawBubble(android.graphics.Canvas c,float x,float y,float r,int color){
-            p.setStyle(android.graphics.Paint.Style.FILL);p.setColor(0x55304466);c.drawCircle(x+r*.1f,y+r*.18f,r*1.08f,p);
-            p.setShader(new android.graphics.RadialGradient(x-r*.32f,y-r*.38f,r*1.55f,new int[]{Color.WHITE,color,darken(color)},new float[]{0f,.25f,1f},android.graphics.Shader.TileMode.CLAMP));
-            c.drawCircle(x,y,r,p);p.setShader(null);p.setColor(0xBBFFFFFF);c.drawOval(x-r*.58f,y-r*.66f,x-r*.08f,y-r*.30f,p);
-            p.setColor(0x55FFFFFF);p.setStyle(android.graphics.Paint.Style.STROKE);p.setStrokeWidth(Math.max(1,r*.075f));c.drawCircle(x,y,r*.94f,p);p.setStyle(android.graphics.Paint.Style.FILL);
+            p.setStyle(android.graphics.Paint.Style.FILL);p.setShader(null);
+            p.setColor(0x6603132B);c.drawCircle(x+r*.13f,y+r*.24f,r*1.10f,p);
+            p.setShader(new android.graphics.RadialGradient(x-r*.34f,y-r*.39f,r*1.58f,new int[]{0xFFFFFFFF,lighten(color),color,darken(color)},new float[]{0f,.19f,.62f,1f},android.graphics.Shader.TileMode.CLAMP));
+            c.drawCircle(x,y,r,p);p.setShader(null);
+            p.setColor(0xCCFFFFFF);c.drawOval(x-r*.58f,y-r*.70f,x-r*.05f,y-r*.31f,p);
+            p.setColor(0x66FFFFFF);c.drawOval(x-r*.38f,y-r*.49f,x-r*.19f,y-r*.40f,p);
+            p.setColor(0x448FFFFFF);p.setStyle(android.graphics.Paint.Style.STROKE);p.setStrokeWidth(Math.max(dp(1),r*.07f));c.drawCircle(x,y,r*.94f,p);p.setStyle(android.graphics.Paint.Style.FILL);
         }
+        int lighten(int color){return Color.rgb(Math.min(255,Color.red(color)+65),Math.min(255,Color.green(color)+65),Math.min(255,Color.blue(color)+65));}
         int darken(int color){return Color.rgb((int)(Color.red(color)*.55f),(int)(Color.green(color)*.55f),(int)(Color.blue(color)*.62f));}
         int[] neighbors(int r,int col,int k){
             switch(k){
