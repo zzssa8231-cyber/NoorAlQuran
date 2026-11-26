@@ -39,16 +39,38 @@ const worlds=[
 ];
 let world=0,score=0,best=+(localStorage.getItem('noorRunner3DBest')||0),lane=0,jump=0,slide=0,run=false,elapsed=0,spawn=0,speed=8,last=0,items=[];
 $('best').textContent='أفضل: '+best;
-let ground,road,trees=[],decor=[],player=null,mixer=null,runAction=null,modelReady=false;
+let ground,road,trees=[],decor=[],waterMeshes=[],nightLights=[],player=null,mixer=null,runAction=null,modelReady=false;
 function mat(color,roughness=.88){return new THREE.MeshStandardMaterial({color,roughness})}
 function addBox(parent,x,y,z,sx,sy,sz,material){let m=new THREE.Mesh(new THREE.BoxGeometry(sx,sy,sz),material);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m}
 function makeTree(x,z){let g=new THREE.Group();let bark=addBox(g,0,.9,0,.34,1.8,.34,mat(worlds[world].bark));for(let k=0;k<3;k++){let crown=new THREE.Mesh(new THREE.SphereGeometry(.8-k*.1,16,12),mat(worlds[world].leaf));crown.position.set((k-1)*.38,2.05+(k%2)*.35,0);crown.scale.set(1,1.15,1);crown.castShadow=true;g.add(crown)}g.position.set(x,0,z);scene.add(g);trees.push(g)}
-function buildWorld(){scene.background.setHex(worlds[world].sky);scene.fog.color.setHex(worlds[world].sky);
-if(ground)scene.remove(ground);if(road)scene.remove(road);trees.forEach(t=>scene.remove(t));trees=[];
-ground=new THREE.Mesh(new THREE.PlaneGeometry(42,100),mat(worlds[world].ground));ground.rotation.x=-Math.PI/2;ground.position.set(0,-.12,-28);ground.receiveShadow=true;scene.add(ground);
-road=new THREE.Mesh(new THREE.PlaneGeometry(7.4,100),mat(worlds[world].road));road.rotation.x=-Math.PI/2;road.position.set(0,-.045,-28);road.receiveShadow=true;scene.add(road);
-for(let z=-68;z<8;z+=4){for(let side of [-1,1]){let x=side*5.1;makeTree(x,z);}}
-for(let x of [-1.22,1.22]){let line=addBox(scene,x,-.025,-28,.035,.02,100,mat(0xd6c59b));line.castShadow=false}
+function buildWorld(){
+ const night=world===2;
+ scene.background.setHex(night?0x07152d:worlds[world].sky);scene.fog.color.setHex(night?0x101d36:worlds[world].sky);
+ sun.intensity=night?.22:1.35;sun.color.setHex(night?0x91baff:0xffe4bd);
+ if(ground)scene.remove(ground);if(road)scene.remove(road);trees.forEach(t=>scene.remove(t));trees=[];
+ decor.forEach(o=>scene.remove(o));decor=[];waterMeshes=[];nightLights.forEach(o=>scene.remove(o));nightLights=[];
+ ground=new THREE.Mesh(new THREE.PlaneGeometry(48,120),mat(worlds[world].ground));ground.rotation.x=-Math.PI/2;ground.position.set(0,-.12,-30);ground.receiveShadow=true;scene.add(ground);
+ road=new THREE.Mesh(new THREE.PlaneGeometry(7.6,120),new THREE.MeshStandardMaterial({color:worlds[world].road,roughness:.95}));road.rotation.x=-Math.PI/2;road.position.set(0,-.045,-30);road.receiveShadow=true;scene.add(road);
+ for(let z=-72;z<8;z+=4){for(let side of [-1,1])makeTree(side*5.2,z);}
+ for(let x of [-1.25,1.25])for(let z=-84;z<8;z+=7){let line=addBox(scene,x,-.025,z,.04,.02,3.2,mat(night?0x9bc8ff:0xd6c59b));decor.push(line);}
+ // جسر حجري فوق الطريق في عالم الغابة والصحراء
+ if(world!==2){
+  let bridge=new THREE.Group();let stone=mat(world===0?0x777c78:0x9a7953);
+  addBox(bridge,0,4.0,-27,10,.65,1.35,stone);
+  for(let x of [-4.1,4.1])addBox(bridge,x,2.1,-27,1,4.2,1.25,stone);
+  let rail=addBox(bridge,0,4.45,-27,8,.12,1.1,mat(0x4e514e));bridge.position.z=-7;scene.add(bridge);decor.push(bridge);
+  // شلال جانبي ومجرى ماء لامع
+  let stream=new THREE.Mesh(new THREE.PlaneGeometry(2.1,3.8),new THREE.MeshStandardMaterial({color:0x38bde8,transparent:true,opacity:.78,roughness:.16,metalness:.18,side:THREE.DoubleSide}));
+  stream.position.set(-8,2,-24);stream.userData.water=true;scene.add(stream);waterMeshes.push(stream);decor.push(stream);
+  let pool=new THREE.Mesh(new THREE.PlaneGeometry(5,7),new THREE.MeshStandardMaterial({color:0x168dbb,transparent:true,opacity:.76,roughness:.12,metalness:.22}));pool.rotation.x=-Math.PI/2;pool.position.set(-8,.015,-22);pool.userData.water=true;scene.add(pool);waterMeshes.push(pool);decor.push(pool);
+ }
+ // نفق حجري في المدينة بإضاءة زرقاء
+ if(night){
+  let tunnel=new THREE.Group(),stone=mat(0x252f43);
+  addBox(tunnel,-4.2,2.1,0,.65,4.2,1.1,stone);addBox(tunnel,4.2,2.1,0,.65,4.2,1.1,stone);addBox(tunnel,0,4.1,0,8.9,.55,1.1,stone);
+  let inner=addBox(tunnel,0,3.82,.58,7.8,.07,.06,mat(0x263e66));tunnel.position.z=-25;scene.add(tunnel);decor.push(tunnel);
+  for(let z=-38;z<5;z+=12)for(let side of [-1,1]){let lamp=new THREE.PointLight(0x65baff,1.8,9);lamp.position.set(side*3.1,3.25,z);scene.add(lamp);nightLights.push(lamp);let bulb=new THREE.Mesh(new THREE.SphereGeometry(.13,10,8),new THREE.MeshBasicMaterial({color:0x83ceff}));bulb.position.copy(lamp.position);scene.add(bulb);nightLights.push(bulb);}
+ }
 }
 buildWorld();
 function setWorld(n){world=n;buildWorld();$('world').textContent=worlds[world].name;toast('وصلت إلى '+worlds[world].name)}
@@ -68,7 +90,7 @@ function update(dt){if(!run)return;elapsed+=dt;speed=Math.min(17,8+elapsed*.12);
 for(let i=items.length-1;i>=0;i--){let o=items[i];o.z+=speed*dt;o.mesh.position.z=o.z;if(o.type==='star')o.mesh.rotation.z+=dt*2;if(o.z>-.8&&o.z<1&&o.l===lane){if(o.type==='star'){score+=10;scene.remove(o.mesh);items.splice(i,1);$('score').textContent='⭐ '+score}else if((o.type==='block'&&jump<.4)||(o.type==='low'&&slide<.3)){end();return}}}
 items=items.filter(o=>{if(o.z>4){scene.remove(o.mesh);return false}return true});let nw=Math.floor(elapsed/24)%3;if(nw!==world)setWorld(nw);$('level').textContent='المرحلة '+(1+Math.floor(score/100));
 }
-function animate(ts){requestAnimationFrame(animate);let dt=Math.min((ts-last)/1000||0,.04);last=ts;update(dt);if(player){player.position.x+=(lane*1.55-player.position.x)*Math.min(1,dt*9);player.position.y=jump*1.25-(slide>0?.48:0);player.rotation.z+=(0-player.rotation.z)*Math.min(1,dt*8);if(mixer)mixer.update(dt)}camera.position.x+=(lane*.22-camera.position.x)*Math.min(1,dt*2);camera.lookAt(0,1.05,-5);renderer.render(scene,camera)}
+function animate(ts){requestAnimationFrame(animate);let dt=Math.min((ts-last)/1000||0,.04);last=ts;waterMeshes.forEach((w,i)=>{w.material.opacity=.62+Math.sin(ts*.003+i)*.12;w.position.x+=(i===0?Math.sin(ts*.001)*.0008:0)});update(dt);if(player){player.position.x+=(lane*1.55-player.position.x)*Math.min(1,dt*9);player.position.y=jump*1.25-(slide>0?.48:0);player.rotation.z+=(0-player.rotation.z)*Math.min(1,dt*8);if(mixer)mixer.update(dt)}camera.position.x+=(lane*.22-camera.position.x)*Math.min(1,dt*2);camera.lookAt(0,1.05,-5);renderer.render(scene,camera)}
 function resize(){camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.5))}addEventListener('resize',resize);
 $('start').onclick=start;
 let sx=0,sy=0,moved=false;canvas.addEventListener('pointerdown',e=>{sx=e.clientX;sy=e.clientY;moved=false;try{canvas.setPointerCapture(e.pointerId)}catch(_){}});canvas.addEventListener('pointermove',e=>{if(Math.abs(e.clientX-sx)>18||Math.abs(e.clientY-sy)>18)moved=true});canvas.addEventListener('pointerup',e=>{let dx=e.clientX-sx,dy=e.clientY-sy;if(Math.abs(dx)>Math.abs(dy)&&Math.abs(dx)>24)move(dx>0?1:-1);else if(dy>24)doSlide();else if(!moved)doJump();else if(dy< -24)doJump()});
