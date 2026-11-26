@@ -3097,7 +3097,7 @@ public class MainActivity extends Activity {
         final java.util.ArrayList<float[]> shotPath=new java.util.ArrayList<>();
         int current,next,score=0,shots=44;
         int aimHitRow=-1,aimHitCol=-1;
-        boolean finished=false,flying=false;
+        boolean finished=false,flying=false,swappingTouch=false;
         float radius,cellX,cellY,top,shooterY,aimX,aimY,flyX,flyY,flyProgress,screenPulse=0;
         int flyingColor;
         long lastFrame;
@@ -3332,11 +3332,40 @@ public class MainActivity extends Activity {
             invalidate();
         }
         @Override public boolean onTouchEvent(android.view.MotionEvent e){
-            if(e.getAction()==android.view.MotionEvent.ACTION_DOWN||e.getAction()==android.view.MotionEvent.ACTION_MOVE){
-                aimX=Math.max(dp(4),Math.min(getWidth()-dp(4),e.getX()));aimY=Math.min(shooterY-dp(24),e.getY());
-                if(!flying&&!finished){updateAimPath();invalidate();}return true;
+            int action=e.getAction();
+            if(action==android.view.MotionEvent.ACTION_DOWN){
+                // The reserve-bubble panel is a dedicated swap control, never a firing zone.
+                boolean reserveTap=e.getX()>=getWidth()-dp(108)
+                    &&e.getY()>=shooterY-dp(16)&&e.getY()<=shooterY+dp(70);
+                if(reserveTap&&!finished&&!flying){
+                    swappingTouch=true;
+                    int oldCurrent=current;current=next;next=oldCurrent;
+                    performHapticFeedback(android.view.HapticFeedbackConstants.KEYBOARD_TAP);
+                    invalidate();
+                    return true;
+                }
+                swappingTouch=false;
+                aimX=Math.max(dp(4),Math.min(getWidth()-dp(4),e.getX()));
+                aimY=Math.min(shooterY-dp(24),e.getY());
+                if(!flying&&!finished){updateAimPath();invalidate();}
+                return true;
             }
-            if(e.getAction()==android.view.MotionEvent.ACTION_UP){if(!finished&&!flying)shoot();return true;}
+            if(action==android.view.MotionEvent.ACTION_MOVE){
+                if(swappingTouch)return true;
+                aimX=Math.max(dp(4),Math.min(getWidth()-dp(4),e.getX()));
+                aimY=Math.min(shooterY-dp(24),e.getY());
+                if(!flying&&!finished){updateAimPath();invalidate();}
+                return true;
+            }
+            if(action==android.view.MotionEvent.ACTION_UP){
+                if(swappingTouch){swappingTouch=false;return true;}
+                if(!finished&&!flying)shoot();
+                return true;
+            }
+            if(action==android.view.MotionEvent.ACTION_CANCEL){
+                swappingTouch=false;
+                return true;
+            }
             return true;
         }
         @Override protected void onDetachedFromWindow(){gameHandler.removeCallbacks(frameTask);super.onDetachedFromWindow();}
