@@ -24,13 +24,6 @@ jobs:
         with:
           gradle-version: '8.9'
 
-      - name: Download offline 3D game models
-        run: |
-          mkdir -p app/src/main/assets/runner/models
-          curl -L --fail --retry 3 "https://cdn.vibegamer.io/assets/tree-oak-kenney/642578b999/tree-oak-kenney.glb" -o app/src/main/assets/runner/models/tree-oak.glb
-          curl -L --fail --retry 3 "https://cdn.vibegamer.io/assets/crate-kenney/df580ca195/crate-kenney.glb" -o app/src/main/assets/runner/models/crate.glb
-          curl -L --fail --retry 3 "https://cdn.vibegamer.io/assets/coin-gold-kenney/777bae4fb0/coin-gold-kenney.glb" -o app/src/main/assets/runner/models/gold-coin.glb
-
       - name: Build APK
         run: gradle assembleDebug
 
