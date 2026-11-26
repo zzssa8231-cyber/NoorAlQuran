@@ -3262,7 +3262,7 @@ public class MainActivity extends Activity {
             if(shots<=0)finished=true;
             boolean any=false;for(int r=0;r<rows;r++)for(int col=0;col<cols;col++)if(board[r][col]>=0)any=true;
             if(!any)finished=true;
-            invalidate();if(!particles.isEmpty()){lastFrame=0;gameHandler.post(frameTask);}
+            invalidate();
         }
         @Override public boolean onTouchEvent(android.view.MotionEvent e){
             if(e.getAction()==android.view.MotionEvent.ACTION_DOWN||e.getAction()==android.view.MotionEvent.ACTION_MOVE){
