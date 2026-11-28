@@ -3472,12 +3472,31 @@ public class MainActivity extends Activity {
             float[] impact=shotPath.get(shotPath.size()-1);int bestR=-1,bestC=-1;float best=Float.MAX_VALUE;
             // Attach only beside the exact bubble struck by the aiming ray.
             if(aimHitRow>=0&&aimHitCol>=0&&board[aimHitRow][aimHitCol]>=0){
+                int bestGroup=0;
+                // Evaluate every free cell beside the struck bubble. Prefer the cell
+                // that creates the largest connected group of the fired color.
                 for(int k=0;k<6;k++){
                     int[] nb=neighbors(aimHitRow,aimHitCol,k);int rr=nb[0],cc=nb[1];
                     if(!valid(rr,cc)||board[rr][cc]>=0)continue;
+                    board[rr][cc]=flyingColor;
+                    boolean[][] seenTry=new boolean[rows][cols];
+                    java.util.ArrayDeque<int[]> tryQueue=new java.util.ArrayDeque<>();
+                    tryQueue.add(new int[]{rr,cc});seenTry[rr][cc]=true;int groupSize=0;
+                    while(!tryQueue.isEmpty()){
+                        int[] a=tryQueue.remove();groupSize++;
+                        for(int t=0;t<6;t++){
+                            int[] near=neighbors(a[0],a[1],t);int ar=near[0],ac=near[1];
+                            if(valid(ar,ac)&&!seenTry[ar][ac]&&board[ar][ac]==flyingColor){
+                                seenTry[ar][ac]=true;tryQueue.add(new int[]{ar,ac});
+                            }
+                        }
+                    }
+                    board[rr][cc]=-1;
                     float px=bubbleX(rr,cc),py=bubbleY(rr);
                     float d=(px-impact[0])*(px-impact[0])+(py-impact[1])*(py-impact[1]);
-                    if(d<best){best=d;bestR=rr;bestC=cc;}
+                    if(groupSize>bestGroup||(groupSize==bestGroup&&d<best)){
+                        bestGroup=groupSize;best=d;bestR=rr;bestC=cc;
+                    }
                 }
             }else{
                 // If the shot reaches the ceiling without touching a bubble, use only the top row.
