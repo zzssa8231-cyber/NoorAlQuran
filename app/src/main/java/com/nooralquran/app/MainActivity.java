@@ -3322,7 +3322,7 @@ public class MainActivity extends Activity {
         }};
         BubbleShooterView(){super(MainActivity.this);setLayerType(View.LAYER_TYPE_HARDWARE,null);
             for(int r=0;r<rows;r++)for(int c=0;c<cols;c++)board[r][c]=-1;
-            for(int r=0;r<7;r++)for(int c=0;c<cols;c++){if(r>4&&random.nextFloat()<.10f)continue;board[r][c]=random.nextInt(palette.length);}
+            for(int r=0;r<6;r++)for(int c=0;c<cols;c++){if(r>4&&random.nextFloat()<.10f)continue;board[r][c]=random.nextInt(palette.length);}
             current=random.nextInt(palette.length);next=random.nextInt(palette.length);setFocusable(true);
         }
         float dp(float v){return v*getResources().getDisplayMetrics().density;}
@@ -3331,7 +3331,7 @@ public class MainActivity extends Activity {
         float bubbleY(int r){return top+r*cellY;}
         @Override protected void onSizeChanged(int w,int h,int oldw,int oldh){
             radius=Math.min(w/(cols*2.30f),dp(17));cellX=radius*2.02f;cellY=radius*1.78f;
-            top=dp(76);shooterY=h-dp(132);aimX=w/2f;aimY=top+dp(100);
+            top=dp(76);shooterY=h-dp(116);aimX=w/2f;aimY=top+dp(100);
         }
         @Override protected void onDraw(android.graphics.Canvas c){
             super.onDraw(c);
