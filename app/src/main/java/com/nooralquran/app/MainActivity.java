@@ -557,6 +557,58 @@ public class MainActivity extends Activity {
         tile.setOnClickListener(v -> action.run());
     }
 
+    void addHomeFeatureCard(String icon, String title, String subtitle, String actionText,
+                            int fill, int accent, Runnable action) {
+        LinearLayout card = new LinearLayout(this);
+        card.setOrientation(LinearLayout.VERTICAL);
+        card.setGravity(Gravity.CENTER);
+        card.setPadding(dp(18), dp(16), dp(18), dp(16));
+        GradientDrawable bg = new GradientDrawable(GradientDrawable.Orientation.TL_BR,
+            new int[]{fill, Color.rgb(10, 39, 38)});
+        bg.setCornerRadius(dp(22));
+        bg.setStroke(dp(2), accent);
+        card.setBackground(bg);
+        if (android.os.Build.VERSION.SDK_INT >= 21) card.setElevation(dp(5));
+
+        TextView symbol = new TextView(this);
+        symbol.setText(icon);
+        symbol.setTextSize(31);
+        symbol.setGravity(Gravity.CENTER);
+        card.addView(symbol);
+
+        TextView heading = new TextView(this);
+        heading.setText(title);
+        heading.setTextColor(Color.rgb(255, 226, 165));
+        heading.setTextSize(20);
+        heading.setTypeface(null, android.graphics.Typeface.BOLD);
+        heading.setGravity(Gravity.CENTER);
+        heading.setPadding(0, dp(5), 0, dp(4));
+        card.addView(heading);
+
+        TextView detail = new TextView(this);
+        detail.setText(subtitle);
+        detail.setTextColor(Color.WHITE);
+        detail.setTextSize(13);
+        detail.setGravity(Gravity.CENTER);
+        detail.setPadding(dp(4), dp(2), dp(4), dp(9));
+        card.addView(detail);
+
+        TextView actionLabel = new TextView(this);
+        actionLabel.setText("  " + actionText + "  ");
+        actionLabel.setTextColor(Color.rgb(15, 43, 39));
+        actionLabel.setTextSize(14);
+        actionLabel.setTypeface(null, android.graphics.Typeface.BOLD);
+        actionLabel.setGravity(Gravity.CENTER);
+        actionLabel.setPadding(dp(18), dp(8), dp(18), dp(8));
+        actionLabel.setBackground(premiumBackground(accent, accent, 18));
+        card.addView(actionLabel);
+
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, -2);
+        params.setMargins(0, dp(7), 0, dp(7));
+        layout.addView(card, params);
+        card.setOnClickListener(v -> action.run());
+    }
+
     void startHomeClock() {
         if (clockRunnable != null) clockHandler.removeCallbacks(clockRunnable);
         clockRunnable = new Runnable() {
@@ -698,6 +750,14 @@ public class MainActivity extends Activity {
         datePanel.addView(hijriDateView);
         layout.addView(datePanel, dateParams);
         startHomeClock();
+
+        // Three independent featured destinations on the home screen.
+        addHomeFeatureCard("⭐", "نور بلس", "مكتبة تعليمية مميزة للكبار والأطفال • ٣٠٬٠٠٠ د.ع شهرياً",
+            "استكشف المميزات", Color.rgb(91,65,35), Color.rgb(218,184,111), this::showNoorPlus);
+        addHomeFeatureCard("🫧", "لعبة فقاعات الألوان", "لعبة مستقلة • صوّب واجمع الفقاعات المتشابهة",
+            "ابدأ اللعب", Color.rgb(25,65,105), Color.rgb(95,190,245), this::showBubbleShooter);
+        addHomeFeatureCard("🏆", "تحدي اليوم", "خمسة أسئلة قرآنية وثقافية • نقاط وشارات تشجيعية",
+            "ابدأ التحدي", Color.rgb(89,48,70), Color.rgb(245,155,185), () -> showDailyChallengeQuestion(0, 0));
 
         addAdultCard("🌿 ورد اليوم: " + todayArabicName(),
             "دعاء اليوم وزيارته ومناجاته في صفحة واحدة", this::showTodayDevotions);
@@ -1621,8 +1681,8 @@ public class MainActivity extends Activity {
             Color.rgb(205, 235, 255), this::showBubbleShooter);
         addKidsCard("🎓 أكاديمية نور للأطفال", "دروس حروف وتلاوة وألعاب تعليمية مع مسارات نور بلس", "⭐",
             Color.rgb(255, 226, 185), this::showKidsAcademy);
-        addKidsCard("⭐ تحدي اليوم", "قريباً: أسئلة قرآنية ونقاط تشجيعية", "🏆",
-            Color.rgb(255, 225, 218), () -> message("تحدي اليوم قيد التجهيز"));
+        addKidsCard("⭐ تحدي اليوم", "خمسة أسئلة قرآنية وثقافية مع نقاط وشارات", "🏆",
+            Color.rgb(255, 225, 218), () -> showDailyChallengeQuestion(0, 0));
         addText("أحسنت يا بطل! كل خطوة جميلة تقرّبك من الخير 💛", 16,
             Color.rgb(255, 215, 120));
         addButton("العودة للرئيسية", this::home);
@@ -3074,6 +3134,135 @@ public class MainActivity extends Activity {
 
     void message(String value) {
         Toast.makeText(this, value, Toast.LENGTH_LONG).show();
+    }
+
+    void showNoorPlus() {
+        setup();
+        addText("⭐ نور بلس", 30, Color.rgb(255, 224, 157));
+        addText("مساحة تعليمية مميزة للكبار والأطفال", 17, Color.WHITE);
+        addHomeFeatureCard("📖", "للكبار", "تصحيح التلاوة ومخارج الحروف • أحكام التجويد • الحفظ والمراجعة • اختبارات المستوى",
+            "استكشف أكاديمية الكبار", Color.rgb(53,65,53), Color.rgb(218,184,111), this::showAdultsAcademy);
+        addHomeFeatureCard("🌈", "للأطفال", "تعلم الحروف والكتابة • القراءة والتلاوة • أنشطة وألعاب تعليمية متدرجة",
+            "استكشف أكاديمية الأطفال", Color.rgb(49,65,88), Color.rgb(145,190,245), this::showKidsAcademy);
+        addText("السعر المختار: ٣٠٬٠٠٠ دينار عراقي شهرياً", 19, Color.rgb(255, 224, 157));
+        addText("مميزات نور بلس المقترحة: مسارات تعليمية منظمة، تمارين إضافية، متابعة التقدم، اختبارات مراجعة، ومحتوى خاص للأطفال والكبار.", 15, Color.WHITE);
+        addText("تنبيه: الاشتراك والدفع التلقائي وفتح المحتوى بعد الشراء غير مفعّلة في هذه النسخة. يلزم ربط Google Play Billing والتحقق من الشراء قبل تحصيل أي مبلغ أو وعد المستخدم بفتح المزايا.", 13, Color.rgb(255, 190, 170));
+        addButton("العودة إلى الواجهة الرئيسية", this::home);
+    }
+
+    void showDailyChallengeQuestion(int questionIndex, int score) {
+        final String[] questions = {
+            "كم عدد سور القرآن الكريم؟",
+            "ما السورة التي تُسمّى قلب القرآن؟",
+            "في أي شهر نزل القرآن الكريم؟",
+            "ما أطول سورة في القرآن الكريم؟",
+            "كم عدد أركان الإسلام؟",
+            "ما السورة التي لا تبدأ بالبسملة؟",
+            "ما اسم الليلة التي هي خير من ألف شهر؟",
+            "كم عدد أجزاء القرآن الكريم؟",
+            "ما أول سورة في المصحف؟",
+            "ما السورة التي تعدل ثلث القرآن؟",
+            "إلى أي جهة يتجه المسلم في الصلاة؟",
+            "ما اسم أمّ الكتاب؟"
+        };
+        final String[][] options = {
+            {"١١٤","١١٠","١٢٠"},
+            {"يس","الرحمن","الملك"},
+            {"رمضان","شعبان","محرم"},
+            {"البقرة","آل عمران","النساء"},
+            {"خمسة","أربعة","ستة"},
+            {"التوبة","الأنفال","يونس"},
+            {"ليلة القدر","ليلة الإسراء","ليلة الجمعة"},
+            {"٣٠","٢٠","٤٠"},
+            {"الفاتحة","البقرة","الإخلاص"},
+            {"الإخلاص","الفلق","الكوثر"},
+            {"الكعبة المشرفة","المسجد الأقصى","المسجد النبوي"},
+            {"الفاتحة","البقرة","الناس"}
+        };
+        final int[] correct = {0,0,0,0,0,0,0,0,0,0,0,0};
+        final String[] explanations = {
+            "عدد سور القرآن الكريم ١١٤ سورة.",
+            "تُعرف سورة يس بهذا الاسم المشهور.",
+            "نزل القرآن الكريم في شهر رمضان.",
+            "سورة البقرة هي أطول سور القرآن الكريم.",
+            "أركان الإسلام خمسة.",
+            "سورة التوبة لا تبدأ بالبسملة.",
+            "ليلة القدر خير من ألف شهر.",
+            "القرآن الكريم ثلاثون جزءاً.",
+            "سورة الفاتحة هي أول سورة في ترتيب المصحف.",
+            "ورد أن سورة الإخلاص تعدل ثلث القرآن.",
+            "يتجه المسلمون إلى الكعبة المشرفة.",
+            "الفاتحة تُسمّى أمّ الكتاب."
+        };
+        final int total = 5;
+        if (questionIndex >= total) {
+            android.content.SharedPreferences prefs = getSharedPreferences("noor_daily_challenge", MODE_PRIVATE);
+            String today = new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(new Date());
+            int previousBest = prefs.getString("best_date", "").equals(today) ? prefs.getInt("best_score", 0) : 0;
+            int best = Math.max(previousBest, score);
+            prefs.edit().putString("best_date", today).putInt("best_score", best).apply();
+            setup();
+            addText("🏆 اكتمل تحدي اليوم!", 29, Color.rgb(255, 224, 157));
+            addText("نتيجتك: " + toArabicDigits(String.valueOf(score)) + " من ٥٠ نقطة", 22, Color.WHITE);
+            addText(score >= 40 ? "🌟 ممتاز! معرفة رائعة" : score >= 20 ? "👏 أحسنت، واصل التعلم" : "🌱 بداية جميلة، جرّب غداً من جديد", 19, Color.rgb(255, 215, 120));
+            addText("أفضل نتيجة مسجلة لهذا اليوم: " + toArabicDigits(String.valueOf(best)) + " نقطة", 15, Color.WHITE);
+            addText("النقاط والشارات تشجيعية داخل التطبيق فقط، وليست أموالاً أو جوائز نقدية.", 13, Color.rgb(255, 190, 170));
+            addButton("العودة للرئيسية", this::home);
+            addButton("إعادة التحدي للتدريب دون احتساب نتيجة جديدة", () -> showDailyChallengeQuestion(0, 0));
+            return;
+        }
+        int dayOffset = Calendar.getInstance().get(Calendar.DAY_OF_YEAR) % questions.length;
+        int q = (dayOffset + questionIndex) % questions.length;
+        setup();
+        addText("🏆 تحدي اليوم", 29, Color.rgb(255, 224, 157));
+        addText("السؤال " + toArabicDigits(String.valueOf(questionIndex + 1)) + " من " + toArabicDigits(String.valueOf(total)), 17, Color.WHITE);
+        TextView progress = new TextView(this);
+        progress.setText("⭐ نقاطك الحالية: " + toArabicDigits(String.valueOf(score)));
+        progress.setTextColor(Color.rgb(255, 224, 157));
+        progress.setTextSize(16);
+        progress.setGravity(Gravity.CENTER);
+        progress.setPadding(dp(8), dp(8), dp(8), dp(12));
+        layout.addView(progress);
+        addText(questions[q], 22, Color.WHITE);
+        final boolean[] answered = {false};
+        final TextView feedback = new TextView(this);
+        feedback.setText("");
+        feedback.setTextColor(Color.WHITE);
+        feedback.setTextSize(15);
+        feedback.setGravity(Gravity.CENTER);
+        feedback.setPadding(dp(8), dp(12), dp(8), dp(12));
+        for (int i = 0; i < options[q].length; i++) {
+            final int choice = i;
+            Button answer = new Button(this);
+            answer.setText(options[q][i]);
+            answer.setAllCaps(false);
+            answer.setTextSize(17);
+            answer.setTextColor(Color.WHITE);
+            answer.setBackground(premiumBackground(Color.rgb(20, 75, 64), Color.rgb(218, 184, 111), 16));
+            LinearLayout.LayoutParams answerParams = new LinearLayout.LayoutParams(-1, -2);
+            answerParams.setMargins(0, dp(5), 0, dp(5));
+            layout.addView(answer, answerParams);
+            answer.setOnClickListener(v -> {
+                if (answered[0]) return;
+                answered[0] = true;
+                boolean right = choice == correct[q];
+                int newScore = score + (right ? 10 : 0);
+                answer.setBackground(premiumBackground(right ? Color.rgb(31, 112, 70) : Color.rgb(130, 53, 53),
+                    right ? Color.rgb(145, 230, 170) : Color.rgb(255, 160, 150), 16));
+                for (int j = 0; j < layout.getChildCount(); j++) {
+                    View child = layout.getChildAt(j);
+                    if (child instanceof Button) child.setEnabled(false);
+                }
+                feedback.setText((right ? "✓ إجابة صحيحة! +١٠ نقاط\n" : "✕ ليست الإجابة الصحيحة\n")
+                    + explanations[q]);
+                feedback.setTextColor(right ? Color.rgb(160, 245, 180) : Color.rgb(255, 205, 180));
+                layout.addView(feedback);
+                addButton(questionIndex == total - 1 ? "عرض النتيجة" : "السؤال التالي ←",
+                    () -> showDailyChallengeQuestion(questionIndex + 1, newScore));
+            });
+        }
+        addText("كل إجابة صحيحة = ١٠ نقاط • مجموع التحدي ٥٠ نقطة", 13, Color.rgb(255, 224, 157));
+        addButton("إلغاء والعودة للرئيسية", this::home);
     }
 
     void showBubbleShooter() {
