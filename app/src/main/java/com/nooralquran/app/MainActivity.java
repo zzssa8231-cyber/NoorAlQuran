@@ -3296,9 +3296,9 @@ public class MainActivity extends Activity {
             Particle(float x,float y,int color,float power) {
                 this.x=x;this.y=y;this.color=color;
                 double a=random.nextDouble()*Math.PI*2;
-                float speed=dp(1.8f+random.nextFloat()*4.8f)*power;
+                float speed=dp(1.5f+random.nextFloat()*3.8f)*power;
                 vx=(float)Math.cos(a)*speed;vy=(float)Math.sin(a)*speed;
-                size=dp(2.2f+random.nextFloat()*4.8f);life=1f;
+                size=dp(1.6f+random.nextFloat()*3.2f);life=1f;
             }
         }
         final class SpecialFx {
@@ -3311,7 +3311,7 @@ public class MainActivity extends Activity {
             boolean active=false;
             if(flying){
                 if(((int)(flyProgress*100))%2==0)particles.add(new Particle(flyX,flyY,palette[flyingColor],.30f));
-                flyProgress=Math.min(1f,flyProgress+dt*.17f);
+                flyProgress=Math.min(1f,flyProgress+dt*.23f);
                 float distance=pathLength(shotPath)*flyProgress;
                 float[] point=pointAtDistance(shotPath,distance);
                 flyX=point[0];flyY=point[1];active=true;
@@ -3341,7 +3341,7 @@ public class MainActivity extends Activity {
         float bubbleX(int r,int c){return startX()+c*cellX+(r%2==1?radius:0);}
         float bubbleY(int r){return top+r*cellY;}
         @Override protected void onSizeChanged(int w,int h,int oldw,int oldh){
-            radius=Math.min(w/(cols*2.30f),dp(17));cellX=radius*2.02f;cellY=radius*1.78f;
+            radius=Math.min(w/(cols*2.42f),dp(14));cellX=radius*2.04f;cellY=radius*1.80f;
             top=dp(76);shooterY=h-dp(116);aimX=w/2f;aimY=top+dp(100);
         }
         @Override protected void onDraw(android.graphics.Canvas c){
@@ -3369,7 +3369,7 @@ public class MainActivity extends Activity {
             if(!flying&&!finished){
                 updateAimPath();
                 // A luminous dotted trajectory, with a soft glow around every guide point.
-                for(int i=2;i<shotPath.size();i+=3){
+                for(int i=2;i<shotPath.size();i+=4){
                     float[] dot=shotPath.get(i);
                     float fade=1f-(float)i/Math.max(1,shotPath.size());
                     p.setColor(((int)(105*fade+35)<<24)|0x00B9F5FF);
@@ -3397,13 +3397,24 @@ public class MainActivity extends Activity {
                 p.setColor(0x99FFFFFF);c.drawCircle(flyX,flyY,radius*1.22f,p);
                 drawBubble(c,flyX,flyY,radius*1.1f,palette[flyingColor]);
             }
-            // cannon pedestal and barrel
-            p.setShader(new android.graphics.LinearGradient(w*.35f,shooterY,w*.65f,h,new int[]{0xFF8DEBFF,0xFF2465B8,0xFF102B60},null,android.graphics.Shader.TileMode.CLAMP));
-            c.drawRoundRect(w/2f-dp(27),shooterY+dp(13),w/2f+dp(27),shooterY+dp(47),dp(13),dp(13),p);p.setShader(null);
-            p.setShader(new android.graphics.LinearGradient(w/2f-dp(14),shooterY-dp(14),w/2f+dp(14),shooterY+dp(25),new int[]{0xFFEAFBFF,0xFF3D91D8,0xFF174477},null,android.graphics.Shader.TileMode.CLAMP));
-            c.drawRoundRect(w/2f-dp(15),shooterY-dp(23),w/2f+dp(15),shooterY+dp(24),dp(14),dp(14),p);p.setShader(null);
-            p.setColor(0xFFBCEFFF);p.setStyle(android.graphics.Paint.Style.STROKE);p.setStrokeWidth(dp(2));c.drawCircle(w/2f,shooterY-dp(20),dp(14),p);p.setStyle(android.graphics.Paint.Style.FILL);
-            if(!flying)drawBubble(c,w/2f,shooterY-dp(20),radius*.77f,palette[current]);
+            // Premium launcher platform: luminous base, metallic turret and energy rings.
+            p.setColor(0x4436DFFF);c.drawOval(w/2f-dp(63),shooterY+dp(25),w/2f+dp(63),shooterY+dp(59),p);
+            p.setShader(new android.graphics.LinearGradient(w/2f-dp(58),shooterY+dp(18),w/2f+dp(58),shooterY+dp(55),new int[]{0xFFB7F7FF,0xFF287DC8,0xFF102A59},null,android.graphics.Shader.TileMode.CLAMP));
+            c.drawRoundRect(w/2f-dp(58),shooterY+dp(20),w/2f+dp(58),shooterY+dp(49),dp(15),dp(15),p);p.setShader(null);
+            p.setColor(0xFF8CEBFF);p.setStyle(android.graphics.Paint.Style.STROKE);p.setStrokeWidth(dp(2));
+            c.drawRoundRect(w/2f-dp(49),shooterY+dp(24),w/2f+dp(49),shooterY+dp(44),dp(10),dp(10),p);
+            p.setStyle(android.graphics.Paint.Style.FILL);
+            for(int side=-1;side<=1;side+=2){
+                p.setColor(0xFF43E9FF);c.drawCircle(w/2f+side*dp(43),shooterY+dp(33),dp(3.2f),p);
+                p.setColor(0xFFFFD56A);c.drawCircle(w/2f+side*dp(43),shooterY+dp(33),dp(1.2f),p);
+            }
+            p.setShader(new android.graphics.LinearGradient(w/2f-dp(27),shooterY,w/2f+dp(27),shooterY+dp(36),new int[]{0xFF8DEBFF,0xFF2465B8,0xFF102B60},null,android.graphics.Shader.TileMode.CLAMP));
+            c.drawRoundRect(w/2f-dp(27),shooterY+dp(5),w/2f+dp(27),shooterY+dp(37),dp(13),dp(13),p);p.setShader(null);
+            p.setShader(new android.graphics.LinearGradient(w/2f-dp(14),shooterY-dp(29),w/2f+dp(14),shooterY+dp(25),new int[]{0xFFEAFBFF,0xFF3D91D8,0xFF174477},null,android.graphics.Shader.TileMode.CLAMP));
+            c.drawRoundRect(w/2f-dp(15),shooterY-dp(25),w/2f+dp(15),shooterY+dp(22),dp(14),dp(14),p);p.setShader(null);
+            p.setColor(0xFFBCEFFF);p.setStyle(android.graphics.Paint.Style.STROKE);p.setStrokeWidth(dp(2.4f));c.drawCircle(w/2f,shooterY-dp(21),dp(14),p);
+            p.setColor(0x667BEAFF);p.setStrokeWidth(dp(1));c.drawCircle(w/2f,shooterY-dp(21),dp(19),p);p.setStyle(android.graphics.Paint.Style.FILL);
+            if(!flying)drawBubble(c,w/2f,shooterY-dp(21),radius*.77f,palette[current]);
             // next bubble panel
             p.setShader(new android.graphics.LinearGradient(w-dp(92),shooterY-dp(4),w-dp(36),shooterY+dp(55),new int[]{0xDD24558C,0xDD102A52},null,android.graphics.Shader.TileMode.CLAMP));
             c.drawRoundRect(w-dp(99),shooterY-dp(8),w-dp(22),shooterY+dp(62),dp(17),dp(17),p);p.setShader(null);
@@ -3470,8 +3481,8 @@ public class MainActivity extends Activity {
             float dx=aimX-sx,dy=aimY-sy;
             if(dy> -dp(24))dy=-dp(24);
             float len=(float)Math.hypot(dx,dy);if(len<1)len=1;dx/=len;dy/=len;
-            float x=sx,y=sy,step=Math.max(dp(3),radius*.22f);shotPath.add(new float[]{x,y});
-            for(int n=0;n<1800;n++){
+            float x=sx,y=sy,step=Math.max(dp(4),radius*.34f);shotPath.add(new float[]{x,y});
+            for(int n=0;n<950;n++){
                 x+=dx*step;y+=dy*step;
                 if(x<radius){x=radius+(radius-x);dx=Math.abs(dx);}
                 if(x>getWidth()-radius){x=(getWidth()-radius)-(x-(getWidth()-radius));dx=-Math.abs(dx);}
@@ -3555,9 +3566,9 @@ public class MainActivity extends Activity {
                 burstX/=group.size();burstY/=group.size();
                 specialFx.add(new SpecialFx(burstX,burstY,0));
                 specialFx.add(new SpecialFx(burstX,shooterY-dp(28),1));
-                for(int k=0;k<32;k++)particles.add(new Particle(burstX,burstY,k%3==0?0xFFFFC247:(k%3==1?0xFFFF6238:0xFFFFFFFF),1.8f));
+                for(int k=0;k<18;k++)particles.add(new Particle(burstX,burstY,k%3==0?0xFFFFC247:(k%3==1?0xFFFF6238:0xFFFFFFFF),1.55f));
                 for(int[] a:group){float x=bubbleX(a[0],a[1]),y=bubbleY(a[0]);
-                    for(int k=0;k<24;k++)particles.add(new Particle(x,y,palette[flyingColor],1.45f));
+                    for(int k=0;k<10;k++)particles.add(new Particle(x,y,palette[flyingColor],1.20f));
                     board[a[0]][a[1]]=-1;
                 }
                 score+=group.size()*10;screenPulse=1f;
