@@ -3397,29 +3397,43 @@ public class MainActivity extends Activity {
                 p.setColor(0x99FFFFFF);c.drawCircle(flyX,flyY,radius*1.22f,p);
                 drawBubble(c,flyX,flyY,radius*1.1f,palette[flyingColor]);
             }
-            // Premium launcher platform: luminous base, metallic turret and energy rings.
-            p.setColor(0x4436DFFF);c.drawOval(w/2f-dp(63),shooterY+dp(25),w/2f+dp(63),shooterY+dp(59),p);
-            p.setShader(new android.graphics.LinearGradient(w/2f-dp(58),shooterY+dp(18),w/2f+dp(58),shooterY+dp(55),new int[]{0xFFB7F7FF,0xFF287DC8,0xFF102A59},null,android.graphics.Shader.TileMode.CLAMP));
-            c.drawRoundRect(w/2f-dp(58),shooterY+dp(20),w/2f+dp(58),shooterY+dp(49),dp(15),dp(15),p);p.setShader(null);
-            p.setColor(0xFF8CEBFF);p.setStyle(android.graphics.Paint.Style.STROKE);p.setStrokeWidth(dp(2));
-            c.drawRoundRect(w/2f-dp(49),shooterY+dp(24),w/2f+dp(49),shooterY+dp(44),dp(10),dp(10),p);
+            // Ornate jewel launcher: layered gold trim, engraved rails and easy-to-see firing socket.
+            p.setColor(0x5547DFFF);c.drawOval(w/2f-dp(68),shooterY+dp(24),w/2f+dp(68),shooterY+dp(62),p);
+            p.setShader(new android.graphics.LinearGradient(w/2f-dp(62),shooterY+dp(16),w/2f+dp(62),shooterY+dp(56),new int[]{0xFFFFE7A0,0xFF9B5B18,0xFF321B42},null,android.graphics.Shader.TileMode.CLAMP));
+            c.drawRoundRect(w/2f-dp(62),shooterY+dp(17),w/2f+dp(62),shooterY+dp(52),dp(17),dp(17),p);p.setShader(null);
+            p.setColor(0xFFFFD878);p.setStyle(android.graphics.Paint.Style.STROKE);p.setStrokeWidth(dp(2.2f));
+            c.drawRoundRect(w/2f-dp(55),shooterY+dp(21),w/2f+dp(55),shooterY+dp(48),dp(13),dp(13),p);
+            p.setColor(0xFF542B59);p.setStrokeWidth(dp(1));c.drawRoundRect(w/2f-dp(47),shooterY+dp(25),w/2f+dp(47),shooterY+dp(44),dp(9),dp(9),p);
             p.setStyle(android.graphics.Paint.Style.FILL);
             for(int side=-1;side<=1;side+=2){
-                p.setColor(0xFF43E9FF);c.drawCircle(w/2f+side*dp(43),shooterY+dp(33),dp(3.2f),p);
-                p.setColor(0xFFFFD56A);c.drawCircle(w/2f+side*dp(43),shooterY+dp(33),dp(1.2f),p);
+                float gx=w/2f+side*dp(47);
+                p.setColor(0xFFFFD978);c.drawCircle(gx,shooterY+dp(34),dp(5),p);
+                p.setColor(0xFF56F1F4);c.drawCircle(gx,shooterY+dp(34),dp(2.7f),p);
+                p.setColor(0xFFFFF0B0);c.drawCircle(gx-dp(1),shooterY+dp(32),dp(1),p);
             }
-            p.setShader(new android.graphics.LinearGradient(w/2f-dp(27),shooterY,w/2f+dp(27),shooterY+dp(36),new int[]{0xFF8DEBFF,0xFF2465B8,0xFF102B60},null,android.graphics.Shader.TileMode.CLAMP));
-            c.drawRoundRect(w/2f-dp(27),shooterY+dp(5),w/2f+dp(27),shooterY+dp(37),dp(13),dp(13),p);p.setShader(null);
-            p.setShader(new android.graphics.LinearGradient(w/2f-dp(14),shooterY-dp(29),w/2f+dp(14),shooterY+dp(25),new int[]{0xFFEAFBFF,0xFF3D91D8,0xFF174477},null,android.graphics.Shader.TileMode.CLAMP));
-            c.drawRoundRect(w/2f-dp(15),shooterY-dp(25),w/2f+dp(15),shooterY+dp(22),dp(14),dp(14),p);p.setShader(null);
-            p.setColor(0xFFBCEFFF);p.setStyle(android.graphics.Paint.Style.STROKE);p.setStrokeWidth(dp(2.4f));c.drawCircle(w/2f,shooterY-dp(21),dp(14),p);
-            p.setColor(0x667BEAFF);p.setStrokeWidth(dp(1));c.drawCircle(w/2f,shooterY-dp(21),dp(19),p);p.setStyle(android.graphics.Paint.Style.FILL);
+            p.setShader(new android.graphics.LinearGradient(w/2f-dp(29),shooterY,w/2f+dp(29),shooterY+dp(39),new int[]{0xFFFFE9A8,0xFF9C5C9C,0xFF321D57},null,android.graphics.Shader.TileMode.CLAMP));
+            c.drawRoundRect(w/2f-dp(29),shooterY+dp(5),w/2f+dp(29),shooterY+dp(39),dp(14),dp(14),p);p.setShader(null);
+            p.setColor(0xFFFFD878);p.setStyle(android.graphics.Paint.Style.STROKE);p.setStrokeWidth(dp(2));
+            c.drawRoundRect(w/2f-dp(24),shooterY+dp(10),w/2f+dp(24),shooterY+dp(34),dp(10),dp(10),p);p.setStyle(android.graphics.Paint.Style.FILL);
+            p.setShader(new android.graphics.LinearGradient(w/2f-dp(16),shooterY-dp(31),w/2f+dp(16),shooterY+dp(24),new int[]{0xFFFFF2C4,0xFFB477B9,0xFF35205D},null,android.graphics.Shader.TileMode.CLAMP));
+            c.drawRoundRect(w/2f-dp(17),shooterY-dp(27),w/2f+dp(17),shooterY+dp(23),dp(15),dp(15),p);p.setShader(null);
+            p.setColor(0xFFFFE5A0);p.setStyle(android.graphics.Paint.Style.STROKE);p.setStrokeWidth(dp(2.8f));c.drawCircle(w/2f,shooterY-dp(21),dp(15),p);
+            p.setColor(0xFF69F5F2);p.setStrokeWidth(dp(1.3f));c.drawCircle(w/2f,shooterY-dp(21),dp(19),p);p.setStyle(android.graphics.Paint.Style.FILL);
             if(!flying)drawBubble(c,w/2f,shooterY-dp(21),radius*.77f,palette[current]);
-            // next bubble panel
-            p.setShader(new android.graphics.LinearGradient(w-dp(92),shooterY-dp(4),w-dp(36),shooterY+dp(55),new int[]{0xDD24558C,0xDD102A52},null,android.graphics.Shader.TileMode.CLAMP));
-            c.drawRoundRect(w-dp(99),shooterY-dp(8),w-dp(22),shooterY+dp(62),dp(17),dp(17),p);p.setShader(null);
+            // Decorated swap pedestal: gold frame and bright jewel; tapping here only swaps bubbles.
+            p.setShader(new android.graphics.LinearGradient(w-dp(100),shooterY-dp(10),w-dp(20),shooterY+dp(66),new int[]{0xFFF7D98B,0xFF89502E,0xFF35204F},null,android.graphics.Shader.TileMode.CLAMP));
+            c.drawRoundRect(w-dp(101),shooterY-dp(10),w-dp(20),shooterY+dp(64),dp(19),dp(19),p);p.setShader(null);
+            p.setColor(0xFFFFE6A2);p.setStyle(android.graphics.Paint.Style.STROKE);p.setStrokeWidth(dp(1.8f));
+            c.drawRoundRect(w-dp(96),shooterY-dp(5),w-dp(25),shooterY+dp(59),dp(15),dp(15),p);
+            p.setColor(0xFF261B48);p.setStyle(android.graphics.Paint.Style.FILL);
+            c.drawRoundRect(w-dp(90),shooterY+dp(1),w-dp(31),shooterY+dp(43),dp(12),dp(12),p);
+            p.setColor(0xFFFFD978);p.setStyle(android.graphics.Paint.Style.STROKE);p.setStrokeWidth(dp(1.2f));
+            c.drawCircle(w-dp(60),shooterY+dp(20),dp(22),p);p.setStyle(android.graphics.Paint.Style.FILL);
             drawBubble(c,w-dp(60),shooterY+dp(19),radius*.56f,palette[next]);
-            p.setTextSize(dp(10));p.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);p.setColor(0xFFC7E9FF);p.setTextAlign(android.graphics.Paint.Align.CENTER);c.drawText("التالي",w-dp(60),shooterY+dp(51),p);p.setTextAlign(android.graphics.Paint.Align.LEFT);
+            p.setColor(0xFFFFE7A8);p.setStyle(android.graphics.Paint.Style.STROKE);p.setStrokeWidth(dp(1));
+            c.drawCircle(w-dp(60),shooterY+dp(19),radius*.69f,p);p.setStyle(android.graphics.Paint.Style.FILL);
+            p.setColor(0xFFFFD878);c.drawCircle(w-dp(60),shooterY-dp(1),dp(2.2f),p);
+            p.setTextSize(dp(10));p.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);p.setColor(0xFFFFE9B5);p.setTextAlign(android.graphics.Paint.Align.CENTER);c.drawText("تبديل",w-dp(60),shooterY+dp(55),p);p.setTextAlign(android.graphics.Paint.Align.LEFT);
             // particles and impact glow
             for(Particle a:particles){int alpha=Math.max(0,Math.min(255,(int)(255*a.life)));p.setColor((alpha<<24)|(a.color&0x00FFFFFF));c.drawCircle(a.x,a.y,a.size*a.life,p);}
             // Animated bomb shockwaves and rockets after every successful match.
