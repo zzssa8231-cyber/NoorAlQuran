@@ -3620,8 +3620,8 @@ public class MainActivity extends Activity {
             if(action==android.view.MotionEvent.ACTION_UP){
                 if(swappingTouch){swappingTouch=false;return true;}
                 if(!finished&&!flying){
-                    aimX=Math.max(dp(4),Math.min(getWidth()-dp(4),x));
-                    aimY=Math.min(shooterY-dp(24),y);
+                    aimX=Math.max(dp(4),Math.min(getWidth()-dp(4),e.getX()));
+                    aimY=Math.min(shooterY-dp(24),e.getY());
                     updateAimPath();shoot();
                 }
                 return true;
